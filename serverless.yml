@@ -1,0 +1,39 @@
+service: organ-brief-optimization
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: ap-northeast-1
+  stage: ${opt:stage, 'dev'}
+  environment:
+    STAGE: ${self:provider.stage}
+    BEDROCK_REGION: ap-northeast-1
+    CLAUDE_MODEL_ID: anthropic.claude-3-5-sonnet-20240620-v1:0
+  
+  ecr:
+    images:
+      optimizationImg:
+        path: ./src/functions
+        file: Dockerfile.${self:provider.stage}
+        buildArgs:
+          STAGE: ${self:provider.stage}
+  
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - bedrock:InvokeModel
+      Resource: "arn:aws:bedrock:${self:provider.region}::foundation-model/anthropic.claude-*"
+
+functions:
+  optimizeOrganBrief:
+    image: 
+      name: optimizationImg
+    memorySize: 1024
+    timeout: 60
+    events:
+      - alb:
+          listenerArn: arn:aws:elasticloadbalancing:ap-northeast-1:132815414471:listener/app/1111datascience-aloadbalancer/41580228b8eab2ba/b4273c29616b5962
+          priority: 99
+          targetGroupName: ${self:service}-${self:provider.stage}
+          conditions:
+            path: /optimize_organ_brief

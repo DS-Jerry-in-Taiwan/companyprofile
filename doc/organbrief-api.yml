@@ -66,6 +66,10 @@ components:
           type: integer
           description: 公司編號
           example: 69191119
+        organ:
+          type: string
+          description: 公司名稱
+          example: "德義資訊股份有限公司"
         brief:
           type: string
           description: 原始公司描述文字
@@ -99,6 +103,10 @@ components:
           type: integer
           description: 公司編號
           example: 69191119
+        organ:
+          type: string
+          description: 公司名稱
+          example: "德義資訊股份有限公司"
         brief:
           type: string
           description: 原始公司描述文字
