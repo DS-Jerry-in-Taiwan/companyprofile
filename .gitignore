@@ -44,3 +44,5 @@ coverage/
 
 # Legacy local folders
 **/youcheng_test/
+
+data/review_queue/
