@@ -75,10 +75,11 @@ def scan(text: str, sensitive_patterns, competitor_patterns):
     matched_sensitive = []
     matched_competitor = []
     for kw, pat in sensitive_patterns:
-        if pat.search(n):
+        # For CJK and other scripts where word-boundary may fail, also check substring
+        if pat.search(n) or normalize(kw) in n:
             matched_sensitive.append(kw)
     for kw, pat in competitor_patterns:
-        if pat.search(n):
+        if pat.search(n) or normalize(kw) in n:
             matched_competitor.append(kw)
     return matched_sensitive, matched_competitor
 
