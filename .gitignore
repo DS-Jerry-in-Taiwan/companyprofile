@@ -46,3 +46,9 @@ coverage/
 **/youcheng_test/
 
 data/review_queue/
+
+# Test results and outputs
+outputs/
+data/test_samples/*.json
+!data/test_samples/sample_template.json
+tmp/
