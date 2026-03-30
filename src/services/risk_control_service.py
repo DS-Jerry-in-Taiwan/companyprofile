@@ -14,6 +14,10 @@ from src.schemas.risk_models import SanitizedContent, RiskLevel, RiskStatus
 from src.services.risk_scanner import DEFAULT_SCANNER
 from src.services.html_sanitizer import sanitize as sanitize_html
 from src.utils.token_manager import TokenManager
+from src.utils.audit_logger import log_event
+from pathlib import Path
+import uuid
+import json
 
 
 class RiskControlService:
@@ -105,5 +109,43 @@ class RiskControlService:
             )
         except ValidationError as exc:
             raise
+
+        # Audit logging
+        event = {
+            "event_id": str(uuid.uuid4()),
+            "decision": risk_status.value,
+            "risk_level": risk_level.value,
+            "matched_keywords": matched_keywords,
+            "title": title,
+        }
+        try:
+            log_event(event)
+        except Exception:
+            # do not fail pipeline on logging error
+            pass
+
+        # If pending, write masked content to a simple review queue (filesystem)
+        if risk_status == RiskStatus.PENDING:
+            queue_dir = Path("data") / "review_queue"
+            queue_dir.mkdir(parents=True, exist_ok=True)
+            review_id = event["event_id"]
+            review_path = queue_dir / f"{review_id}.json"
+            try:
+                with open(review_path, "w", encoding="utf-8") as fh:
+                    json.dump(
+                        {
+                            "id": review_id,
+                            "title": title,
+                            "body_html": body_html,
+                            "summary": summary,
+                            "matched_keywords": matched_keywords,
+                            "decision": risk_status.value,
+                        },
+                        fh,
+                        ensure_ascii=False,
+                        indent=2,
+                    )
+            except Exception:
+                pass
 
         return sanitized
