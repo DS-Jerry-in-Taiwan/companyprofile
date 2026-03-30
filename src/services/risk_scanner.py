@@ -11,7 +11,8 @@ import re
 from pathlib import Path
 from typing import List, Tuple
 
-CONFIG_DIR = Path(__file__).resolve().parents[1] / ".." / "config" / "risk_control"
+from src.utils.text_normalizer import normalize_text
+
 CONFIG_DIR = Path(__file__).resolve().parents[2] / "config" / "risk_control"
 
 
@@ -21,36 +22,51 @@ def _load_json(path: Path) -> List[str]:
 
 
 class RiskScanner:
-    """Loads patterns from config and scans text for matches."""
+    """Loads patterns from config and scans text for matches.
+
+    This scanner normalizes both the configured keywords and the input text
+    using a shared normalization function to improve robustness against
+    common obfuscation techniques.
+    """
 
     def __init__(self) -> None:
         base = CONFIG_DIR
         self.sensitive = _load_json(base / "sensitive_keywords.json")
         self.competitor = _load_json(base / "competitor_names.json")
 
-        # compile simple word/substring patterns (escape special chars)
+        # normalize keywords for matching
+        self._sensitive_norm = [normalize_text(s) for s in self.sensitive]
+        self._competitor_norm = [normalize_text(c) for c in self.competitor]
+
+        # compile simple substring patterns on normalized tokens
         self._sensitive_patterns = [
-            re.compile(re.escape(s), re.IGNORECASE) for s in self.sensitive
+            re.compile(re.escape(s)) for s in self._sensitive_norm
         ]
         self._competitor_patterns = [
-            re.compile(re.escape(c), re.IGNORECASE) for c in self.competitor
+            re.compile(re.escape(c)) for c in self._competitor_norm
         ]
 
     def scan_text(self, raw_text: str) -> Tuple[List[str], List[str]]:
-        """Return (matched_sensitive, matched_competitor) lists found in raw_text."""
+        """Return (matched_sensitive, matched_competitor) lists found in raw_text.
+
+        Matching is performed on normalized text and returns the original
+        configured tokens that matched.
+        """
         if not raw_text:
             return [], []
+
+        n = normalize_text(raw_text)
 
         matched_sensitive = set()
         matched_competitor = set()
 
-        for pat, token in zip(self._sensitive_patterns, self.sensitive):
-            if pat.search(raw_text):
-                matched_sensitive.add(token)
+        for norm_pat, orig_token in zip(self._sensitive_patterns, self.sensitive):
+            if norm_pat.search(n):
+                matched_sensitive.add(orig_token)
 
-        for pat, token in zip(self._competitor_patterns, self.competitor):
-            if pat.search(raw_text):
-                matched_competitor.add(token)
+        for norm_pat, orig_token in zip(self._competitor_patterns, self.competitor):
+            if norm_pat.search(n):
+                matched_competitor.add(orig_token)
 
         return sorted(matched_sensitive), sorted(matched_competitor)
 

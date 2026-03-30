@@ -15,24 +15,25 @@ def test_obfuscated_competitor_1O4():
     svc = RiskControlService()
     txt = _read("obf_competitor_1O4.txt")
     out = svc.scan_and_decide(txt)
-    # current scanner uses exact patterns; '1O4' uses letter O so expected: no match
-    assert out.risk_status == RiskStatus.APPROVED
+    # With normalizer, '1O4' should normalize to '104' and be detected
+    assert out.risk_status == RiskStatus.PENDING
 
 
 def test_fullwidth_linkedin():
     svc = RiskControlService()
     txt = _read("fullwidth_linkedin.txt")
     out = svc.scan_and_decide(txt)
-    # fullwidth characters are not normalized to ASCII -> expect no match
-    assert out.risk_status == RiskStatus.APPROVED
+    # fullwidth characters should be normalized to ASCII and detected
+    assert out.risk_status == RiskStatus.PENDING
 
 
 def test_zero_width_sensitive():
     svc = RiskControlService()
     txt = _read("zero_width_sensitive.txt")
     out = svc.scan_and_decide(txt)
-    # zero-width char inserted should evade naive matching -> expect APPROVED
-    assert out.risk_status == RiskStatus.APPROVED
+    # zero-width insertion should be removed by normalizer and detected
+    # depending on keyword severity this may be PENDING or REJECTED
+    assert out.risk_status in (RiskStatus.PENDING, RiskStatus.REJECTED)
 
 
 def test_xss_obfuscated_sanitized():
