@@ -1,0 +1,10 @@
+{
+  "sample_id": "sample-10",
+  "company_name": "ACME 公司 10",
+  "industry": "產業類別10",
+  "description": "這是第 10 家示範公司，專注於創新服務，致力於不同產業領域。",
+  "products_services": "服務10, 產品10",
+  "company_size": "中型",
+  "founded_year": "2010",
+  "seed_query": "ACME 公司 10 公司簡介"
+}
