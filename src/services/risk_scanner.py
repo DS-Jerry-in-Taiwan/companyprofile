@@ -11,7 +11,7 @@ import re
 from pathlib import Path
 from typing import List, Tuple
 
-from src.utils.text_normalizer import normalize_text
+from src.utils.text_normalizer import normalize_text, normalize_alnum
 
 CONFIG_DIR = Path(__file__).resolve().parents[2] / "config" / "risk_control"
 
@@ -38,12 +38,24 @@ class RiskScanner:
         self._sensitive_norm = [normalize_text(s) for s in self.sensitive]
         self._competitor_norm = [normalize_text(c) for c in self.competitor]
 
+        # also prepare alnum-only normalized tokens for obfuscation matching
+        self._sensitive_alnum = [normalize_alnum(s) for s in self.sensitive]
+        self._competitor_alnum = [normalize_alnum(c) for c in self.competitor]
+
         # compile simple substring patterns on normalized tokens
         self._sensitive_patterns = [
             re.compile(re.escape(s)) for s in self._sensitive_norm
         ]
         self._competitor_patterns = [
             re.compile(re.escape(c)) for c in self._competitor_norm
+        ]
+
+        # compile patterns for alnum-only normalized tokens
+        self._sensitive_alnum_patterns = [
+            re.compile(re.escape(s)) for s in self._sensitive_alnum
+        ]
+        self._competitor_alnum_patterns = [
+            re.compile(re.escape(c)) for c in self._competitor_alnum
         ]
 
     def scan_text(self, raw_text: str) -> Tuple[List[str], List[str]]:
@@ -64,8 +76,18 @@ class RiskScanner:
             if norm_pat.search(n):
                 matched_sensitive.add(orig_token)
 
+        # also check alnum-only normalized string to catch obfuscated tokens
+        n_alnum = normalize_alnum(raw_text)
+        for pat, orig_token in zip(self._sensitive_alnum_patterns, self.sensitive):
+            if pat.search(n_alnum):
+                matched_sensitive.add(orig_token)
+
         for norm_pat, orig_token in zip(self._competitor_patterns, self.competitor):
             if norm_pat.search(n):
+                matched_competitor.add(orig_token)
+
+        for pat, orig_token in zip(self._competitor_alnum_patterns, self.competitor):
+            if pat.search(n_alnum):
                 matched_competitor.add(orig_token)
 
         return sorted(matched_sensitive), sorted(matched_competitor)

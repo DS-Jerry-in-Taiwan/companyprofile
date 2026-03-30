@@ -14,18 +14,29 @@ from typing import Dict
 
 
 # Zero-width and control characters to remove
-_ZERO_WIDTH_RE = re.compile(r"[\u200B-\u200F\uFEFF]")
+_ZERO_WIDTH_RE = re.compile(r"[\u200B-\u200F\uFEFF\u2060\u180E]")
 
 # Control characters (except newline and tab) to remove
 _CONTROL_RE = re.compile(r"[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]")
 
 # Simple homoglyph mapping (can be expanded)
 _HOMOGLYPH_MAP: Dict[str, str] = {
+    # common Latin homoglyphs -> ASCII
     "o": "0",
     "O": "0",
+    "０": "0",
+    "ｏ": "0",
+    "Ｏ": "0",
     "l": "1",
     "I": "1",
+    "i": "1",
+    "Ｉ": "1",
+    "１": "1",
+    "ｌ": "1",
     "｜": "|",
+    "S": "5",
+    "s": "5",
+    "Ｓ": "5",
 }
 
 
@@ -38,6 +49,17 @@ def apply_homoglyph_map(text: str, mapping: Dict[str, str] | None = None) -> str
         mapping = _HOMOGLYPH_MAP
     # Simple character replacement
     return "".join(mapping.get(ch, ch) for ch in text)
+
+
+def normalize_alnum(text: str) -> str:
+    """Return a normalized string containing only ASCII alphanumeric characters.
+
+    This helps detect tokens that have noise characters (punctuation, spaces,
+    zero-width inserts) between alphanumerics.
+    """
+    s = normalize_text(text)
+    # keep only letters and digits
+    return "".join(ch for ch in s if ch.isalnum())
 
 
 def normalize_text(text: str) -> str:
