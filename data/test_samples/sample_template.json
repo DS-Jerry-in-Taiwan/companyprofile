@@ -1,0 +1,10 @@
+{
+  "sample_id": "sample-000",
+  "company_name": "示例公司",
+  "industry": "科技",
+  "description": "一家專注於雲端服務與企業解決方案的公司",
+  "products_services": "雲端平台、SaaS 服務",
+  "company_size": "中型",
+  "founded_year": "2015",
+  "seed_query": "示例公司 公司簡介"
+}
