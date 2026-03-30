@@ -1,4 +1,46 @@
+env/
+opencode_init.log
+# Secrets / local env
+.env
+.env.*
+!.env.example
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python cache / test artifacts
+**/__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.py[cod]
+
+# Serverless / build outputs
 **/.serverless/
 
+# Logs and runtime dumps
+logs/
+*.log
+tmp_reports/
+
+# Project docs (local only)
+docs/
+
+# Local tool outputs
+.opencode/
+opencode_init.log
+node_modules/
+bun.lock
+
+# Coverage reports
+.coverage
+coverage/
+
+# OS/editor noise
+.DS_Store
+.vscode/settings.json
+
+# Legacy local folders
 **/youcheng_test/
-**/__pycache__/
