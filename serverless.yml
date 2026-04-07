@@ -7,33 +7,60 @@ provider:
   stage: ${opt:stage, 'dev'}
   environment:
     STAGE: ${self:provider.stage}
-    BEDROCK_REGION: ap-northeast-1
-    CLAUDE_MODEL_ID: anthropic.claude-3-5-sonnet-20240620-v1:0
+    LOG_LEVEL: ${self:custom.logLevel.${self:provider.stage}, 'INFO'}
+    # 從 AWS Parameter Store 讀取 API Keys (安全)
+    # 路徑根據 stage 自動調整: dev → /organ-brief/, office → /organ-brief-office/
+    GOOGLE_GENAI_API_KEY: ${ssm:/organ-brief-${self:provider.stage}/google-genai-api-key}
+    GEMINI_API_KEY: ${ssm:/organ-brief-${self:provider.stage}/gemini-api-key}
+    TAVILY_API_KEY: ${ssm:/organ-brief-${self:provider.stage}/tavily-api-key}
+    # AWS Bedrock 設定 (如果使用 AWS Bedrock)
+    BEDROCK_REGION: ${self:provider.region}
+    CLAUDE_MODEL_ID: 'anthropic.claude-3-5-sonnet-20240620-v1:0'
   
   ecr:
     images:
-      optimizationImg:
-        path: ./src/functions
-        file: Dockerfile.${self:provider.stage}
+      flaskApiImg:
+        path: .
+        file: src/functions/Dockerfile.dev
         buildArgs:
           STAGE: ${self:provider.stage}
   
   iamRoleStatements:
     - Effect: Allow
       Action:
-        - bedrock:InvokeModel
-      Resource: "arn:aws:bedrock:${self:provider.region}::foundation-model/anthropic.claude-*"
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+      Resource: "arn:aws:logs:${self:provider.region}:*:*"
+    # 添加 Parameter Store 讀取權限
+    - Effect: Allow
+      Action:
+        - ssm:GetParameter
+        - ssm:GetParameters
+        - ssm:GetParametersByPath
+      Resource: 
+        - "arn:aws:ssm:${self:provider.region}:*:parameter/organ-brief*"
+    # 添加 KMS 解密權限 (用於 SecureString 參數)
+    - Effect: Allow
+      Action:
+        - kms:Decrypt
+      Resource: "*"
+
+custom:
+  logLevel:
+    dev: DEBUG
+    prod: INFO
 
 functions:
-  optimizeOrganBrief:
+  flaskApi:
     image: 
-      name: optimizationImg
+      name: flaskApiImg
     memorySize: 1024
-    timeout: 60
+    timeout: 30
     events:
-      - alb:
-          listenerArn: arn:aws:elasticloadbalancing:ap-northeast-1:132815414471:listener/app/1111datascience-aloadbalancer/41580228b8eab2ba/b4273c29616b5962
-          priority: 99
-          targetGroupName: ${self:service}-${self:provider.stage}
-          conditions:
-            path: /optimize_organ_brief
+      - httpApi:
+          path: /{proxy+}
+          method: ANY
+      - httpApi:
+          path: /
+          method: ANY
