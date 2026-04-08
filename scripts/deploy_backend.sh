@@ -20,7 +20,7 @@ cd "$SCRIPT_DIR/.."
 
 # 登入 ECR（Serverless 部署時需要）
 echo "[1/2] 登入 ECR..."
-ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+ACCOUNT_ID=$(aws --profile $AWS_PROFILE sts get-caller-identity --query Account --output text)
 aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"
 
 # 部署（Serverless 會自動 build & push image）

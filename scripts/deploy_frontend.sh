@@ -25,7 +25,7 @@ npm run build
 echo "[2/4] 檢查 S3 Bucket..."
 if aws s3 ls "s3://$BUCKET_NAME" 2>&1 | grep -q 'NoSuchBucket'; then
     echo "建立 Bucket..."
-    aws s3 mb "s3://$BUCKET_NAME" --region ap-northeast-1
+    aws --profile $AWS_PROFILE s3 mb "s3://$BUCKET_NAME" --region $AWS_REGION
 else
     echo "Bucket 已存在"
 fi
