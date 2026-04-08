@@ -32,32 +32,37 @@ def get_llm_service():
     return LLMService()
 
 
-def call_llm(prompt) -> dict:
+def call_llm(prompt, word_limit=None) -> dict:
     """
     呼叫 LLM API 生成公司簡介（帶重試機制）
 
     Args:
         prompt: 公司資料 (dict) 或 prompt 字串 (str)
+        word_limit: 字數限制（可選）
 
     Returns:
         dict: 包含 title, body_html, summary 的字典
     """
     if LANGCHAIN_AVAILABLE:
-        return _call_llm_with_retry(prompt)
+        return _call_llm_with_retry(prompt, word_limit)
     else:
-        return _call_llm_original(prompt)
+        return _call_llm_original(prompt, word_limit)
 
 
-def _call_llm_with_retry(prompt) -> dict:
+def _call_llm_with_retry(prompt, word_limit=None) -> dict:
     """使用重試機制的 LLM 呼叫"""
     try:
         retry_config = get_retry_config()
 
         @with_retry(retry_config, "llm_call")
-        def llm_call_with_retry(input_data):
-            return _call_llm_core(input_data)
+        def llm_call_with_retry(inputs):
+            # 解包 inputs 字典以支援裝飾器的單參數設計
+            prompt_data = inputs.get("prompt")
+            wl = inputs.get("word_limit")
+            return _call_llm_core(prompt_data, wl)
 
-        return llm_call_with_retry(prompt)
+        # 將參數打包為字典傳遞給裝飾後的函數
+        return llm_call_with_retry({"prompt": prompt, "word_limit": word_limit})
 
     except Exception as e:
         logger.error(f"LLM call with retry failed: {e}")
@@ -65,16 +70,16 @@ def _call_llm_with_retry(prompt) -> dict:
         return _get_default_response(prompt)
 
 
-def _call_llm_original(prompt) -> dict:
+def _call_llm_original(prompt, word_limit=None) -> dict:
     """原始 LLM 呼叫邏輯"""
     try:
-        return _call_llm_core(prompt)
+        return _call_llm_core(prompt, word_limit)
     except Exception as e:
         logger.error(f"LLM API call failed: {str(e)}")
         return _get_default_response(prompt)
 
 
-def _call_llm_core(prompt) -> dict:
+def _call_llm_core(prompt, word_limit=None) -> dict:
     """核心 LLM 呼叫邏輯"""
     try:
         service = get_llm_service()
@@ -100,7 +105,8 @@ def _call_llm_core(prompt) -> dict:
                 "founded_year": prompt.get("founded_year", "2000"),
             }
 
-        result = service.generate(company_data)
+        # Phase 11: 傳遞 word_limit 給 LLM Service
+        result = service.generate(company_data, word_limit=word_limit)
 
         return {
             "title": result.title,

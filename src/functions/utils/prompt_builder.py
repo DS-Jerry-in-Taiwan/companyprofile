@@ -6,7 +6,12 @@ Prompt Builder
 
 
 def build_generate_prompt(
-    organ, organ_no=None, company_url=None, user_brief=None, web_content=None
+    organ,
+    organ_no=None,
+    company_url=None,
+    user_brief=None,
+    web_content=None,
+    word_limit=None,
 ):
     """
     組裝 GENERATE 模式的完整 prompt，包含所有素材。
@@ -17,6 +22,7 @@ def build_generate_prompt(
         company_url: 公司官網（可選）
         user_brief: 用戶提供的簡介素材（可選）
         web_content: 網路搜尋取得的內容（可選）
+        word_limit: 字數限制（可選，預設為 300）
 
     Returns:
         組裝好的 prompt 字串
@@ -43,7 +49,17 @@ def build_generate_prompt(
 
     # 4. 輸出要求
     sections.append(f"\n## 輸出要求")
-    sections.append("請根據上述所有資訊，生成一段專業、簡潔的公司簡介（200-300字）。")
+
+    # 動態設置字數限制
+    if word_limit:
+        sections.append(
+            f"請根據上述所有資訊，生成一段專業、簡潔的公司簡介（不超過 {word_limit} 字）。"
+        )
+    else:
+        sections.append(
+            "請根據上述所有資訊，生成一段專業、簡潔的公司簡介（200-300字）。"
+        )
+
     sections.append("如有用戶提供的素材，請優先參考並整合。")
 
     return "\n".join(sections)

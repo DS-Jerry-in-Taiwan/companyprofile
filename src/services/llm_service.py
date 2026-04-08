@@ -27,25 +27,47 @@ class LLMService:
         with open(template_path, "r", encoding="utf-8") as f:
             return f.read()
 
-    def generate(self, company_data: dict) -> LLMOutput:
+    def generate(self, company_data: dict, word_limit: int = None) -> LLMOutput:
         template = self._load_template("generate_prompt_template.txt")
         prompt = template.format(**company_data)
+
+        # 動態計算 max_output_tokens
+        # 公式：min(word_limit * 2, 4096)
+        if word_limit:
+            max_tokens = min(word_limit * 2, 4096)
+        else:
+            max_tokens = 4096
+
         response = self.client.models.generate_content(
             model=self.model_name,
             contents=prompt,
-            config=types.GenerateContentConfig(temperature=0.2, max_output_tokens=4096),
+            config=types.GenerateContentConfig(
+                temperature=0.2, max_output_tokens=max_tokens
+            ),
         )
         return self._parse_response(response.text)
 
-    def optimize(self, original_brief: str, additional_data: dict) -> LLMOutput:
+    def optimize(
+        self, original_brief: str, additional_data: dict, word_limit: int = None
+    ) -> LLMOutput:
         template = self._load_template("optimize_prompt_template.txt")
         additional_data["original_brief"] = original_brief
         additional_data["additional_info"] = additional_data.get("description", "")
         prompt = template.format(**additional_data)
+
+        # 動態計算 max_output_tokens
+        # 公式：min(word_limit * 2, 4096)
+        if word_limit:
+            max_tokens = min(word_limit * 2, 4096)
+        else:
+            max_tokens = 4096
+
         response = self.client.models.generate_content(
             model=self.model_name,
             contents=prompt,
-            config=types.GenerateContentConfig(temperature=0.2, max_output_tokens=4096),
+            config=types.GenerateContentConfig(
+                temperature=0.2, max_output_tokens=max_tokens
+            ),
         )
         return self._parse_response(response.text)
 

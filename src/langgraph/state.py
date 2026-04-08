@@ -120,6 +120,7 @@ class CompanyBriefState(TypedDict):
     organ_no: Optional[str]
     company_url: Optional[str]
     user_brief: Optional[str]
+    word_limit: Optional[int]  # Phase 11 新增
 
     # 執行狀態
     current_node: str
@@ -211,6 +212,7 @@ def create_initial_state(
     organ_no: Optional[str] = None,
     company_url: Optional[str] = None,
     user_brief: Optional[str] = None,
+    word_limit: Optional[int] = None,
 ) -> CompanyBriefState:
     """
     建立初始狀態
@@ -220,6 +222,7 @@ def create_initial_state(
         organ_no: 統一編號
         company_url: 公司官網
         user_brief: 用戶簡介
+        word_limit: 字數限制（Phase 11 新增）
 
     Returns:
         CompanyBriefState: 初始狀態
@@ -230,6 +233,7 @@ def create_initial_state(
         organ_no=organ_no,
         company_url=company_url,
         user_brief=user_brief,
+        word_limit=word_limit,
         # 執行狀態
         current_node=NodeNames.START,
         execution_path=[],
@@ -359,6 +363,30 @@ def finalize_state(
     Returns:
         CompanyBriefState: 完成的狀態
     """
+    # Phase 11: 應用字數截斷
+    word_limit = state.get("word_limit")
+    if word_limit and final_result:
+        try:
+            import sys
+            import os
+
+            PROJECT_ROOT = os.path.dirname(
+                os.path.dirname(
+                    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                )
+            )
+            if PROJECT_ROOT not in sys.path:
+                sys.path.insert(0, PROJECT_ROOT)
+
+            from src.functions.utils.text_truncate import truncate_llm_output
+
+            final_result = truncate_llm_output(final_result, word_limit)
+        except Exception as e:
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Failed to truncate output: {e}")
+
     state["final_result"] = final_result
     state["current_node"] = NodeNames.END
     state["total_execution_time"] = (

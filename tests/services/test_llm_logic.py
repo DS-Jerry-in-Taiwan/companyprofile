@@ -22,7 +22,7 @@ class TestLLMOutputSchema:
             LLMOutput(
                 title="這是一個有效的標題長度",
                 body_html="<p>內容</p>",
-                summary="a" * 51,
+                summary="a" * 101,
             )
 
 

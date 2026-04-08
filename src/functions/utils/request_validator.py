@@ -47,5 +47,34 @@ def validate_request(data: Dict[str, Any]) -> Dict[str, Any]:
             details=[{"field": "optimization_mode", "reason": "invalid enum value"}],
         )
 
+    # Validate optional numeric fields
+    capital = data.get("capital")
+    if capital is not None:
+        if not isinstance(capital, int) or capital <= 0:
+            raise ValidationError(
+                "capital must be a positive integer",
+                details=[{"field": "capital", "reason": "invalid value"}],
+            )
+
+    employees = data.get("employees")
+    if employees is not None:
+        if not isinstance(employees, int) or employees <= 0:
+            raise ValidationError(
+                "employees must be a positive integer",
+                details=[{"field": "employees", "reason": "invalid value"}],
+            )
+
+    founded_year = data.get("founded_year")
+    if founded_year is not None:
+        if (
+            not isinstance(founded_year, int)
+            or founded_year < 1900
+            or founded_year > 2100
+        ):
+            raise ValidationError(
+                "founded_year must be between 1900 and 2100",
+                details=[{"field": "founded_year", "reason": "out of range"}],
+            )
+
     data["optimization_mode"] = optimization_mode
     return data

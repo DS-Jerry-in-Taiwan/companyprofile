@@ -176,17 +176,18 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
                         contents.append(result["content"])
                 web_content = "\n\n".join(contents)
 
-        # 建立 Prompt
+        # 建立 Prompt（Phase 11: 添加 word_limit）
         prompt = build_generate_prompt(
             organ=state["organ"],
             organ_no=state.get("organ_no"),
             company_url=state.get("company_url"),
             user_brief=state.get("user_brief"),
             web_content=web_content,
+            word_limit=state.get("word_limit"),
         )
 
-        # 呼叫 LLM
-        llm_response = call_llm(prompt)
+        # 呼叫 LLM（Phase 11: 傳遞 word_limit）
+        llm_response = call_llm(prompt, word_limit=state.get("word_limit"))
 
         execution_time = time.time() - start_time
 
@@ -591,6 +592,7 @@ class CompanyBriefGraph:
         organ_no: Optional[str] = None,
         company_url: Optional[str] = None,
         user_brief: Optional[str] = None,
+        word_limit: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
         執行公司簡介生成流程
@@ -600,14 +602,17 @@ class CompanyBriefGraph:
             organ_no: 統一編號
             company_url: 公司官網
             user_brief: 用戶簡介
+            word_limit: 字數限制（Phase 11 新增）
 
         Returns:
             Dict[str, Any]: 最終結果
         """
         logger.info(f"開始生成 {organ} 的公司簡介")
 
-        # 建立初始狀態
-        initial_state = create_initial_state(organ, organ_no, company_url, user_brief)
+        # 建立初始狀態（Phase 11: 添加 word_limit）
+        initial_state = create_initial_state(
+            organ, organ_no, company_url, user_brief, word_limit
+        )
 
         if LANGGRAPH_AVAILABLE and self.compiled_graph:
             # 使用 LangGraph 執行
@@ -674,6 +679,7 @@ def generate_company_brief(
     organ_no: Optional[str] = None,
     company_url: Optional[str] = None,
     user_brief: Optional[str] = None,
+    word_limit: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
     生成公司簡介的便捷函式
@@ -683,9 +689,10 @@ def generate_company_brief(
         organ_no: 統一編號
         company_url: 公司官網
         user_brief: 用戶簡介
+        word_limit: 字數限制（Phase 11 新增）
 
     Returns:
         Dict[str, Any]: 生成結果
     """
     graph = create_company_brief_graph()
-    return graph.invoke(organ, organ_no, company_url, user_brief)
+    return graph.invoke(organ, organ_no, company_url, user_brief, word_limit)

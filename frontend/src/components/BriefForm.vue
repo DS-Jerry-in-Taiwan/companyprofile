@@ -52,6 +52,37 @@ function validateForm() {
     }
   }
   
+  // Validate numeric optional fields
+  if (form.value.capital) {
+    const capitalStr = String(form.value.capital).trim()
+    if (capitalStr) {
+      const val = parseInt(capitalStr)
+      if (isNaN(val) || val <= 0) {
+        errors.value.push('資本額必須為正數')
+      }
+    }
+  }
+  
+  if (form.value.employees) {
+    const employeesStr = String(form.value.employees).trim()
+    if (employeesStr) {
+      const val = parseInt(employeesStr)
+      if (isNaN(val) || val <= 0) {
+        errors.value.push('員工人數必須為正數')
+      }
+    }
+  }
+  
+  if (form.value.founded_year) {
+    const foundedYearStr = String(form.value.founded_year).trim()
+    if (foundedYearStr) {
+      const val = parseInt(foundedYearStr)
+      if (isNaN(val) || val < 1900 || val > 2100) {
+        errors.value.push('成立年份必須在 1900-2100 之間')
+      }
+    }
+  }
+  
   return errors.value.length === 0
 }
 
@@ -81,15 +112,38 @@ function handleSubmit() {
   if (form.value.tax_id?.trim()) {
     submitData.tax_id = form.value.tax_id.trim()
   }
-  if (form.value.capital?.trim()) {
-    submitData.capital = parseInt(form.value.capital)
+  
+  // Numeric fields - convert to string first before trim
+  if (form.value.capital) {
+    const capitalStr = String(form.value.capital).trim()
+    if (capitalStr) {
+      const capitalValue = parseInt(capitalStr)
+      if (!isNaN(capitalValue) && capitalValue > 0) {
+        submitData.capital = capitalValue
+      }
+    }
   }
-  if (form.value.employees?.trim()) {
-    submitData.employees = parseInt(form.value.employees)
+  
+  if (form.value.employees) {
+    const employeesStr = String(form.value.employees).trim()
+    if (employeesStr) {
+      const employeesValue = parseInt(employeesStr)
+      if (!isNaN(employeesValue) && employeesValue > 0) {
+        submitData.employees = employeesValue
+      }
+    }
   }
-  if (form.value.founded_year?.trim()) {
-    submitData.founded_year = parseInt(form.value.founded_year)
+  
+  if (form.value.founded_year) {
+    const foundedYearStr = String(form.value.founded_year).trim()
+    if (foundedYearStr) {
+      const foundedYearValue = parseInt(foundedYearStr)
+      if (!isNaN(foundedYearValue) && foundedYearValue >= 1900 && foundedYearValue <= 2100) {
+        submitData.founded_year = foundedYearValue
+      }
+    }
   }
+  
   if (form.value.address?.trim()) {
     submitData.address = form.value.address.trim()
   }
