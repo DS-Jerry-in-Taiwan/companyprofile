@@ -26,7 +26,7 @@ logs/
 tmp_reports/
 
 # Project docs (local only)
-# docs/ - now tracked for documentation
+docs/
 
 # Local tool outputs
 .opencode/
