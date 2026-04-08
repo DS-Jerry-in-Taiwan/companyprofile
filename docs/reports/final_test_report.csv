@@ -1,0 +1,31 @@
+sample_id,risk_status,hallucination_flag,structure_ok,manual_notes
+sample-01,APPROVED,0,1,GOOD
+sample-02,APPROVED,0,1,GOOD
+sample-03,APPROVED,0,1,GOOD
+sample-04,APPROVED,0,1,GOOD
+sample-05,APPROVED,1,0,Demo: 格式明顯有誤，含 hallucination 字詞。
+sample-06,APPROVED,0,1,GOOD
+sample-07,APPROVED,0,1,GOOD
+sample-08,APPROVED,0,1,GOOD
+sample-09,APPROVED,0,1,GOOD
+sample-10,APPROVED,0,1,GOOD
+sample-11,APPROVED,0,1,GOOD
+sample-12,APPROVED,0,1,GOOD
+sample-13,APPROVED,0,1,GOOD
+sample-14,APPROVED,0,1,GOOD
+sample-15,APPROVED,0,1,GOOD
+sample-16,APPROVED,0,1,GOOD
+sample-17,APPROVED,0,1,GOOD
+sample-18,APPROVED,1,1,Demo: body_html 有誤內容，疑似 hallucination。
+sample-19,APPROVED,0,1,GOOD
+sample-20,APPROVED,0,1,GOOD
+sample-21,APPROVED,0,1,GOOD
+sample-22,APPROVED,0,1,GOOD
+sample-23,APPROVED,0,1,GOOD
+sample-24,APPROVED,0,1,GOOD
+sample-25,APPROVED,0,1,GOOD
+sample-26,APPROVED,0,1,GOOD
+sample-27,APPROVED,0,1,GOOD
+sample-28,APPROVED,0,1,GOOD
+sample-29,APPROVED,0,1,GOOD
+sample-30,APPROVED,0,1,GOOD
