@@ -83,7 +83,7 @@ class TavilyClient:
     def _fallback_web_search(self, query: str, max_results: int = 3) -> Dict[str, Any]:
         """使用傳統 web_search 作為 fallback"""
         try:
-            from .web_search import web_search
+            from utils.web_search import web_search
 
             logger.info(f"使用傳統 web_search 作為 fallback: {query}")
 

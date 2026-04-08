@@ -9,7 +9,7 @@ Generate Brief Module - Phase 9 LangChain/LangGraph Integration
 import logging
 import os
 import sys
-from .web_search import web_search
+from utils.web_search import web_search
 
 logger = logging.getLogger(__name__)
 
@@ -49,12 +49,13 @@ except ImportError as e:
     LANGCHAIN_AVAILABLE = False
 
 # 傳統流程依賴（當 LangGraph 不可用時）
-from .tavily_client import TavilyClient, get_tavily_client
-from .text_preprocessor import preprocess_text
-from .prompt_builder import build_generate_prompt
-from .llm_service import call_llm
-from .post_processing import post_process
-from .error_handler import ExternalServiceError
+from utils.tavily_client import TavilyClient, get_tavily_client
+from utils.text_preprocessor import preprocess_text
+from utils.prompt_builder import build_generate_prompt
+from utils.llm_service import call_llm
+from utils.post_processing import post_process
+from utils.error_handler import ExternalServiceError
+from utils.text_truncate import truncate_llm_output
 
 
 def generate_brief(data):
@@ -67,6 +68,7 @@ def generate_brief(data):
             - organNo (str, optional): 統一編號
             - companyUrl (str, optional): 公司官網
             - brief (str, optional): 用戶提供的簡介
+            - word_limit (int, optional): 字數限制
 
     Returns:
         dict: 生成結果，包含 title, body_html, summary 等欄位
@@ -76,17 +78,19 @@ def generate_brief(data):
     organ_no = data.get("organNo")
     user_brief = data.get("brief")
     company_url = data.get("companyUrl")
+    word_limit = data.get("word_limit")
 
     # Phase 9: 優先使用 LangGraph 狀態圖處理
     if LANGGRAPH_AVAILABLE:
         logger.info(f"使用 LangGraph 狀態圖生成 {organ} 的簡介")
         try:
-            # 使用 LangGraph 狀態圖進行統一處理
+            # 使用 LangGraph 狀態圖進行統一處理（Phase 11: 添加 word_limit）
             result = generate_company_brief(
                 organ=organ,
                 organ_no=organ_no,
                 company_url=company_url,
                 user_brief=user_brief,
+                word_limit=word_limit,
             )
 
             # 確保回傳格式與原有 API 一致
@@ -125,6 +129,7 @@ def _generate_brief_traditional(data):
     organ_no = data.get("organNo")
     user_brief = data.get("brief")
     company_url = data.get("companyUrl")
+    word_limit = data.get("word_limit")
 
     # Step 1: 使用 Tavily 一次搞定搜尋和內容提取
     try:
@@ -200,10 +205,16 @@ def _generate_brief_traditional(data):
         company_url=company_url,
         user_brief=user_brief,
         web_content=clean_text,
+        word_limit=word_limit,
     )
-    # 4. 呼叫 LLM
-    llm_result = call_llm(prompt)
+    # 4. 呼叫 LLM（Phase 11: 傳遞 word_limit）
+    llm_result = call_llm(prompt, word_limit=word_limit)
     # 5. 後處理並添加處理模式標識
     result = post_process(llm_result)
+
+    # 6. 字數截斷（Phase 11 新增）
+    if word_limit:
+        result = truncate_llm_output(result, word_limit)
+
     result["processing_mode"] = "traditional"
     return result

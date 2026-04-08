@@ -4,8 +4,8 @@ Core Logic Dispatcher
 - 根據 mode 分派至對應模組
 """
 
-from .generate_brief import generate_brief
-from .request_validator import ValidationError
+from utils.generate_brief import generate_brief
+from utils.request_validator import ValidationError
 
 
 def dispatch_core_logic(data):
