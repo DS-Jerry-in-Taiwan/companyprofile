@@ -68,18 +68,84 @@ def _truncate_html(html_text: str, word_limit: int) -> str:
     if len(plain_text) <= word_limit:
         return html_text
 
-    # 簡單策略：截斷純文本，然後重新包裝在 <p> 標籤中
+    # Phase 14 改進：更好的 HTML 截斷策略
+    # 策略：盡可能保留 HTML 結構，在段落邊界截斷
+
+    # 找到所有 <p> 標籤
+    paragraphs = soup.find_all("p")
+
+    if paragraphs:
+        # 嘗試在段落邊界截斷
+        result_parts = []
+        current_length = 0
+
+        for p in paragraphs:
+            p_text = p.get_text()
+            p_length = len(p_text)
+
+            # 如果加入這個段落會超過限制
+            if current_length + p_length > word_limit:
+                # 在這個段落內截斷
+                remaining = word_limit - current_length
+                if remaining > word_limit * 0.5:  # 如果還有足夠空間
+                    truncated_p_text = _find_best_truncation_point(p_text, remaining)
+                    result_parts.append(f"<p>{truncated_p_text}</p>")
+                break
+
+            # 否則加入整個段落
+            result_parts.append(str(p))
+            current_length += p_length
+
+        if result_parts:
+            return "\n".join(result_parts)
+
+    # Fallback：如果找不到段落，使用純文本截斷
     truncated_text = plain_text[:word_limit]
 
-    # 嘗試在最近的句號、逗號或空格處截斷
-    for delimiter in ["。", "！", "？", "，", "、", " "]:
+    # 嘗試在自然邊界處截斷（句號、逗號等）
+    best_pos = word_limit
+    for delimiter in ["。", "！", "？", "，", "、", "；", "\n"]:
+        # 找到倒數第一個 delimiter
         last_pos = truncated_text.rfind(delimiter)
-        if last_pos > word_limit * 0.8:  # 至少保留 80% 的內容
-            truncated_text = truncated_text[: last_pos + 1]
+        if last_pos > 0 and last_pos >= word_limit * 0.85:  # 至少保留 85%
+            best_pos = last_pos + 1
             break
 
-    # 重新包裝
-    return f"<p>{truncated_text}</p>"
+    truncated_text = truncated_text[:best_pos]
+
+    # 清理並重新包裝
+    truncated_text = truncated_text.strip()
+    if truncated_text:
+        return f"<p>{truncated_text}</p>"
+    # Phase 14 改進：嚴格遵守字數限制
+    return f"<p>{plain_text[:word_limit]}</p>"
+
+
+def _find_best_truncation_point(text: str, max_length: int) -> str:
+    """
+    在文本中找到最佳的截斷點
+
+    Args:
+        text: 原始文本
+        max_length: 最大長度
+
+    Returns:
+        str: 截斷後的文本
+    """
+    if len(text) <= max_length:
+        return text
+
+    truncated = text[:max_length]
+
+    # 嘗試在自然邊界處截斷
+    for delimiter in ["。", "！", "？", "，", "、", "；", "\n"]:
+        # 找到最後一個 delimiter
+        last_pos = truncated.rfind(delimiter)
+        if last_pos > max_length * 0.7:  # 至少保留 70%
+            return truncated[: last_pos + 1]
+
+    # Phase 14 改進：嚴格遵守字數限制，不添加省略號
+    return truncated
 
 
 def truncate_llm_output(output: dict, word_limit: int) -> dict:
