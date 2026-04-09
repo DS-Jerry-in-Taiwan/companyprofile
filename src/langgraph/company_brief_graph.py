@@ -6,7 +6,6 @@
 - 條件邊路由邏輯
 - 錯誤處理分支
 - 重試機制
-- Fallback 機制
 """
 
 import logging
@@ -14,22 +13,10 @@ import time
 from typing import Dict, Any, Optional, List, Callable
 from datetime import datetime
 
-# 必須先定義 logger，才能在 except 區塊中使用
+from langgraph.graph import StateGraph, END, START
+from langgraph.prebuilt import ToolNode
+
 logger = logging.getLogger(__name__)
-
-try:
-    from langgraph.graph import StateGraph, END, START
-    from langgraph.prebuilt import ToolNode
-
-    LANGGRAPH_AVAILABLE = True
-except ImportError:
-    # 如果 LangGraph 還未安裝，提供 Mock 實作
-    logger.warning("LangGraph not available, using mock implementation")
-    StateGraph = object
-    END = "end"
-    START = "start"
-    ToolNode = object
-    LANGGRAPH_AVAILABLE = False
 
 from .state import (
     CompanyBriefState,
@@ -514,10 +501,6 @@ class CompanyBriefGraph:
 
     def _build_graph(self):
         """建構狀態圖"""
-        if not LANGGRAPH_AVAILABLE:
-            logger.warning("LangGraph 不可用，使用模擬模式")
-            return
-
         # 建立狀態圖
         self.graph = StateGraph(CompanyBriefState)
 
@@ -630,56 +613,10 @@ class CompanyBriefGraph:
             founded_year,
         )
 
-        if LANGGRAPH_AVAILABLE and self.compiled_graph:
-            # 使用 LangGraph 執行
-            final_state = self.compiled_graph.invoke(initial_state)
-        else:
-            # 使用模擬執行
-            final_state = self._simulate_execution(initial_state)
+        # 使用 LangGraph 執行
+        final_state = self.compiled_graph.invoke(initial_state)
 
         return final_state.get("final_result", {})
-
-    def _simulate_execution(self, state: CompanyBriefState) -> CompanyBriefState:
-        """模擬執行（當 LangGraph 不可用時）"""
-        logger.info("使用模擬模式執行")
-
-        try:
-            # 1. 搜尋
-            state = search_node(state)
-            if not state.get("search_result") or not state["search_result"].success:
-                return error_handler_node(state)
-
-            # 2. 生成
-            state = generate_node(state)
-            if not state.get("llm_result") or not state["llm_result"].success:
-                return error_handler_node(state)
-
-            # 3. 品質檢查
-            state = quality_check_node(state)
-
-            # 4. 完成
-            llm_result = state.get("llm_result")
-            quality_result = state.get("quality_check_result")
-
-            final_result = {
-                "title": llm_result.title
-                if llm_result
-                else f"{state['organ']} - 企業簡介",
-                "body_html": llm_result.body_html
-                if llm_result
-                else f"<p>{state['organ']} 的企業資訊。</p>",
-                "summary": llm_result.summary
-                if llm_result
-                else f"{state['organ']} 企業資訊",
-                "quality_score": quality_result.score if quality_result else 0,
-                "simulation_mode": True,
-            }
-
-            return finalize_state(state, final_result)
-
-        except Exception as e:
-            logger.error(f"模擬執行失敗: {e}")
-            return error_handler_node(state)
 
 
 # ===== 公用介面 =====

@@ -80,39 +80,60 @@ def _call_llm_original(prompt, word_limit=None) -> dict:
 
 
 def _call_llm_core(prompt, word_limit=None) -> dict:
-    """核心 LLM 呼叫邏輯"""
+    """核心 LLM 呼叫邏輯 - 直接使用傳入的 Prompt（包含 Few-shot）"""
     try:
+        from google.genai import types
+
         service = get_llm_service()
 
-        if isinstance(prompt, str):
-            company_data = {
-                "company_name": "公司",
-                "industry": "一般",
-                "description": prompt,
-                "products_services": "產品服務",
-                "company_size": "中小型",
-                "founded_year": "2000",
-            }
+        # 動態計算 max_output_tokens
+        # 公式：min(word_limit * 2, 4096)
+        if word_limit:
+            max_tokens = min(word_limit * 2, 4096)
         else:
-            company_data = {
-                "company_name": prompt.get("company_name", "公司"),
-                "industry": prompt.get("industry", "一般"),
-                "description": prompt.get("description", prompt.get("prompt", "")),
-                "products_services": prompt.get(
-                    "products_services", prompt.get("key_products", "")
-                ),
-                "company_size": prompt.get("company_size", "中小型"),
-                "founded_year": prompt.get("founded_year", "2000"),
+            max_tokens = 4096
+
+        # 直接使用 service 的 Gemini API 呼叫，傳入我們的 prompt
+        response = service.client.models.generate_content(
+            model=service.model_name,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.2, max_output_tokens=max_tokens
+            ),
+        )
+
+        # 獲取回應文字
+        response_text = response.text.strip()
+
+        # 嘗試解析為 JSON
+        try:
+            result = service._parse_response(response_text)
+            return {
+                "title": result.title,
+                "body_html": result.body_html,
+                "summary": result.summary,
             }
+        except (ValueError, Exception) as json_error:
+            # JSON 解析失敗，使用純文字回應
+            logger.info(f"LLM 返回純文字回應，直接使用")
 
-        # Phase 11: 傳遞 word_limit 給 LLM Service
-        result = service.generate(company_data, word_limit=word_limit)
+            # 從 prompt 中提取公司名稱
+            company_name = "公司"
+            if isinstance(prompt, str):
+                for line in prompt.split("\n"):
+                    if "公司名稱" in line:
+                        parts = line.split("：")
+                        if len(parts) > 1:
+                            company_name = parts[1].strip()
+                            break
 
-        return {
-            "title": result.title,
-            "body_html": result.body_html,
-            "summary": result.summary,
-        }
+            return {
+                "title": f"{company_name} - 企業簡介",
+                "body_html": f"<p>{response_text}</p>",
+                "summary": response_text[:100] + "..."
+                if len(response_text) > 100
+                else response_text,
+            }
 
     except Exception as e:
         if LANGCHAIN_AVAILABLE:
