@@ -12,6 +12,9 @@ def build_generate_prompt(
     user_brief=None,
     web_content=None,
     word_limit=None,
+    capital=None,
+    employees=None,
+    founded_year=None,
 ):
     """
     組裝 GENERATE 模式的完整 prompt，包含所有素材。
@@ -23,6 +26,9 @@ def build_generate_prompt(
         user_brief: 用戶提供的簡介素材（可選）
         web_content: 網路搜尋取得的內容（可選）
         word_limit: 字數限制（可選，預設為 300）
+        capital: 資本額（可選）
+        employees: 員工人數（可選）
+        founded_year: 成立年份（可選）
 
     Returns:
         組裝好的 prompt 字串
@@ -36,6 +42,12 @@ def build_generate_prompt(
         sections.append(f"統一編號：{organ_no}")
     if company_url:
         sections.append(f"官網：{company_url}")
+    if capital:
+        sections.append(f"資本額：{capital:,} 千元")  # 格式化顯示
+    if employees:
+        sections.append(f"員工人數：約 {employees} 人")
+    if founded_year:
+        sections.append(f"成立年份：西元 {founded_year} 年")
 
     # 2. 用戶提供的素材
     if user_brief:

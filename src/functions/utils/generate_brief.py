@@ -69,6 +69,9 @@ def generate_brief(data):
             - companyUrl (str, optional): 公司官網
             - brief (str, optional): 用戶提供的簡介
             - word_limit (int, optional): 字數限制
+            - capital (int, optional): 資本額
+            - employees (int, optional): 員工人數
+            - founded_year (int, optional): 成立年份
 
     Returns:
         dict: 生成結果，包含 title, body_html, summary 等欄位
@@ -79,18 +82,25 @@ def generate_brief(data):
     user_brief = data.get("brief")
     company_url = data.get("companyUrl")
     word_limit = data.get("word_limit")
+    # Phase 14: 取出選填欄位
+    capital = data.get("capital")
+    employees = data.get("employees")
+    founded_year = data.get("founded_year")
 
     # Phase 9: 優先使用 LangGraph 狀態圖處理
     if LANGGRAPH_AVAILABLE:
         logger.info(f"使用 LangGraph 狀態圖生成 {organ} 的簡介")
         try:
-            # 使用 LangGraph 狀態圖進行統一處理（Phase 11: 添加 word_limit）
+            # 使用 LangGraph 狀態圖進行統一處理（Phase 11: 添加 word_limit, Phase 14: 添加選填欄位）
             result = generate_company_brief(
                 organ=organ,
                 organ_no=organ_no,
                 company_url=company_url,
                 user_brief=user_brief,
                 word_limit=word_limit,
+                capital=capital,
+                employees=employees,
+                founded_year=founded_year,
             )
 
             # 確保回傳格式與原有 API 一致
@@ -130,6 +140,10 @@ def _generate_brief_traditional(data):
     user_brief = data.get("brief")
     company_url = data.get("companyUrl")
     word_limit = data.get("word_limit")
+    # Phase 14: 取出選填欄位
+    capital = data.get("capital")
+    employees = data.get("employees")
+    founded_year = data.get("founded_year")
 
     # Step 1: 使用 Tavily 一次搞定搜尋和內容提取
     try:
@@ -198,7 +212,7 @@ def _generate_brief_traditional(data):
 
     # 2. 前處理
     clean_text = preprocess_text(raw_content)
-    # 3. Prompt 組裝（傳遞所有素材）
+    # 3. Prompt 組裝（傳遞所有素材，包括 Phase 14 選填欄位）
     prompt = build_generate_prompt(
         organ=organ,
         organ_no=organ_no,
@@ -206,6 +220,9 @@ def _generate_brief_traditional(data):
         user_brief=user_brief,
         web_content=clean_text,
         word_limit=word_limit,
+        capital=capital,
+        employees=employees,
+        founded_year=founded_year,
     )
     # 4. 呼叫 LLM（Phase 11: 傳遞 word_limit）
     llm_result = call_llm(prompt, word_limit=word_limit)

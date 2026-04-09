@@ -121,6 +121,10 @@ class CompanyBriefState(TypedDict):
     company_url: Optional[str]
     user_brief: Optional[str]
     word_limit: Optional[int]  # Phase 11 新增
+    # Phase 14: 新增選填欄位
+    capital: Optional[int]  # 資本額
+    employees: Optional[int]  # 員工人數
+    founded_year: Optional[int]  # 成立年份
 
     # 執行狀態
     current_node: str
@@ -213,6 +217,9 @@ def create_initial_state(
     company_url: Optional[str] = None,
     user_brief: Optional[str] = None,
     word_limit: Optional[int] = None,
+    capital: Optional[int] = None,
+    employees: Optional[int] = None,
+    founded_year: Optional[int] = None,
 ) -> CompanyBriefState:
     """
     建立初始狀態
@@ -223,6 +230,9 @@ def create_initial_state(
         company_url: 公司官網
         user_brief: 用戶簡介
         word_limit: 字數限制（Phase 11 新增）
+        capital: 資本額（Phase 14 新增）
+        employees: 員工人數（Phase 14 新增）
+        founded_year: 成立年份（Phase 14 新增）
 
     Returns:
         CompanyBriefState: 初始狀態
@@ -234,6 +244,9 @@ def create_initial_state(
         company_url=company_url,
         user_brief=user_brief,
         word_limit=word_limit,
+        capital=capital,
+        employees=employees,
+        founded_year=founded_year,
         # 執行狀態
         current_node=NodeNames.START,
         execution_path=[],
