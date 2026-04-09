@@ -212,17 +212,16 @@ def check_word_limit(
             "message": "無字數限制",
         }
 
-    min_allowed = int(limit * (1 - tolerance))
-    max_allowed = int(limit * (1 + tolerance))
-
-    passed = min_allowed <= actual <= max_allowed
+    # 正確的評估標準：字數限制 = 上限（Maximum）
+    # 只要實際字數 ≤ 限制字數 就算通過
+    passed = actual <= limit
 
     if actual > limit:
         deviation = ((actual - limit) / limit) * 100
         message = f"超出限制 {deviation:.1f}%"
     elif actual < limit:
         deviation = ((limit - actual) / limit) * 100
-        message = f"低於限制 {deviation:.1f}%"
+        message = f"低於限制 {deviation:.1f}%（正常）"
     else:
         deviation = 0
         message = "完全符合"
@@ -231,8 +230,8 @@ def check_word_limit(
         "passed": passed,
         "actual": actual,
         "limit": limit,
-        "min_allowed": min_allowed,
-        "max_allowed": max_allowed,
+        "min_allowed": 0,  # 無最小要求
+        "max_allowed": limit,  # 最大就是限制本身
         "deviation": deviation,
         "message": message,
     }
