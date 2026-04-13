@@ -41,7 +41,8 @@ class TestPromptLayerWordLimit:
         # 驗證 prompt 中包含字數限制的明確指示
         assert f"不超過 {word_limit} 字" in prompt
         assert "公司簡介" in prompt
-        assert "專業、簡潔" in prompt
+        # Phase 14 Stage 2: 更新後 prompt 使用「平衡的公司簡介」等措辭，不再使用「專業、簡潔」
+        assert "輸出要求" in prompt
 
     def test_prompt_default_without_word_limit(self):
         """驗證沒有 word_limit 時使用預設值"""
