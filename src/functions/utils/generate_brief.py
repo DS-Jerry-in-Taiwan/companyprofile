@@ -20,7 +20,7 @@ if PROJECT_ROOT not in sys.path:
 
 # 導入 LangGraph 狀態圖
 try:
-    from src.langgraph.company_brief_graph import (
+    from src.langgraph_state.company_brief_graph import (
         generate_company_brief,
         create_company_brief_graph,
     )
@@ -48,6 +48,7 @@ def generate_brief(data):
             - capital (int, optional): 資本額
             - employees (int, optional): 員工人數
             - founded_year (int, optional): 成立年份
+            - optimization_mode (str, optional): 模板類型 (concise/standard/detailed)
 
     Returns:
         dict: 生成結果，包含 title, body_html, summary 等欄位
@@ -60,8 +61,11 @@ def generate_brief(data):
     capital = data.get("capital")
     employees = data.get("employees")
     founded_year = data.get("founded_year")
+    optimization_mode = data.get("optimization_mode")  # Phase 14 Stage 2: 模板類型
 
-    logger.info(f"使用 LangGraph 流程生成 {organ} 的簡介")
+    logger.info(
+        f"使用 LangGraph 流程生成 {organ} 的簡介，模板類型: {optimization_mode or 'standard'}"
+    )
 
     # 使用 LangGraph 狀態圖進行處理
     result = generate_company_brief(
@@ -73,6 +77,7 @@ def generate_brief(data):
         capital=capital,
         employees=employees,
         founded_year=founded_year,
+        optimization_mode=optimization_mode,  # Phase 14 Stage 2: 傳遞模板類型
     )
 
     # 確保回傳格式與原有 API 一致

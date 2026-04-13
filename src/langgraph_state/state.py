@@ -109,6 +109,23 @@ class QualityCheckResult:
     details: Dict[str, Any] = field(default_factory=dict)
 
 
+# Phase 14 Stage 3: 字數檢核結果
+@dataclass
+class WordCountValidationResult:
+    """字數檢核結果"""
+
+    is_valid: bool = False  # 是否在範圍內
+    word_count: int = 0  # 實際字數
+    min_range: int = 0  # 最小範圍
+    max_range: int = 0  # 最大範圍
+    needs_rewrite: bool = False  # 是否需要重寫
+    rewrite_reason: Optional[str] = None  # 重寫原因
+    rewrite_count: int = 0  # 已重寫次數
+    rewrite_successful: bool = False  # 重寫是否成功
+    final_word_count: int = 0  # 最終字數（重寫後）
+    warnings: List[str] = field(default_factory=list)  # 警告訊息
+
+
 # ===== 狀態圖狀態定義 =====
 
 
@@ -125,6 +142,10 @@ class CompanyBriefState(TypedDict):
     capital: Optional[int]  # 資本額
     employees: Optional[int]  # 員工人數
     founded_year: Optional[int]  # 成立年份
+    # Phase 14 Stage 2: 模板類型 (concise/standard/detailed)
+    optimization_mode: Optional[str]
+    # Phase 14 Stage 3: 最大重寫次數（字數檢核）
+    max_rewrite_attempts: int
 
     # 執行狀態
     current_node: str
@@ -135,6 +156,8 @@ class CompanyBriefState(TypedDict):
     search_result: Optional[SearchResult]
     llm_result: Optional[LLMResult]
     quality_check_result: Optional[QualityCheckResult]
+    # Phase 14 Stage 3: 字數檢核結果
+    word_count_validation: Optional[WordCountValidationResult]
 
     # 最終結果
     final_result: Optional[Dict[str, Any]]
@@ -220,6 +243,8 @@ def create_initial_state(
     capital: Optional[int] = None,
     employees: Optional[int] = None,
     founded_year: Optional[int] = None,
+    optimization_mode: Optional[str] = None,
+    max_rewrite_attempts: int = 2,  # Phase 14 Stage 3: 最大重寫次數
 ) -> CompanyBriefState:
     """
     建立初始狀態
@@ -233,6 +258,8 @@ def create_initial_state(
         capital: 資本額（Phase 14 新增）
         employees: 員工人數（Phase 14 新增）
         founded_year: 成立年份（Phase 14 新增）
+        optimization_mode: 模板類型 (concise/standard/detailed)（Phase 14 Stage 2 新增）
+        max_rewrite_attempts: 最大重寫次數（Phase 14 Stage 3 新增）
 
     Returns:
         CompanyBriefState: 初始狀態
@@ -247,6 +274,8 @@ def create_initial_state(
         capital=capital,
         employees=employees,
         founded_year=founded_year,
+        optimization_mode=optimization_mode,
+        max_rewrite_attempts=max_rewrite_attempts,
         # 執行狀態
         current_node=NodeNames.START,
         execution_path=[],
@@ -255,6 +284,7 @@ def create_initial_state(
         search_result=None,
         llm_result=None,
         quality_check_result=None,
+        word_count_validation=None,  # Phase 14 Stage 3 新增
         # 最終結果
         final_result=None,
         # 錯誤處理
@@ -369,6 +399,11 @@ def finalize_state(
     """
     完成狀態，設置最終結果
 
+    Phase 14 Stage 3 更新：整合字數檢核和重寫邏輯
+    - 預設模式：輕量驗證，不強制截斷
+    - 由 word_count_validator 負責檢核和重寫觸發
+    - 重寫由調用方透過 LLM 執行
+
     Args:
         state: 當前狀態
         final_result: 最終結果
@@ -378,7 +413,18 @@ def finalize_state(
     """
     # Phase 11: 應用字數截斷
     word_limit = state.get("word_limit")
-    if word_limit and final_result:
+
+    # Phase 14 Stage 2: 應用模板差異化（differentiate_template）
+    # 根據 optimization_mode 截斷到對應的模板長度限制
+    optimization_mode = state.get("optimization_mode", "standard")
+    # 對應 template_type (concise/standard/detailed)
+    template_type = optimization_mode.lower() if optimization_mode else "standard"
+
+    # Phase 14 Stage 3: 字數檢核結果初始化
+    word_count_validation_result = None
+    max_rewrite_attempts = state.get("max_rewrite_attempts", 2)
+
+    if final_result:
         try:
             import sys
             import os
@@ -391,20 +437,79 @@ def finalize_state(
             if PROJECT_ROOT not in sys.path:
                 sys.path.insert(0, PROJECT_ROOT)
 
-            from src.functions.utils.text_truncate import truncate_llm_output
+            from src.functions.utils.template_differentiator import (
+                differentiate_template,
+            )
+            from src.functions.utils.word_count_validator import (
+                WordCountValidator,
+                WordCountValidationResult,
+            )
 
-            final_result = truncate_llm_output(final_result, word_limit)
+            # Phase 14 Stage 3: 字數檢核
+            body_html = final_result.get("body_html", "")
+            if body_html:
+                validator = WordCountValidator()
+                validation = validator.validate(body_html, template_type)
+
+                # 建立檢核結果
+                word_count_validation_result = WordCountValidationResult(
+                    is_valid=validation.is_valid,
+                    word_count=validation.word_count,
+                    min_range=validation.min_range,
+                    max_range=validation.max_range,
+                    needs_rewrite=validation.needs_rewrite,
+                    rewrite_reason=validation.rewrite_reason,
+                    rewrite_count=0,
+                    rewrite_successful=False,
+                    final_word_count=validation.word_count,
+                    warnings=[],
+                )
+
+                # 如果需要重寫，記錄警告（重寫由調用方執行）
+                if validation.needs_rewrite:
+                    logger.warning(
+                        f"[finalize_state] 字數 {validation.word_count} 超出範圍 "
+                        f"({validation.min_range}-{validation.max_range})，"
+                        f"原因: {validation.rewrite_reason}。"
+                        f"建議：使用 word_count_validator.build_rewrite_prompt() 進行重寫。"
+                    )
+                    word_count_validation_result.warnings.append(
+                        f"字數超出範圍：{validation.word_count} 字，"
+                        f"應在 {validation.min_range}-{validation.max_range} 字之間"
+                    )
+
+            # Phase 14 Stage 2: 先應用模板差異化（輕量驗證模式，不截斷）
+            # Phase 14 Stage 3: differentiate_template 預設不截斷，只記錄警告
+            if template_type in ("concise", "standard", "detailed"):
+                if body_html:
+                    # differentiate_template 預設不截斷（force_truncate=False）
+                    processed_html = differentiate_template(body_html, template_type)
+                    final_result = dict(final_result)
+                    final_result["body_html"] = processed_html
+
+            # Phase 11: 如果有 word_limit，再套用一次字數限制（覆蓋模板限制）
+            # 注意：這是向後相容功能，可能添加截斷
+            if word_limit:
+                try:
+                    from src.functions.utils.text_truncate import truncate_llm_output
+
+                    final_result = truncate_llm_output(final_result, word_limit)
+                except Exception as e:
+                    logger.warning(f"Failed to apply word_limit truncation: {e}")
+
         except Exception as e:
             import logging
 
             logger = logging.getLogger(__name__)
-            logger.warning(f"Failed to truncate output: {e}")
+            logger.warning(f"Failed to process final result: {e}")
 
+    # 更新狀態
     state["final_result"] = final_result
     state["current_node"] = NodeNames.END
     state["total_execution_time"] = (
         datetime.now() - state["start_time"]
     ).total_seconds()
+    state["word_count_validation"] = word_count_validation_result
 
     return state
 

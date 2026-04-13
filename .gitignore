@@ -58,6 +58,16 @@ data/test_samples/*.json
 !data/test_samples/sample_template.json
 tmp/
 
+# Local debug and test files
+debug_loader.py
+examples/
+=1.1.7
+test_actual_problem.py
+test_converter_simple.py
+test_docker_build.sh
+test_lambda_loader.py
+test_lambda_path.py
+
 # OS generated files
 .DS_Store
 Thumbs.db

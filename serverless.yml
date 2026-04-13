@@ -13,9 +13,6 @@ provider:
     GOOGLE_GENAI_API_KEY: ${ssm:/organ-brief-${self:provider.stage}/google-genai-api-key}
     GEMINI_API_KEY: ${ssm:/organ-brief-${self:provider.stage}/gemini-api-key}
     TAVILY_API_KEY: ${ssm:/organ-brief-${self:provider.stage}/tavily-api-key}
-    # AWS Bedrock 設定 (如果使用 AWS Bedrock)
-    BEDROCK_REGION: ${self:provider.region}
-    CLAUDE_MODEL_ID: 'anthropic.claude-3-5-sonnet-20240620-v1:0'
   
   ecr:
     images:

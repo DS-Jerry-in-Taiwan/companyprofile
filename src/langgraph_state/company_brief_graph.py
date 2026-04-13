@@ -29,6 +29,7 @@ from .state import (
     QualityCheckResult,
     ErrorInfo,
     ErrorSeverity,
+    WordCountValidationResult,  # Phase 14 Stage 3 新增
     create_initial_state,
     update_state_with_node_result,
     should_retry_node,
@@ -163,7 +164,7 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
                         contents.append(result["content"])
                 web_content = "\n\n".join(contents)
 
-        # 建立 Prompt（Phase 11: 添加 word_limit, Phase 14: 添加選填欄位）
+        # 建立 Prompt（Phase 11: 添加 word_limit, Phase 14: 添加選填欄位, Phase 14 Stage 2: 添加 optimization_mode）
         prompt = build_generate_prompt(
             organ=state["organ"],
             organ_no=state.get("organ_no"),
@@ -174,6 +175,9 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
             capital=state.get("capital"),
             employees=state.get("employees"),
             founded_year=state.get("founded_year"),
+            optimization_mode=state.get(
+                "optimization_mode"
+            ),  # Phase 14 Stage 2: 傳遞模板類型
         )
 
         # 呼叫 LLM（Phase 11: 傳遞 word_limit）
@@ -582,6 +586,8 @@ class CompanyBriefGraph:
         capital: Optional[int] = None,
         employees: Optional[int] = None,
         founded_year: Optional[int] = None,
+        optimization_mode: Optional[str] = None,
+        max_rewrite_attempts: int = 2,  # Phase 14 Stage 3: 最大重寫次數
     ) -> Dict[str, Any]:
         """
         執行公司簡介生成流程
@@ -595,13 +601,15 @@ class CompanyBriefGraph:
             capital: 資本額（Phase 14 新增）
             employees: 員工人數（Phase 14 新增）
             founded_year: 成立年份（Phase 14 新增）
+            optimization_mode: 模板類型 (concise/standard/detailed)（Phase 14 Stage 2 新增）
+            max_rewrite_attempts: 最大重寫次數（Phase 14 Stage 3 新增）
 
         Returns:
             Dict[str, Any]: 最終結果
         """
         logger.info(f"開始生成 {organ} 的公司簡介")
 
-        # 建立初始狀態（Phase 11: 添加 word_limit, Phase 14: 添加選填欄位）
+        # 建立初始狀態（Phase 11: 添加 word_limit, Phase 14: 添加選填欄位, Phase 14 Stage 2: 添加 optimization_mode）
         initial_state = create_initial_state(
             organ,
             organ_no,
@@ -611,12 +619,22 @@ class CompanyBriefGraph:
             capital,
             employees,
             founded_year,
+            optimization_mode,
+            max_rewrite_attempts,
         )
 
         # 使用 LangGraph 執行
         final_state = self.compiled_graph.invoke(initial_state)
 
-        return final_state.get("final_result", {})
+        # Phase 14 Stage 2: 在回傳前呼叫 finalize_state
+        # 套用 differentiate_template 模板差異化截斷
+        # Phase 14 Stage 3: 同時整合字數檢核
+        final_result = final_state.get("final_result", {})
+        if final_result:
+            final_state = finalize_state(final_state, final_result)
+            final_result = final_state.get("final_result", {})
+
+        return final_result
 
 
 # ===== 公用介面 =====
@@ -636,6 +654,8 @@ def generate_company_brief(
     capital: Optional[int] = None,
     employees: Optional[int] = None,
     founded_year: Optional[int] = None,
+    optimization_mode: Optional[str] = None,
+    max_rewrite_attempts: int = 2,  # Phase 14 Stage 3: 最大重寫次數
 ) -> Dict[str, Any]:
     """
     生成公司簡介的便捷函式
@@ -649,6 +669,8 @@ def generate_company_brief(
         capital: 資本額（Phase 14 新增）
         employees: 員工人數（Phase 14 新增）
         founded_year: 成立年份（Phase 14 新增）
+        optimization_mode: 模板類型 (concise/standard/detailed)（Phase 14 Stage 2 新增）
+        max_rewrite_attempts: 最大重寫次數（Phase 14 Stage 3 新增）
 
     Returns:
         Dict[str, Any]: 生成結果
@@ -663,4 +685,6 @@ def generate_company_brief(
         capital,
         employees,
         founded_year,
+        optimization_mode,
+        max_rewrite_attempts,
     )
