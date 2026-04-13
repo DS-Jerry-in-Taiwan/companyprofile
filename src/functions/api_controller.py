@@ -241,5 +241,19 @@ def get_config():
     return jsonify({"apiBaseUrl": "/api/v1", "version": "1.0.0"})
 
 
+@app.route("/version", methods=["GET"])
+def get_version():
+    """版本資訊端點"""
+    import os
+
+    return jsonify(
+        {
+            "version": os.environ.get("VERSION", "unknown"),
+            "build_date": os.environ.get("BUILD_DATE", "unknown"),
+            "stage": os.environ.get("STAGE", "unknown"),
+        }
+    )
+
+
 if __name__ == "__main__":
     app.run(debug=True)

@@ -9,18 +9,20 @@ provider:
     STAGE: ${self:provider.stage}
     LOG_LEVEL: ${self:custom.logLevel.${self:provider.stage}, 'INFO'}
     # 從 AWS Parameter Store 讀取 API Keys (安全)
-    # 路徑根據 stage 自動調整: dev → /organ-brief/, office → /organ-brief-office/
-    GOOGLE_GENAI_API_KEY: ${ssm:/organ-brief-${self:provider.stage}/google-genai-api-key}
-    GEMINI_API_KEY: ${ssm:/organ-brief-${self:provider.stage}/gemini-api-key}
-    TAVILY_API_KEY: ${ssm:/organ-brief-${self:provider.stage}/tavily-api-key}
+    # 統一路徑: /organ-brief/ (所有環境共用同一組 keys)
+    GOOGLE_GENAI_API_KEY: ${ssm:/organ-brief/google-genai-api-key}
+    GEMINI_API_KEY: ${ssm:/organ-brief/gemini-api-key}
+    TAVILY_API_KEY: ${ssm:/organ-brief/tavily-api-key}
   
   ecr:
     images:
       flaskApiImg:
         path: .
-        file: src/functions/Dockerfile.dev
+        file: src/functions/Dockerfile
         buildArgs:
           STAGE: ${self:provider.stage}
+          VERSION: ${self:custom.deployVersion.${self:provider.stage}, 'dev'}
+          BUILD_DATE: ${self:custom.buildDate}
   
   iamRoleStatements:
     - Effect: Allow
@@ -47,6 +49,9 @@ custom:
   logLevel:
     dev: DEBUG
     prod: INFO
+  deployVersion:
+    dev: ${env:DEPLOY_VERSION, 'dev'}
+  buildDate: ${env:BUILD_DATE, 'unknown'}
 
 functions:
   flaskApi:
