@@ -58,14 +58,6 @@ export function validateFormData(data) {
     }
   }
 
-  // word_limit validation
-  if (data.word_limit) {
-    const limit = parseInt(data.word_limit)
-    if (isNaN(limit) || limit < 50 || limit > 2000) {
-      errors.push('字數限制需在 50-2000 之間')
-    }
-  }
-
   return {
     valid: errors.length === 0,
     errors

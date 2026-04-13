@@ -29,7 +29,6 @@ const form = ref({
   industry_desc: '',
   
   // Optional settings
-  word_limit: '',
   optimization_mode: 'STANDARD'
 })
 
@@ -43,13 +42,6 @@ function validateForm() {
   }
   if (!form.value.organ?.trim()) {
     errors.value.push('機構名稱為必填')
-  }
-  
-  if (form.value.word_limit) {
-    const limit = parseInt(form.value.word_limit)
-    if (isNaN(limit) || limit < 50 || limit > 2000) {
-      errors.value.push('字數限制需在 50-2000 之間')
-    }
   }
   
   // Validate numeric optional fields
@@ -96,7 +88,6 @@ function handleSubmit() {
     organNo: form.value.organNo.trim(),
     organ: form.value.organ.trim(),
     mode: 'GENERATE',
-    word_limit: form.value.word_limit ? parseInt(form.value.word_limit) : undefined,
     optimization_mode: form.value.optimization_mode
   }
   
@@ -342,23 +333,6 @@ function handleSubmit() {
           <h3 class="text-lg font-medium text-gray-900 mb-4">進階設定（選填）</h3>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Word Limit -->
-            <div>
-              <label for="word_limit" class="block text-sm font-medium text-gray-700 mb-1">
-                字數限制
-              </label>
-              <input
-                id="word_limit"
-                v-model="form.word_limit"
-                type="number"
-                min="50"
-                max="2000"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="50-2000"
-              />
-              <p class="mt-1 text-xs text-gray-500">範圍：50-2000 字</p>
-            </div>
-            
             <!-- Optimization Mode -->
             <div>
               <label for="optimization_mode" class="block text-sm font-medium text-gray-700 mb-1">
