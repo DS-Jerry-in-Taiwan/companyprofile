@@ -1,0 +1,17 @@
+{
+  "tavily_result_structure": {
+    "keys": [
+      "query",
+      "response_time",
+      "follow_up_questions",
+      "answer",
+      "images",
+      "results",
+      "request_id"
+    ],
+    "answer_length": 268,
+    "results_count": 3
+  },
+  "gemini_fewshot_prompt": "\n你是一個公司資訊搜尋專家。請搜尋並整理以下公司的資訊。\n\n【輸出格式要求 - 請嚴格遵守】\n請以以下 JSON 格式回覆：\n{\n    \"company_name\": \"公司名稱\",\n    \"unified_number\": \"統一編號（8位數字）\",\n    \"capital\": \"資本額（數字+貨幣單位）\",\n    \"founded_date\": \"成立時間（西元年份）\",\n    \"address\": \"公司地址\",\n    \"main_services\": [\"服務1\", \"服務2\", ...],\n    \"business_items\": [\"營業項目1\", \"營業項目2\", ...],\n    \"information_confidence\": \"高/中/低\",\n    \"missing_info\": [\"缺失的資訊1\", \"缺失的資訊2\"]\n}\n\n【範例】\n輸入：搜尋「台積電」資訊\n輸出：\n{\n    \"company_name\": \"台灣積體電路製造股份有限公司\",\n    \"unified_number\": \"22099131\",\n    \"capital\": \"新台幣 283,218,380,610 元\",\n    \"founded_date\": \"1987年\",\n    \"address\": \"新竹科學工業園區力行六路10號\",\n    \"main_services\": [\"積體電路製造\", \"半導體封裝\", \"測試服務\"],\n    \"business_items\": [\"積體電路製造及銷售\", \"半導體封裝及測試\", \"相關技術服務\"],\n    \"information_confidence\": \"高\",\n    \"missing_info\": []\n}\n\n現在請搜尋以下公司：\n",
+  "gemini_validate_prompt": "\n請檢查以下公司資訊是否完整：\n\n{collected_info}\n\n【必要資訊檢查清單】\n1. 統一編號（8位數字） - 必需\n2. 資本額（數字） - 必需\n3. 成立時間（年份） - 必需\n4. 主要產品/服務 - 必需\n5. 公司地址 - 可選\n\n【檢查規則】\n- 如果有任何「必需」項目缺失，請在 missing_info 中標示\n- 如果資訊明顯錯誤（如統編不是8位數），請標示為可疑\n- information_confidence 欄位：\n  - 高：所有必需項目都有，且資料來源可靠\n  - 中：大部分資訊齊全，少數資訊缺失或來源不明\n  - 低：嚴重資訊缺失或來源不可靠\n\n【輸出格式】\n{\n    \"is_complete\": true/false,\n    \"confidence\": \"高/中/低\",\n    \"missing_required\": [\"缺失的必需項目\"],\n    \"suspicious_items\": [\"可疑的項目\"],\n    \"suggestions\": [\"補充建議\"]\n}\n\n如果 is_complete=false，請同時提供補充後的完整資訊。\n"
+}

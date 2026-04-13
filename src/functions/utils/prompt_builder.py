@@ -231,12 +231,14 @@ def build_generate_prompt(
 
     # Phase 14 Stage 3: 字數限制優化 - 加入生成後自我檢查指令
     sections.append("\n### ✅ 生成後自我檢查（必須執行）")
-    sections.append("1. 計算生成的文字總字數（不含 HTML 標籤）")
-    sections.append("2. 確認字數在指定範圍內")
+    sections.append("1. 確認字數在指定範圍內")
     sections.append(
-        f"3. 若超出範圍，請調整內容直到符合：{template_info['length_guide']}"
+        f"2. 若超出範圍，請調整內容直到符合：{template_info['length_guide']}"
     )
-    sections.append("4. 確保不要出現「...」或其他截斷符號")
+    sections.append("3. 確保不要出現「...」或其他截斷符號")
+    sections.append(
+        "4. ⚠️ 重要：上述檢查只供內部參考，絕對不要在輸出內容中加入任何字數統計（如「(字數：XXX)」）"
+    )
 
     return "\n".join(sections)
 

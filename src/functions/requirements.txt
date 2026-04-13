@@ -25,3 +25,4 @@ google-genai>=0.8.0
 
 # 繁體中文處理
 opencc>=1.1.7
+langgraph

@@ -44,13 +44,35 @@ logger = logging.getLogger(__name__)
 
 def search_node(state: CompanyBriefState) -> CompanyBriefState:
     """
-    搜尋節點 - 使用 Tavily 搜尋公司資訊
+    搜尋節點 - 使用配置驅動搜尋工具
+
+    這個函式使用 ConfigDrivenSearchTool 進行公司資訊搜尋。
+    實際使用的搜尋策略由 config/search_config.json 中的 provider 設定決定。
+
+    支援的策略：
+    - tavily: Tavily 批次搜尋（快速）
+    - gemini_fewshot: Gemini Few-shot 搜尋（完整）
+    - gemini_planner_tavily: Gemini 規劃 + Tavily 執行（彈性）
+
+    預設策略：gemini_fewshot
+
+    配置說明：
+    - 修改 config/search_config.json 中的 provider 欄位即可切換策略
+    - 動態切換：tool.switch_provider("tavily")
+
+    與舊版差異：
+    - 舊版：直接使用 tavily_client.search_and_extract()
+    - 新版：使用 ConfigDrivenSearchTool.search()，由配置決定實際策略
+
+    相關檔案：
+    - src/services/config_driven_search.py: 配置驅動搜尋工具
+    - config/search_config.json: 搜尋策略配置
 
     Args:
-        state: 當前狀態
+        state: 當前狀態，包含 organ (公司名稱) 等欄位
 
     Returns:
-        CompanyBriefState: 更新後的狀態
+        CompanyBriefState: 更新後的狀態，search_result 包含搜尋結果
     """
     logger.info(f"執行搜尋節點，搜尋公司：{state['organ']}")
     start_time = time.time()
@@ -66,26 +88,22 @@ def search_node(state: CompanyBriefState) -> CompanyBriefState:
         if PROJECT_ROOT not in sys.path:
             sys.path.insert(0, PROJECT_ROOT)
 
-        from src.functions.utils.tavily_client import get_tavily_client
+        # 使用配置驅動搜尋工具（新）
+        from src.services.config_driven_search import search as config_search
 
         # 執行搜尋
-        tavily_client = get_tavily_client()
-        search_result = tavily_client.search_and_extract(
-            query=f"{state['organ']} 官網", max_results=3
-        )
+        search_result = config_search(f"{state['organ']} 官網")
 
         execution_time = time.time() - start_time
 
-        # 建立搜尋結果
+        # 建立搜尋結果（轉換為舊格式以保持向後兼容）
         result = SearchResult(
-            success=search_result.get("success", False),
-            answer=search_result.get("answer"),
-            results=search_result.get("results", []),
-            source=search_result.get("fallback_used", "tavily"),
+            success=search_result.success,
+            answer=search_result.raw_answer,
+            results=[{"data": search_result.data}],  # 將新格式的 data 包裝進 results
+            source=search_result.tool_type,
             execution_time=execution_time,
-            error=search_result.get("error")
-            if not search_result.get("success")
-            else None,
+            error=None if search_result.success else "搜尋失敗",
         )
 
         # 建立節點結果

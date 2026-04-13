@@ -1,0 +1,17 @@
+{
+    "// 搜尋策略配置文件": "",
+    "// 使用說明": "修改 provider 欄位即可切換搜尋策略",
+    
+    "// 可用的 provider 選項": {
+        "// tavily": "Tavily 批次搜尋 - 快速、1次 API，自然語言回應",
+        "// gemini_fewshot": "Gemini Few-shot 搜尋 - 完整、1次 API、JSON 格式（預設）",
+        "// gemini_planner_tavily": "Gemini 規劃 + Tavily 執行 - 彈性、多步驟"
+    },
+    
+    "search": {
+        "// 搜尋 provider": "gemini_fewshot",
+        "max_results": 3,
+        "temperature": 0.2,
+        "model": "gemini-2.0-flash"
+    }
+}
