@@ -1,0 +1,8 @@
+{
+    "search": {
+        "provider": "gemini_fewshot",
+        "max_results": 3,
+        "temperature": 0.2,
+        "model": "gemini-2.0-flash"
+    }
+}
