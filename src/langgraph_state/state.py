@@ -442,7 +442,7 @@ def finalize_state(
             )
             from src.functions.utils.word_count_validator import (
                 WordCountValidator,
-                WordCountValidationResult,
+                # WordCountValidationResult is defined in state.py itself (line 114)
             )
 
             # Phase 14 Stage 3: 字數檢核
@@ -498,9 +498,7 @@ def finalize_state(
                     logger.warning(f"Failed to apply word_limit truncation: {e}")
 
         except Exception as e:
-            import logging
-
-            logger = logging.getLogger(__name__)
+            # 使用模組級別的 logger（避免函數內 local logger 遮蔽問題）
             logger.warning(f"Failed to process final result: {e}")
 
     # 更新狀態
