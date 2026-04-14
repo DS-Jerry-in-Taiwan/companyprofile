@@ -50,7 +50,7 @@ BRIEF_TEMPLATE_FEATURES = {
 # 標準模板特徵
 STANDARD_TEMPLATE_FEATURES = {
     "min_length": 130,  # 最小字數
-    "max_length": 230,  # 最大字數
+    "max_length": 280,  # 最大字數 (Phase 14 Stage 3: 從 230 放寬至 280)
     "min_sentences": 3,
     "max_sentences": 5,
     "allow_line_breaks": True,
@@ -71,7 +71,7 @@ STANDARD_TEMPLATE_FEATURES = {
 # 詳細模板特徵
 DETAILED_TEMPLATE_FEATURES = {
     "min_length": 280,  # 最小字數
-    "max_length": 550,  # 最大字數
+    "max_length": 700,  # 最大字數 (Phase 14 Stage 3: 從 550 放寬至 700)
     "min_sentences": 5,
     "max_sentences": 10,
     "allow_line_breaks": True,
@@ -105,7 +105,7 @@ def differentiate_template(
     Phase 14 Stage 3 更新（字數限制優化）：
     - 預設模式：只做輕量驗證，若字數超出範圍，記錄警告但不強制截斷
     - 由 word_count_validator.py 負責字數檢核和重寫觸發
-    - 只有在 force_truncate=True 時才執行截斷（向後相容）
+    - 只有在 force_truncate=True 或內容超過 800 字時才執行截斷
 
     風格控制：
     - Phase 14 Stage 2 後，模板風格差異由 prompt_builder.py 在 LLM 生成前決定
@@ -118,8 +118,11 @@ def differentiate_template(
 
     Returns:
         若 force_truncate=False：原樣返回（僅記錄驗證警告）
-        若 force_truncate=True：截斷後返回
+        若 force_truncate=True 或內容超過 800 字：截斷後返回
     """
+    # Phase 14 Stage 3: 硬截斷門檻
+    HARD_TRUNCATE_THRESHOLD = 800  # 只有超過 800 字才截斷
+
     if not html_content:
         return html_content
 
@@ -137,9 +140,17 @@ def differentiate_template(
     current_length = len(plain_text)
 
     # Phase 14 Stage 3: 輕量驗證模式（預設）
+    # 只有當內容超過 HARD_TRUNCATE_THRESHOLD (800) 才截斷
     if not force_truncate:
-        # 只做驗證，不截斷
-        if current_length > max_length:
+        if current_length > HARD_TRUNCATE_THRESHOLD:
+            # 超過 800 字，執行截斷（截斷到 max_length）
+            logger.info(
+                f"[template_differentiator] 內容 {current_length} 字超過硬截斷門檻 {HARD_TRUNCATE_THRESHOLD}，"
+                f"執行截斷至 {max_length} 字"
+            )
+            return _apply_length_limit(html_content, features)
+        elif current_length > max_length:
+            # 超出模板上限但未超過硬截斷門檻，只記錄警告
             logger.warning(
                 f"[template_differentiator] 警告：字數 {current_length} 超出上限 {max_length}，"
                 f"建議使用 word_count_validator 進行重寫（而非強制截斷）"

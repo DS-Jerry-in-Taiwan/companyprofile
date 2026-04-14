@@ -8,8 +8,24 @@ Post-processing Module
 import bleach
 import re
 import logging
+import time
+import contextlib
 
 logger = logging.getLogger(__name__)
+
+
+# 計時上下文管理器
+@contextlib.contextmanager
+def measure(operation_name: str):
+    """計時上下文管理器"""
+    start = time.time()
+    logger.info(f"[TIMING] {operation_name} 開始")
+    try:
+        yield
+    finally:
+        elapsed = (time.time() - start) * 1000
+        logger.info(f"[TIMING] {operation_name} 完成，耗時 {elapsed:.2f}ms")
+
 
 # Phase 14.1: 嘗試導入台灣用語轉換器
 try:
@@ -330,6 +346,9 @@ def _convert_to_taiwan_terms(text):
     if not text:
         return text
 
+    original_len = len(text)
+    chars_converted = 0
+
     # 檢查是否包含 HTML 標籤
     has_html = "<" in text and ">" in text
 
@@ -349,117 +368,136 @@ def _convert_to_taiwan_terms(text):
                     converter = get_taiwan_converter()
                     result = converter.convert(original_text)
                     if result.success():
+                        chars_converted += (
+                            result.chars_converted
+                            if hasattr(result, "chars_converted")
+                            else 0
+                        )
                         tag.string = result.text
                     else:
                         # 轉換失敗，保留原始文字
                         logger.warning(f"台灣用語轉換失敗: {result.error}")
                         tag.string = original_text
 
-        return str(soup)
+        result_text = str(soup)
     else:
         # 純文本處理
         converter = get_taiwan_converter()
         result = converter.convert(text)
         if result.success():
-            return result.text
+            chars_converted = (
+                result.chars_converted if hasattr(result, "chars_converted") else 0
+            )
+            result_text = result.text
         else:
             logger.warning(f"台灣用語轉換失敗: {result.error}")
-            return text
+            result_text = text
+
+    # 記錄轉換統計
+    logger.info(
+        f"[Taiwan Terms] 轉換前: {original_len} 字, 轉換後: {len(result_text)} 字, 轉換字元數: {chars_converted}"
+    )
+    return result_text
 
 
 def post_process(llm_result, original_brief=None, template_type="standard"):
-    # HTML Sanitizer
-    body_html = llm_result.get("body_html", "")
-    if body_html is None:
-        body_html = ""
+    with measure("後處理"):
+        # HTML Sanitizer
+        body_html = llm_result.get("body_html", "")
+        if body_html is None:
+            body_html = ""
 
-    safe_html = bleach.clean(
-        body_html,
-        tags=["p", "b", "i", "ul", "li", "br"],
-        strip=True,
-    )
+        safe_html = bleach.clean(
+            body_html,
+            tags=["p", "b", "i", "ul", "li", "br"],
+            strip=True,
+        )
 
-    # Phase 14: 移除冗言
-    safe_html = _remove_verbose_phrases(safe_html)
+        # Phase 14: 移除冗言
+        safe_html = _remove_verbose_phrases(safe_html)
 
-    # Phase 14.1: 台灣用語轉換
-    if TAIWAN_TERMS_AVAILABLE:
-        safe_html = _convert_to_taiwan_terms(safe_html)
-        logger.info("已應用台灣用語轉換到 body_html")
-    else:
-        logger.warning("台灣用語轉換器不可用，跳過轉換")
+        # Phase 14.1: 台灣用語轉換
+        if TAIWAN_TERMS_AVAILABLE:
+            safe_html = _convert_to_taiwan_terms(safe_html)
+            logger.info("已應用台灣用語轉換到 body_html")
+        else:
+            logger.warning("台灣用語轉換器不可用，跳過轉換")
 
-    # Phase 14 Agent F/G: 格式統一 (新增)
-    safe_html = _normalize_format(safe_html)
-    logger.info("已應用格式統一到 body_html")
+        # Phase 14 Agent F/G: 格式統一 (新增)
+        safe_html = _normalize_format(safe_html)
+        logger.info("已應用格式統一到 body_html")
 
-    # Phase 14 Agent F/G: 內容多樣化 (新增)
-    try:
-        from src.functions.utils.content_diversifier import diversify_content
-
-        safe_html = diversify_content(safe_html)
-        logger.info("已應用內容多樣化到 body_html")
-    except ImportError as e:
-        logger.warning(f"content_diversifier 模組未找到，跳過多樣化處理: {e}")
-
-    # Phase 14 Agent F/G: 模板差異化 (新增)
-    try:
-        from src.functions.utils.template_differentiator import differentiate_template
-
-        safe_html = differentiate_template(safe_html, template_type)
-        logger.info(f"已應用模板差異化到 body_html (模板類型: {template_type})")
-    except ImportError as e:
-        logger.warning(f"template_differentiator 模組未找到，跳過模板差異化處理: {e}")
-
-    # 風險檢測（在敏感詞過濾之前）
-    summary = llm_result.get("summary", "")
-    if summary is None:
-        summary = ""
-    all_text = safe_html + " " + summary
-    if original_brief:
-        all_text = original_brief + " " + all_text
-    risk_alerts = _detect_risks(all_text)
-
-    # Phase 14: 也移除 summary 中的冗言
-    summary = llm_result.get("summary", "")
-    if summary:
-        summary = _remove_verbose_phrases(summary)
-
-    # Phase 14.1: 台灣用語轉換 (summary)
-    if TAIWAN_TERMS_AVAILABLE and summary:
-        summary = _convert_to_taiwan_terms(summary)
-        logger.info("已應用台灣用語轉換到 summary")
-
-    # Phase 14 Agent F/G: 格式統一 (summary)
-    if summary:
-        summary = _normalize_format(summary)
-        logger.info("已應用格式統一到 summary")
-
-    # Phase 14 Agent F/G: 內容多樣化 (summary)
-    if summary:
+        # Phase 14 Agent F/G: 內容多樣化 (新增)
         try:
             from src.functions.utils.content_diversifier import diversify_content
 
-            summary = diversify_content(summary)
-            logger.info("已應用內容多樣化到 summary")
+            safe_html = diversify_content(safe_html)
+            logger.info("已應用內容多樣化到 body_html")
         except ImportError as e:
-            logger.warning(
-                f"content_diversifier 模組未找到，跳過 summary 多樣化處理: {e}"
-            )
+            logger.warning(f"content_diversifier 模組未找到，跳過多樣化處理: {e}")
 
-    # Phase 14 Agent F/G: 模板差異化 (summary)
-    if summary:
+        # Phase 14 Agent F/G: 模板差異化 (新增)
         try:
             from src.functions.utils.template_differentiator import (
                 differentiate_template,
             )
 
-            summary = differentiate_template(summary, template_type)
-            logger.info(f"已應用模板差異化到 summary (模板類型: {template_type})")
+            safe_html = differentiate_template(safe_html, template_type)
+            logger.info(f"已應用模板差異化到 body_html (模板類型: {template_type})")
         except ImportError as e:
             logger.warning(
-                f"template_differentiator 模組未找到，跳過 summary 模板差異化處理: {e}"
+                f"template_differentiator 模組未找到，跳過模板差異化處理: {e}"
             )
+
+        # 風險檢測（在敏感詞過濾之前）
+        summary = llm_result.get("summary", "")
+        if summary is None:
+            summary = ""
+        all_text = safe_html + " " + summary
+        if original_brief:
+            all_text = original_brief + " " + all_text
+        risk_alerts = _detect_risks(all_text)
+
+        # Phase 14: 也移除 summary 中的冗言
+        summary = llm_result.get("summary", "")
+        if summary:
+            summary = _remove_verbose_phrases(summary)
+
+        # Phase 14.1: 台灣用語轉換 (summary)
+        if TAIWAN_TERMS_AVAILABLE and summary:
+            summary = _convert_to_taiwan_terms(summary)
+            logger.info("已應用台灣用語轉換到 summary")
+
+        # Phase 14 Agent F/G: 格式統一 (summary)
+        if summary:
+            summary = _normalize_format(summary)
+            logger.info("已應用格式統一到 summary")
+
+        # Phase 14 Agent F/G: 內容多樣化 (summary)
+        if summary:
+            try:
+                from src.functions.utils.content_diversifier import diversify_content
+
+                summary = diversify_content(summary)
+                logger.info("已應用內容多樣化到 summary")
+            except ImportError as e:
+                logger.warning(
+                    f"content_diversifier 模組未找到，跳過 summary 多樣化處理: {e}"
+                )
+
+        # Phase 14 Agent F/G: 模板差異化 (summary)
+        if summary:
+            try:
+                from src.functions.utils.template_differentiator import (
+                    differentiate_template,
+                )
+
+                summary = differentiate_template(summary, template_type)
+                logger.info(f"已應用模板差異化到 summary (模板類型: {template_type})")
+            except ImportError as e:
+                logger.warning(
+                    f"template_differentiator 模組未找到，跳過 summary 模板差異化處理: {e}"
+                )
 
     # Phase 14.1: 台灣用語轉換 (tags)
     tags = llm_result.get("tags", [])

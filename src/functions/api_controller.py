@@ -7,8 +7,21 @@ API Gateway / Controller
 
 import time
 import traceback
+import logging
+import contextlib
+import os
+from datetime import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+
+# 設定本地開發預設值（如果環境變數未設定）
+if os.environ.get("VERSION") is None:
+    os.environ["VERSION"] = "local-dev"
+if os.environ.get("BUILD_DATE") is None:
+    os.environ["BUILD_DATE"] = datetime.now().strftime("%Y%m%d-%H%M%S")
+if os.environ.get("STAGE") is None:
+    os.environ["STAGE"] = "local"
+
 from utils.request_validator import validate_request, ValidationError
 from utils.core_dispatcher import dispatch_core_logic
 from utils.error_handler import ExternalServiceError, LLMServiceError
@@ -31,6 +44,21 @@ from utils.anomaly_detector import detect_and_report_anomaly, get_anomaly_summar
 
 app = Flask(__name__)
 CORS(app)
+
+# 計時工具
+timing_logger = logging.getLogger(__name__)
+
+
+@contextlib.contextmanager
+def measure(operation_name: str):
+    """計時上下文管理器"""
+    start = time.time()
+    timing_logger.info(f"[TIMING] {operation_name} 開始")
+    try:
+        yield
+    finally:
+        elapsed = (time.time() - start) * 1000
+        timing_logger.info(f"[TIMING] {operation_name} 完成，耗時 {elapsed:.2f}ms")
 
 
 @app.route("/v1/company/profile/process", methods=["POST"])
@@ -58,7 +86,8 @@ def process_company_profile():
 
             # 執行核心邏輯
             log_info("開始執行核心邏輯", component="core_logic")
-            result = dispatch_core_logic(valid_data)
+            with measure("整體請求處理"):
+                result = dispatch_core_logic(valid_data)
             log_info("核心邏輯執行完成", component="core_logic")
 
             # 記錄成功回應

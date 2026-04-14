@@ -72,6 +72,10 @@ class LLMService:
         return self._parse_response(response.text)
 
     def _parse_response(self, text: str) -> LLMOutput:
+        import logging
+
+        logger = logging.getLogger(__name__)
+
         json_str = text.strip()
         print(f"[DEBUG] Raw response:\n{json_str[:500]}\n")  # 限制輸出長度
 
@@ -81,7 +85,9 @@ class LLMService:
 
         # 檢查是否為空或非 JSON 回應
         if not json_str or "{" not in json_str:
-            print(f"[WARNING] Non-JSON response: {json_str[:200]}")
+            logger.warning(
+                f"[Non-JSON Response] LLM 回應非 JSON 格式，長度: {len(json_str)}, 前200字: {json_str[:200]}"
+            )
             # 回應非 JSON，可能是 LLM 拒絕回答或其他情況
             raise ValueError(f"LLM did not return valid JSON: {json_str[:100]}")
 
@@ -96,9 +102,44 @@ class LLMService:
                 json_str = json_str[start:end]
             else:
                 # 如果找不到 JSON，可能是回應被截斷
-                print(f"[WARNING] Could not find JSON in response: {json_str[:200]}")
+                logger.warning(
+                    f"[Non-JSON Response] 無法在回應中找到 JSON 區塊，嘗試提取的內容: {json_str[:200]}"
+                )
                 raise ValueError(f"Invalid response format: {json_str[:100]}")
 
         print(f"[DEBUG] Parsed JSON string:\n{json_str[:200]}...\n")
-        data = json.loads(json_str)
-        return LLMOutput(**data)
+
+        # JSON 解析失敗時的 fallback 處理
+        try:
+            data = json.loads(json_str)
+            return LLMOutput(**data)
+        except json.JSONDecodeError as e:
+            logger.warning(f"[Non-JSON Response] JSON 解析失敗: {e}, 嘗試修復...")
+            # 嘗試修復常見的 JSON 格式問題
+            fixed_json = self._try_fix_json(json_str)
+            if fixed_json:
+                try:
+                    data = json.loads(fixed_json)
+                    logger.info(f"[Non-JSON Response] JSON 修復成功")
+                    return LLMOutput(**data)
+                except json.JSONDecodeError:
+                    pass
+            raise ValueError(
+                f"JSON parse failed after repair attempt: {json_str[:100]}"
+            )
+
+    def _try_fix_json(self, json_str: str) -> str:
+        """嘗試修復常見的 JSON 格式問題"""
+        import re
+
+        # 移除結尾可能存在的多餘文字
+        if '"' in json_str:
+            # 找到最後一個完整的 JSON 屬性
+            patterns = [
+                r'\{[^{}]*"[^{}]*[}]*$',  # 簡單物件
+            ]
+            for pattern in patterns:
+                match = re.search(pattern, json_str)
+                if match:
+                    return match.group(0)
+        return None

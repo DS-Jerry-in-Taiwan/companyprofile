@@ -1,0 +1,29 @@
+{
+  "comparisons": [
+    {
+      "query": "私立揚才文理短期補習班",
+      "sequential": {
+        "total_time": 10.55460810661316,
+        "breakdown": {
+          "tavily": 5.896805286407471,
+          "gemini": 4.6578028202056885
+        }
+      },
+      "parallel": {
+        "total_time": 4.690539121627808,
+        "breakdown": {
+          "tavily": 0.6075284481048584,
+          "gemini_fewshot": 4.670659780502319
+        }
+      },
+      "comparison": {
+        "improvement_percent": 55.6,
+        "speedup": 2.25
+      }
+    }
+  ],
+  "summary": {
+    "avg_improvement": 55.6,
+    "test_count": 1
+  }
+}

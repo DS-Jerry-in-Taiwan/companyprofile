@@ -11,8 +11,8 @@ Phase 14 Stage 3: 字數檢核模組
 
 字數範圍定義：
 - Concise: 40-120 字
-- Standard: 130-230 字
-- Detailed: 280-550 字
+- Standard: 130-280 字
+- Detailed: 280-700 字
 """
 
 import re
@@ -22,11 +22,11 @@ from typing import Optional, Tuple, Literal
 
 logger = logging.getLogger(__name__)
 
-# 字數範圍定義（上下限）
+# 字數範圍定義（上下限）- Phase 14 Stage 3 放寬
 WORD_COUNT_RANGES = {
     "concise": {"min": 40, "max": 120},
-    "standard": {"min": 130, "max": 230},
-    "detailed": {"min": 280, "max": 550},
+    "standard": {"min": 130, "max": 280},
+    "detailed": {"min": 280, "max": 700},
 }
 
 # 觸發重寫的閾值（超出上限的百分比）
