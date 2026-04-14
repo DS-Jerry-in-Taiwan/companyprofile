@@ -70,6 +70,7 @@ class SearchToolType(Enum):
     TAVILY_HYBRID = "tavily_hybrid"  # Tavily 混合模式
     GEMINI_FEWSHOT = "gemini_fewshot"  # Gemini Few-shot 搜尋
     GEMINI_PLANNER_TAVILY = "gemini_planner_tavily"  # Gemini 規劃 + Tavily 執行
+    PARALLEL_MULTI_SOURCE = "parallel_multi_source"  # 平行多來源搜尋
 
 
 # ===== 結構化欄位定義 =====
@@ -512,6 +513,163 @@ class GeminiPlannerTavilyTool(BaseSearchTool):
         return merged
 
 
+# ===== 平行多來源搜尋工具 =====
+class ParallelMultiSourceTool(BaseSearchTool):
+    """
+    平行多來源搜尋工具
+
+    設計：
+    1. 同時執行多個搜尋工具（Tavily + Gemini）
+    2. 取所有結果 + 多源交叉驗證
+    3. 回傳信心度指標
+
+    使用方式：
+    ```python
+    from src.services.search_tools import create_search_tool
+
+    tool = create_search_tool("parallel_multi_source", sources=["tavily", "gemini_fewshot"])
+    result = tool.search("公司名稱")
+    ```
+    """
+
+    def __init__(self, **kwargs):
+        """
+        初始化平行搜尋工具
+
+        Args:
+            sources: 要平行執行的工具列表，預設 ["tavily", "gemini_fewshot"]
+            timeout: 總超時時間（秒），預設 15
+        """
+        super().__init__(**kwargs)
+
+        self.sources = kwargs.get("sources", ["tavily", "gemini_fewshot"])
+        self.timeout = kwargs.get("timeout", 15)
+        self.confidence_threshold = kwargs.get("confidence_threshold", 0.6)
+
+        import logging
+
+        self.logger = logging.getLogger(__name__)
+
+    def search(self, query: str, **kwargs) -> SearchResult:
+        """
+        執行平行搜尋
+
+        Args:
+            query: 搜尋查詢（公司名稱）
+            **kwargs: 額外參數
+
+        Returns:
+            SearchResult: 合併後的搜尋結果
+        """
+        import concurrent.futures
+        import time
+
+        start = time.time()
+
+        # 建立工具
+        tools = []
+        for source in self.sources:
+            if source == "tavily":
+                tools.append(("tavily", TavilyBatchSearchTool()))
+            elif source == "gemini_fewshot":
+                tools.append(("gemini_fewshot", GeminiFewShotSearchTool()))
+
+        self.logger.info(f"[PARALLEL] 平行搜尋開始，工具數量: {len(tools)}")
+
+        # 平行執行
+        results = []
+        errors = []
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(tools)) as executor:
+            futures = {
+                executor.submit(tool.search, query): name for name, tool in tools
+            }
+
+            for future in concurrent.futures.as_completed(
+                futures, timeout=self.timeout
+            ):
+                name = futures[future]
+                try:
+                    result = future.result()
+                    results.append(result)
+                    self.logger.info(
+                        f"[PARALLEL] {name} 完成，耗時 {result.elapsed_time:.2f}s"
+                    )
+                except Exception as e:
+                    errors.append({"source": name, "error": str(e)})
+                    self.logger.warning(f"[PARALLEL] {name} 失敗: {e}")
+
+        elapsed = time.time() - start
+
+        # 合併結果
+        if results:
+            merged_data = self._merge_results(results)
+            confidence = self._calculate_confidence(results)
+        else:
+            merged_data = {"error": "所有工具都失敗"}
+            confidence = 0.0
+
+        # 組合 metadata
+        metadata = {
+            "_confidence": confidence,
+            "_sources": [r.tool_type for r in results],
+            "_sources_count": len(results),
+            "_errors": errors,
+            "_elapsed_breakdown": {r.tool_type: r.elapsed_time for r in results},
+        }
+
+        self.logger.info(
+            f"[PARALLEL] 完成，總耗時: {elapsed:.2f}s，"
+            f"成功: {len(results)}/{len(tools)}，信心度: {confidence}"
+        )
+
+        return SearchResult(
+            success=len(results) > 0,
+            tool_type=SearchToolType.PARALLEL_MULTI_SOURCE.value,
+            elapsed_time=elapsed,
+            api_calls=sum(r.api_calls for r in results),
+            data={**merged_data, **metadata},
+            raw_answer=str(merged_data),
+            answer_length=len(str(merged_data)),
+        )
+
+    def _merge_results(self, results: List[SearchResult]) -> Dict[str, Any]:
+        """合併多個來源的結果"""
+        if not results:
+            return {}
+
+        merged = {}
+
+        # 收集所有來源的有效欄位
+        for result in results:
+            if result.success and result.data:
+                for key, value in result.data.items():
+                    if key not in merged:
+                        merged[key] = value
+                    elif merged[key] != value and value:
+                        # 發現差異，標記交叉驗證
+                        merged[f"{key}_source_a"] = merged[key]
+                        merged[f"{key}_source_b"] = value
+                        merged[f"{key}_conflict"] = True
+
+        return merged
+
+    def _calculate_confidence(self, results: List[SearchResult]) -> float:
+        """計算信心度"""
+        if not results:
+            return 0.0
+
+        # 來源數量權重 (40%)
+        source_score = min(len(results) / 2, 1.0) * 0.4
+
+        # 回應完整性權重 (60%)
+        completeness = sum(
+            1 for r in results if r.success and r.data and len(r.data) > 0
+        ) / len(results)
+
+        return round(source_score + completeness * 0.6, 2)
+
+
 # ===== 工具工廠 =====
 class SearchToolFactory:
     """
@@ -536,6 +694,7 @@ class SearchToolFactory:
         SearchToolType.TAVILY_HYBRID: TavilyBatchSearchTool,  # 暫用同一個
         SearchToolType.GEMINI_FEWSHOT: GeminiFewShotSearchTool,
         SearchToolType.GEMINI_PLANNER_TAVILY: GeminiPlannerTavilyTool,
+        SearchToolType.PARALLEL_MULTI_SOURCE: ParallelMultiSourceTool,
     }
 
     @classmethod
