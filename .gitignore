@@ -72,3 +72,7 @@ test_lambda_path.py
 .DS_Store
 Thumbs.db
 brave-search-mcp-server/
+
+# Local backups and scripts
+backups/
+copy_mcp_config.sh
