@@ -10,6 +10,7 @@
 
 import logging
 import time
+import contextlib
 from typing import Dict, Any, Optional, List, Callable
 from datetime import datetime
 
@@ -17,6 +18,20 @@ from langgraph.graph import StateGraph, END, START
 from langgraph.prebuilt import ToolNode
 
 logger = logging.getLogger(__name__)
+
+
+# 計時上下文管理器
+@contextlib.contextmanager
+def measure(operation_name: str):
+    """計時上下文管理器"""
+    start = time.time()
+    logger.info(f"[TIMING] {operation_name} 開始")
+    try:
+        yield
+    finally:
+        elapsed = (time.time() - start) * 1000
+        logger.info(f"[TIMING] {operation_name} 完成，耗時 {elapsed:.2f}ms")
+
 
 from .state import (
     CompanyBriefState,
@@ -36,6 +51,9 @@ from .state import (
     increment_retry_count,
     finalize_state,
 )
+
+# Phase 14 Stage 3: 台灣用語轉換
+from src.functions.utils.post_processing import post_process
 
 logger = logging.getLogger(__name__)
 
@@ -91,10 +109,12 @@ def search_node(state: CompanyBriefState) -> CompanyBriefState:
         # 使用配置驅動搜尋工具（新）
         from src.services.config_driven_search import search as config_search
 
-        # 執行搜尋
-        search_result = config_search(f"{state['organ']} 官網")
+        # 執行搜尋（帶計時）
+        with measure("搜尋階段"):
+            search_result = config_search(f"{state['organ']} 官網")
 
         execution_time = time.time() - start_time
+        logger.info(f"[TIMING] 搜尋階段完成，耗時 {execution_time * 1000:.2f}ms")
 
         # 建立搜尋結果（轉換為舊格式以保持向後兼容）
         result = SearchResult(
@@ -199,9 +219,11 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
         )
 
         # 呼叫 LLM（Phase 11: 傳遞 word_limit）
-        llm_response = call_llm(prompt, word_limit=state.get("word_limit"))
+        with measure("LLM 生成"):
+            llm_response = call_llm(prompt, word_limit=state.get("word_limit"))
 
         execution_time = time.time() - start_time
+        logger.info(f"[TIMING] LLM 生成完成，耗時 {execution_time * 1000:.2f}ms")
 
         # 建立 LLM 結果
         result = LLMResult(
@@ -651,6 +673,12 @@ class CompanyBriefGraph:
         if final_result:
             final_state = finalize_state(final_state, final_result)
             final_result = final_state.get("final_result", {})
+
+        # Phase 14: 台灣用語轉換和後處理
+        if final_result:
+            template_type = final_state.get("optimization_mode", "standard")
+            processed_result = post_process(final_result, template_type=template_type)
+            return processed_result
 
         return final_result
 

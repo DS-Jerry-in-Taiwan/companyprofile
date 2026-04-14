@@ -167,6 +167,13 @@ class ConfigDrivenSearchTool:
                 "gemini_planner_tavily",
                 max_results=self.config.max_results,
             )
+        elif provider == "parallel_multi_source":
+            # 平行多來源搜尋
+            return create_search_tool(
+                "parallel_multi_source",
+                sources=["tavily", "gemini_fewshot"],
+                timeout=15,
+            )
         else:
             print(f"⚠️ 未知的 provider: {provider}，使用預設 gemini_fewshot")
             return create_search_tool("gemini_fewshot")
