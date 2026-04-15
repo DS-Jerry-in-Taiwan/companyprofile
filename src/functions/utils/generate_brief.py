@@ -43,7 +43,7 @@ def generate_brief(data):
             - organ (str): 公司名稱
             - organNo (str, optional): 統一編號
             - companyUrl (str, optional): 公司官網
-            - brief (str, optional): 用戶提供的簡介
+            - inputText (str, optional): 用戶提供的簡介
             - word_limit (int, optional): 字數限制
             - capital (int, optional): 資本額
             - employees (int, optional): 員工人數
@@ -55,7 +55,7 @@ def generate_brief(data):
     """
     organ = data["organ"]
     organ_no = data.get("organNo")
-    user_brief = data.get("brief")
+    input_text = data.get("inputText")
     company_url = data.get("companyUrl")
     word_limit = data.get("word_limit")
     capital = data.get("capital")
@@ -72,7 +72,7 @@ def generate_brief(data):
         organ=organ,
         organ_no=organ_no,
         company_url=company_url,
-        user_brief=user_brief,
+        user_brief=input_text,
         word_limit=word_limit,
         capital=capital,
         employees=employees,

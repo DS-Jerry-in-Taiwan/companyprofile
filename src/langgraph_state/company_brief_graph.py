@@ -40,6 +40,7 @@ from .state import (
     NodeResult,
     NodeStatus,
     SearchResult,
+    AspectSummaryResult,  # 四面向彙整結果
     LLMResult,
     QualityCheckResult,
     ErrorInfo,
@@ -51,6 +52,7 @@ from .state import (
     increment_retry_count,
     finalize_state,
 )
+from .summarizer import FourAspectSummarizer  # 四面向彙整器
 
 # Phase 14 Stage 3: 台灣用語轉換
 from src.functions.utils.post_processing import post_process
@@ -162,6 +164,94 @@ def search_node(state: CompanyBriefState) -> CompanyBriefState:
         return update_state_with_node_result(state, node_result)
 
 
+def summary_node(state: CompanyBriefState) -> CompanyBriefState:
+    """
+    四面向彙整節點 - 將搜尋結果彙整為四個面向
+
+    Args:
+        state: 當前狀態，包含 search_result
+
+    Returns:
+        CompanyBriefState: 更新後的狀態，aspect_summaries 包含四面向彙整結果
+    """
+    logger.info(f"執行四面向彙整節點")
+    start_time = time.time()
+
+    try:
+        # 取得搜尋結果
+        search_result = state.get("search_result")
+        if not search_result or not search_result.success:
+            raise Exception("No valid search result to summarize")
+
+        # 將搜尋結果轉換為 FourAspectSummarizer 格式
+        query_results = []
+        if search_result.results:
+            for result in search_result.results:
+                query_results.append(
+                    {
+                        "aspect": result.get("aspect", ""),
+                        "success": result.get("success", True),
+                        "answer": result.get("content") or result.get("answer", ""),
+                    }
+                )
+
+        # 如果沒有 aspect 欄位，使用預設的四面向
+        if not any(r.get("aspect") for r in query_results):
+            # 將 answer 內容分發到四個面向
+            answer_content = search_result.answer or ""
+            for aspect in ["foundation", "core", "vibe", "future"]:
+                query_results.append(
+                    {
+                        "aspect": aspect,
+                        "success": True,
+                        "answer": answer_content,
+                    }
+                )
+
+        # 使用 FourAspectSummarizer 彙整
+        summarizer = FourAspectSummarizer()
+        summaries = summarizer.summarize(query_results)
+
+        # 轉換為 AspectSummaryResult 格式
+        aspect_summaries = {}
+        for aspect, summary in summaries.items():
+            aspect_summaries[aspect] = AspectSummaryResult(
+                aspect=summary.aspect,
+                description=summary.description,
+                content=summary.combined_content,
+                source_queries=summary.source_queries,
+                total_characters=summary.total_characters,
+            )
+
+        execution_time = time.time() - start_time
+        logger.info(f"[TIMING] 四面向彙整完成，耗時 {execution_time * 1000:.2f}ms")
+
+        # 建立節點結果
+        node_result = NodeResult(
+            node_name=NodeNames.SUMMARY,
+            status=NodeStatus.COMPLETED,
+            output=aspect_summaries,
+            execution_time=execution_time,
+        )
+
+        # 更新狀態
+        return update_state_with_node_result(state, node_result)
+
+    except Exception as e:
+        execution_time = time.time() - start_time
+        logger.error(f"四面向彙整節點執行失敗: {e}")
+
+        node_result = NodeResult(
+            node_name=NodeNames.SUMMARY,
+            status=NodeStatus.FAILED,
+            output=None,
+            error=e,
+            execution_time=execution_time,
+        )
+
+        return update_state_with_node_result(state, node_result)
+
+
 def generate_node(state: CompanyBriefState) -> CompanyBriefState:
     """
     生成節點 - 使用 LLM 生成公司簡介
@@ -191,7 +281,20 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
 
         # 準備搜尋內容
         web_content = None
-        if state.get("search_result") and state["search_result"].success:
+
+        # 四面向模式：使用 aspect_summaries 生成簡介
+        aspect_summaries = state.get("aspect_summaries")
+        if aspect_summaries:
+            # 格式化四面向內容
+            aspect_parts = []
+            for aspect_name in ["foundation", "core", "vibe", "future"]:
+                if aspect_name in aspect_summaries:
+                    summary = aspect_summaries[aspect_name]
+                    aspect_parts.append(f"【{summary.description}】\n{summary.content}")
+            web_content = "\n\n".join(aspect_parts)
+            logger.info(f"使用四面向內容生成簡介，共 {len(aspect_summaries)} 個面向")
+        # 向後兼容：使用傳統搜尋結果
+        elif state.get("search_result") and state["search_result"].success:
             if state["search_result"].answer:
                 web_content = state["search_result"].answer
             elif state["search_result"].results:
@@ -427,8 +530,8 @@ def route_after_search(state: CompanyBriefState) -> str:
         return NodeNames.ERROR_HANDLER
 
     if search_result.success:
-        logger.info("搜尋成功，進入生成階段")
-        return NodeNames.GENERATE
+        logger.info("搜尋成功，進入四面向彙整階段")
+        return NodeNames.SUMMARY
     else:
         # 搜尋失敗，檢查是否可以重試
         if should_retry_node(state, NodeNames.SEARCH):
@@ -437,6 +540,26 @@ def route_after_search(state: CompanyBriefState) -> str:
         else:
             logger.warning("搜尋失敗且無法重試，使用錯誤處理")
             return NodeNames.ERROR_HANDLER
+
+
+def route_after_summary(state: CompanyBriefState) -> str:
+    """
+    四面向彙整後的路由決策
+
+    Args:
+        state: 當前狀態
+
+    Returns:
+        str: 下一個節點名稱
+    """
+    aspect_summaries = state.get("aspect_summaries")
+
+    if aspect_summaries:
+        logger.info("四面向彙整成功，進入生成階段")
+        return NodeNames.GENERATE
+    else:
+        logger.warning("四面向彙整失敗，使用錯誤處理")
+        return NodeNames.ERROR_HANDLER
 
 
 def route_after_generate(state: CompanyBriefState) -> str:
@@ -550,6 +673,7 @@ class CompanyBriefGraph:
 
         # 添加節點
         self.graph.add_node(NodeNames.SEARCH, search_node)
+        self.graph.add_node(NodeNames.SUMMARY, summary_node)
         self.graph.add_node(NodeNames.GENERATE, generate_node)
         self.graph.add_node(NodeNames.QUALITY_CHECK, quality_check_node)
         self.graph.add_node(NodeNames.ERROR_HANDLER, error_handler_node)
@@ -559,17 +683,28 @@ class CompanyBriefGraph:
         # 設定入口點
         self.graph.set_entry_point(NodeNames.SEARCH)
 
-        # 添加條件邊
+        # 添加條件邊：SEARCH → SUMMARY
         self.graph.add_conditional_edges(
             NodeNames.SEARCH,
             route_after_search,
             {
-                NodeNames.GENERATE: NodeNames.GENERATE,
+                NodeNames.SUMMARY: NodeNames.SUMMARY,
                 NodeNames.RETRY_SEARCH: NodeNames.RETRY_SEARCH,
                 NodeNames.ERROR_HANDLER: NodeNames.ERROR_HANDLER,
             },
         )
 
+        # 添加條件邊：SUMMARY → GENERATE
+        self.graph.add_conditional_edges(
+            NodeNames.SUMMARY,
+            route_after_summary,
+            {
+                NodeNames.GENERATE: NodeNames.GENERATE,
+                NodeNames.ERROR_HANDLER: NodeNames.ERROR_HANDLER,
+            },
+        )
+
+        # 添加條件邊：GENERATE → QUALITY_CHECK
         self.graph.add_conditional_edges(
             NodeNames.GENERATE,
             route_after_generate,
@@ -594,7 +729,7 @@ class CompanyBriefGraph:
             NodeNames.RETRY_SEARCH,
             route_after_search,
             {
-                NodeNames.GENERATE: NodeNames.GENERATE,
+                NodeNames.SUMMARY: NodeNames.SUMMARY,
                 NodeNames.RETRY_SEARCH: NodeNames.RETRY_SEARCH,
                 NodeNames.ERROR_HANDLER: NodeNames.ERROR_HANDLER,
             },
