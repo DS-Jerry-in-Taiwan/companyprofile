@@ -1,0 +1,950 @@
+{
+  "timestamp": "2026-04-15T02:24:21.630840",
+  "mode": "compare",
+  "companies": [
+    "Google",
+    "統一超商",
+    "長榮航空"
+  ],
+  "results": [
+    {
+      "company": "Google",
+      "tavily": {
+        "search_time": 6.820474863052368,
+        "search_success": 8,
+        "summaries": {
+          "foundation": {
+            "description": "品牌實力與基本資料",
+            "content": "Google was founded in 1998, and its market capitalization is constantly updated but was last reported as N/A in March 2026. The company is headquartered in Mountain View, California.\n\nGoogle, through its parent company Alphabet, leads in global revenue and holds a dominant position in the tech industry, especially in search and AI. Google's Chrome browser ranks third in global market share. Google's innovations and acquisitions have solidified its industry standing.",
+            "source_queries": 2,
+            "total_characters": 468
+          },
+          "core": {
+            "description": "技術產品與服務核心",
+            "content": "Google's core products are Google Search and Google Ads. Google Search is its flagship service, while Google Ads is its primary revenue source.\n\nGoogle's technological architecture and R&D prowess are highly advanced, focusing on AI and cloud computing. Its TPU technology significantly boosts AI capabilities. Google's strategic investments and talent retention indicate strong future growth.",
+            "source_queries": 2,
+            "total_characters": 391
+          },
+          "vibe": {
+            "description": "職場環境與企業文化",
+            "content": "Google 員工福利包括全面的保險、健康福利、財務退休計劃和餐點補助。高級員工享有高薪和年終獎金。員工福利非常優越。\n\nGoogle's office culture emphasizes openness and collaboration, with flexible workspaces and recreational areas. Employees enjoy a vibrant work environment that supports innovation. Google's mission drives its commitment to creating an inclusive and dynamic workplace.",
+            "source_queries": 2,
+            "total_characters": 326
+          },
+          "future": {
+            "description": "近期動態與未來展望",
+            "content": "Google I/O 2026 will be held on May 19, showcasing new Android and XR updates. Gemini is expected to evolve significantly. Google's stock is predicted to outperform in 2026.\n\nGoogle was founded in 1998 by Larry Page and Sergey Brin. They remain key leaders of the company. The company started in a garage rented by the founders.",
+            "source_queries": 2,
+            "total_characters": 326
+          }
+        },
+        "brief": {
+          "company": "Google",
+          "title": "Google: 創新科技巨擘，引領全球數位未來",
+          "content": "Google 成立於 1998 年，總部位於加州山景城，是科技產業的全球領導者。透過母公司 Alphabet，Google 在全球營收方面名列前茅，尤其在搜尋引擎和人工智慧領域佔據主導地位。其核心產品包括 Google Search 和 Google Ads，前者是旗艦服務，後者是主要營收來源。Google 的技術架構和研發實力領先業界，專注於人工智慧和雲端運算，其 TPU 技術顯著提升了 AI 效能。Google Chrome 瀏覽器在全球市場佔有率排名第三。公司持續的創新和策略性收購，鞏固了其產業地位。Google 提供優渥的員工福利，包括全面的保險、健康福利、財務退休計畫和餐點補助，並強調開放、協作的辦公室文化，營造支持創新的工作環境。Google I/O 2026 將於 5 月 19 日舉行，展示 Android 和 XR 的最新更新，Gemini 預計將有重大發展。Google 的創辦人 Larry Page 和 Sergey Brin 仍是公司的關鍵領導者。市場資本額資訊待確認。",
+          "length_category": "medium",
+          "word_count": 452,
+          "generation_time": 3.61
+        },
+        "tags": {
+          "company": "Google",
+          "tags": [
+            "Google",
+            "科技巨頭",
+            "搜尋引擎",
+            "人工智慧",
+            "雲端運算",
+            "員工福利",
+            "創新",
+            "Google I/O 2026",
+            "Android",
+            "Gemini"
+          ],
+          "categories": {
+            "industry": [
+              "科技",
+              "網路"
+            ],
+            "feature": [
+              "領先技術",
+              "核心產品"
+            ],
+            "culture": [
+              "開放文化",
+              "協作"
+            ],
+            "scale": [
+              "全球領導者"
+            ]
+          },
+          "generation_time": 1.52
+        }
+      },
+      "gemini_flash": {
+        "search_time": 5.9047160148620605,
+        "search_success": 8,
+        "summaries": {
+          "foundation": {
+            "description": "品牌實力與基本資料",
+            "content": "Google 官網的創立日期為 1998 年 9 月 4 日，但官方慶祝的創立紀念日是 9 月 27 日。 關於資本額的資訊，Google 在 2004 年首次公開募股時，股票價值為每股 85 美元。 此外，Google 母公司 Alphabet 預計在 2026 年的資本支出將達到 1850 億美元（約 5.84 兆台幣）。\n\nGoogle 在產業中擁有卓越的地位，其母公司 Alphabet 的市值曾超越蘋果，成為全球第二大企業。 Google 旗下產品如 Google 搜尋、YouTube、Android 等，在全球擁有數十億用戶。 Google 的業務涵蓋搜尋、廣告、雲端運算、AI 等多個領域，並持續投入 AI 技術研發，例如 Gemini AI。 Google 也獲得多項獎項，例如 Google Cloud 年度最佳合作夥伴獎，以及在 2025 Agency Excellence Awards 中，其廣告解決方案協助客戶獲得多項獎項。",
+            "source_queries": 2,
+            "total_characters": 425
+          },
+          "core": {
+            "description": "技術產品與服務核心",
+            "content": "Google 的核心產品涵蓋多個領域，主要服務包括：搜尋引擎，提供網頁搜尋、圖片搜尋等功能；Gmail、雲端硬碟等雲端儲存和辦公應用；Android 行動作業系統；以及 Pixel 系列手機、平板等硬體產品。此外，Google 也提供廣告服務、地圖、翻譯、YouTube 影片分享等多元服務，並持續開發 AI 相關產品，如 Gemini 助理，以滿足使用者不同的需求.\n\nGoogle 在技術架構方面，擁有強大的雲端基礎設施，並持續投資於 AI 基礎建設研發，例如在台灣設立 AI 基礎建設研發中心，規模僅次於美國總部。Google 研發專為張量運算設計的 TPU 晶片，目前已進化到第七代，並即將推出 Ironwood 晶片，這使得 Google 在 AI 運算成本上具有優勢。Google 的技術架構也包括雲端服務，例如 Compute Engine、Google Kubernetes Engine 和 App Engine 等。",
+            "source_queries": 2,
+            "total_characters": 416
+          },
+          "vibe": {
+            "description": "職場環境與企業文化",
+            "content": "Google 員工享有優渥的福利和薪資待遇。福利方面，Google 提供免費餐飲、健身房、通勤專車、帶薪產假，甚至員工過世後配偶可領十年半薪，子女也有養育金。薪資方面，Google 軟體工程師的年薪可高達 34 萬美元，其他職位如數據科學家、產品經理等也有優渥的薪資。\n\nGoogle 的企業文化以開放、鼓勵創新和重視員工福祉聞名。 辦公室環境通常設計得像遊樂場，提供免費餐飲、健身房、遊戲室、午睡室等設施，旨在激發創造力，讓員工享受工作。 然而，近年來，隨著公司規模擴大和領導風格的轉變，部分員工認為透明度有所降低，企業文化變得更加「公司化」。 Google 也致力於永續發展，例如採用集成木材建造辦公大樓，以減少碳排放，並創造更健康的工作環境。",
+            "source_queries": 2,
+            "total_characters": 322
+          },
+          "future": {
+            "description": "近期動態與未來展望",
+            "content": "根據最新的新聞，Google 在 2026 年的發展動態主要集中在人工智慧（AI）和硬體產品的整合與創新。 在 AI 方面，Google DeepMind 宣布首設 AI 哲學家職位，並推出了 Gemini 機器人模型的升級版本，旨在提升機器人的空間感知、物體偵測和運動追蹤能力。 Google I/O 2026 開發者大會將於 5 月 19 日至 20 日舉行，預計將展示 Gemini 全新模型技術、Android 17 作業系統、AI 智慧眼鏡等。 此外，Google 也持續在量子電腦領域取得突破，並積極擴大在機器人技術的投入。\n\nGoogle 的發展願景是整合全球資訊，使人人皆可訪問並從中受益，並致力於透過創新讓世界變得更美好。 創辦人為謝爾蓋·布林（Sergey Brin）和賴利·佩吉（Larry Page），他們合作建立了以搜尋引擎和線上廣告技術聞名的 Google。 Google 致力於透過 AI 等技術，改善人們的生活，並以負責任的態度開發技術。",
+            "source_queries": 2,
+            "total_characters": 433
+          }
+        },
+        "brief": {
+          "company": "Google",
+          "title": "Google：全球科技巨擘，創新驅動未來",
+          "content": "Google，成立於 1998 年，是全球領先的科技公司，業務涵蓋搜尋、廣告、雲端運算、AI 等多個領域。 憑藉其卓越的技術實力，Google 旗下產品如 Google 搜尋、YouTube、Android 等，在全球擁有數十億用戶。 母公司 Alphabet 的市值曾位居全球前列，顯示其強大的品牌實力。 Google 持續投入 AI 技術研發，例如 Gemini AI，並在雲端基礎設施方面擁有顯著優勢，包括專為張量運算設計的 TPU 晶片。 Google 提供多元服務，包括搜尋引擎、Gmail、雲端硬碟、Android 行動作業系統以及 Pixel 系列硬體產品。 Google 員工享有優渥的福利和薪資待遇，並以開放、鼓勵創新和重視員工福祉的企業文化聞名。 近期，Google 積極整合 AI 與硬體產品，並持續在量子電腦和機器人技術領域投入。 Google 的願景是整合全球資訊，使人人皆可訪問並從中受益，致力於透過創新讓世界變得更美好。",
+          "length_category": "medium",
+          "word_count": 425,
+          "generation_time": 3.18
+        },
+        "tags": {
+          "company": "Google",
+          "tags": [
+            "Google",
+            "科技巨頭",
+            "AI",
+            "雲端運算",
+            "Android",
+            "YouTube",
+            "創新文化",
+            "員工福利"
+          ],
+          "categories": {
+            "industry": [
+              "科技",
+              "網路"
+            ],
+            "feature": [
+              "搜尋引擎",
+              "AI 應用"
+            ],
+            "culture": [
+              "開放文化",
+              "員工導向"
+            ],
+            "scale": [
+              "跨國企業"
+            ]
+          },
+          "generation_time": 1.44
+        }
+      },
+      "comparison": {
+        "search": {
+          "tavily_time": 6.82,
+          "gemini_flash_time": 5.905,
+          "winner": "gemini_flash",
+          "improvement_percent": 13.4
+        },
+        "content_volume": {
+          "tavily_chars": 1511,
+          "gemini_flash_chars": 1596,
+          "winner": "gemini_flash"
+        },
+        "brief": {
+          "tavily_words": 452,
+          "gemini_flash_words": 425,
+          "tavily_title": "Google: 創新科技巨擘，引領全球數位未來",
+          "gemini_flash_title": "Google：全球科技巨擘，創新驅動未來"
+        },
+        "tags": {
+          "tavily_count": 10,
+          "gemini_flash_count": 8,
+          "tavily_tags": [
+            "Google",
+            "科技巨頭",
+            "搜尋引擎",
+            "人工智慧",
+            "雲端運算",
+            "員工福利",
+            "創新",
+            "Google I/O 2026",
+            "Android",
+            "Gemini"
+          ],
+          "gemini_flash_tags": [
+            "Google",
+            "科技巨頭",
+            "AI",
+            "雲端運算",
+            "Android",
+            "YouTube",
+            "創新文化",
+            "員工福利"
+          ]
+        },
+        "evaluation": {
+          "company": "Google",
+          "tavily": {
+            "company": "Google",
+            "provider": "tavily",
+            "dimensions": {
+              "relevance": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              },
+              "completeness": {
+                "score": 7,
+                "reason": "",
+                "max": 10.0
+              },
+              "accuracy": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "readability": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "professionalism": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              },
+              "tag_consistency": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              }
+            },
+            "overall_score": 8.2,
+            "summary": "簡潔明瞭地介紹了Google的核心業務、技術優勢、員工福利和未來發展，整體資訊準確且易於理解。",
+            "evaluation_time": 1.45
+          },
+          "gemini_flash": {
+            "company": "Google",
+            "provider": "gemini_flash",
+            "dimensions": {
+              "relevance": {
+                "score": 10,
+                "reason": "",
+                "max": 10.0
+              },
+              "completeness": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "accuracy": {
+                "score": 10,
+                "reason": "",
+                "max": 10.0
+              },
+              "readability": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "professionalism": {
+                "score": 10,
+                "reason": "",
+                "max": 10.0
+              },
+              "tag_consistency": {
+                "score": 10,
+                "reason": "",
+                "max": 10.0
+              }
+            },
+            "overall_score": 9.5,
+            "summary": "這是一份全面、準確且專業的 Google 公司簡介，涵蓋了核心業務、創新文化和未來發展方向，與標籤高度一致。",
+            "evaluation_time": 1.57
+          },
+          "dimension_comparison": {
+            "relevance": {
+              "tavily": 8,
+              "gemini_flash": 10,
+              "winner": "gemini_flash",
+              "diff": 2
+            },
+            "completeness": {
+              "tavily": 7,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 2
+            },
+            "accuracy": {
+              "tavily": 9,
+              "gemini_flash": 10,
+              "winner": "gemini_flash",
+              "diff": 1
+            },
+            "readability": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "professionalism": {
+              "tavily": 8,
+              "gemini_flash": 10,
+              "winner": "gemini_flash",
+              "diff": 2
+            },
+            "tag_consistency": {
+              "tavily": 8,
+              "gemini_flash": 10,
+              "winner": "gemini_flash",
+              "diff": 2
+            }
+          },
+          "winner_counts": {
+            "tavily": 0,
+            "gemini_flash": 5
+          },
+          "overall_winner": "gemini_flash"
+        }
+      }
+    },
+    {
+      "company": "統一超商",
+      "tavily": {
+        "search_time": 6.970149040222168,
+        "search_success": 8,
+        "summaries": {
+          "foundation": {
+            "description": "品牌實力與基本資料",
+            "content": "統一超商成立於1987年6月10日，資本額為10,396,222,550元。上市日期是1997年8月22日。\n\n統一超商在產業中具有卓越地位，多次獲獎，包括多項ESG永續獎和亞太暨台灣永續行動獎。截至2026年，累計獲獎15次以上。其獲獎數在零售業中名列前茅。",
+            "source_queries": 2,
+            "total_characters": 128
+          },
+          "core": {
+            "description": "技術產品與服務核心",
+            "content": "統一超商的核心產品是便利商品和服務，主要服務包括24小時營業、電子商務和多樣化的便利生活服務。\n\n統一超商擁有強大研發實力，與工研院合作推出無人商店X-STORE，並引入智慧型儲物櫃系統。",
+            "source_queries": 2,
+            "total_characters": 92
+          },
+          "vibe": {
+            "description": "職場環境與企業文化",
+            "content": "統一超商員工福利包括獎金、教育補助、旅遊補助和健康照護。薪資範圍在29,500至38,500元月薪。福利和薪資可能因地區和職位有所不同。\n\n統一超商企業文化強調誠信、創新和共享，重視品質和多元文化職場環境。其辦公室環境注重多代共融和優質服務。",
+            "source_queries": 2,
+            "total_characters": 119
+          },
+          "future": {
+            "description": "近期動態與未來展望",
+            "content": "統一超商計劃在2026年關閉台菲7-11超商，展店增加至200家，並啟用台中物流園區。\n\n統一超商的創辦人是高清愿先生，他在1978年與美國南方公司合作，成立了「統一超級商店股份有限公司」。Jim Keyes與高清愿先生簽訂永久授權契約，使統一超商成為7-ELEVEN品牌的授權經營者。",
+            "source_queries": 2,
+            "total_characters": 141
+          }
+        },
+        "brief": {
+          "company": "統一超商",
+          "title": "統一超商：深耕便利生活，引領零售創新",
+          "content": "統一超商股份有限公司，成立於1987年，資本額逾百億元，並於1997年上市，是台灣零售業的領導者。公司以7-ELEVEN便利商店為核心，提供24小時營業、電子商務及多元便利生活服務。統一超商不僅擁有強大的品牌實力，更在ESG永續發展方面屢獲殊榮，截至2026年已累積獲得15次以上獎項，展現其卓越的企業社會責任。 \n\n統一超商持續創新，與工研院合作推出無人商店X-STORE，並導入智慧型儲物櫃系統，提升服務效率。公司重視員工福利，提供獎金、教育補助、旅遊補助和健康照護等，並強調誠信、創新和共享的企業文化。展望未來，統一超商計劃持續擴張，預計於2026年展店增加至200家，並啟用台中物流園區，持續深耕台灣市場。創辦人高清愿先生與7-ELEVEN品牌的合作，奠定了統一超商在台灣零售業的領先地位。",
+          "length_category": "medium",
+          "word_count": 349,
+          "generation_time": 3.53
+        },
+        "tags": {
+          "company": "統一超商",
+          "tags": [
+            "7-ELEVEN",
+            "便利商店",
+            "零售業",
+            "ESG永續",
+            "無人商店",
+            "智慧儲物櫃",
+            "員工福利",
+            "企業文化"
+          ],
+          "categories": {
+            "industry": [
+              "零售業",
+              "便利商店"
+            ],
+            "feature": [
+              "24小時營業",
+              "電子商務"
+            ],
+            "culture": [
+              "誠信",
+              "創新"
+            ],
+            "scale": [
+              "上市公司"
+            ]
+          },
+          "generation_time": 1.42
+        }
+      },
+      "gemini_flash": {
+        "search_time": 5.507692575454712,
+        "search_success": 8,
+        "summaries": {
+          "foundation": {
+            "description": "品牌實力與基本資料",
+            "content": "統一超商股份有限公司成立於 1987 年 6 月 10 日。 截至 2023 年，統一超商的實收資本額為 103.96 億元。\n\n統一超商（7-ELEVEN）在台灣零售業中擁有領先地位，其獲獎紀錄豐富，產業地位穩固。\n\n**獲獎紀錄：** 統一超商屢獲殊榮，包括連續多年獲得TCSA台灣企業永續獎，並在2025年囊括多個獎項，展現其在永續發展方面的卓越成果。此外，統一超商也獲得2024行銷傳播傑出貢獻獎等多項肯定，顯示其在行銷創意、企業社會責任等方面的傑出表現。\n\n**產業地位：** 統一超商是台灣便利商店市場的龍頭，市佔率超過50%。其門市數量持續擴張，並積極拓展複合業態，深化社群經營，以維持其市場領先地位。儘管面臨經營挑戰，統一超商仍持續創新，鞏固其在零售業的領導地位。",
+            "source_queries": 2,
+            "total_characters": 338
+          },
+          "core": {
+            "description": "技術產品與服務核心",
+            "content": "統一超商（7-ELEVEN）的核心產品包括多樣化的商品，如食品、飲料、生活用品等，並持續開發自有品牌商品。主要服務則涵蓋24小時便利購物、繳費、寄取件、數位平台（如icash、OPEN POINT）等，旨在提供消費者便利、安心、歡樂的消費體驗，並不斷創新以滿足快速變化的市場需求。\n\n統一超商在技術架構方面，積極構建永續循環經濟，例如推出循環杯服務和高效智慧回收機，並持續導入新科技，如AI智慧貨架和光學雷達影像辨識技術，以提升店鋪營運效能和顧客體驗。 在研發實力方面，統一超商不斷創新，例如推出「X-STORE」等未來型態店，並與工研院合作開發無人超商，同時也積極拓展數位零售版圖，例如整合OPEN POINT生態圈、行動支付和App應用，以實現全通路服務和數據應用。 此外，統一超商也與NEC等公司合作，導入新世代POS系統，以提升營運效率和顧客體驗。",
+            "source_queries": 2,
+            "total_characters": 376
+          },
+          "vibe": {
+            "description": "職場環境與企業文化",
+            "content": "統一超商（7-11）的員工福利包含薪酬、福利、彈性假期、健康守護等面向。薪酬方面，統一超商以同工同酬為原則，依員工職位內容、績效表現與貢獻度為基礎進行薪資調整與獎金發放，並承諾2030年員工薪資至少符合生活工資。福利方面，提供福儲信託、年節賀禮、貼心補助、自選福利等。此外，還有特休假、家庭照顧假等彈性假期，以及年度健檢、心理諮商等健康守護措施。 員工亦享有結婚、生育、旅遊、進修、喪葬等補助。 根據Goodinfo!台灣股市資訊網，統一超商提供員工薪資福利，包含薪資、福利總額、以及在同業間的排名。\n\n統一超商的企業文化強調「真誠、創新、共享」，以提供便利服務為宗旨，並重視社會責任。 辦公室環境方面，統一超商致力於打造多元共融的工作環境，並推動節能減碳措施，例如導入建築隔熱、使用LED燈具等。 此外，統一超商也積極推動永續發展，並在門市導入智能設備，以提升工作效率和節能減碳效益。",
+            "source_queries": 2,
+            "total_characters": 391
+          },
+          "future": {
+            "description": "近期動態與未來展望",
+            "content": "統一超商在2026年的發展呈現多面向的動態。在財務方面，3月份營收達到297.61億元，年增4.93%，創下同期新高，第一季營收也達到885.28億元，年增4.59%。 7-ELEVEN持續展店，全台門市超過8360家，並積極開發創新商品和主題活動，例如結合周子瑜聯名商品和高雄櫻花季等，以提升銷售和來客數。 轉投資事業如菲律賓7-ELEVEN、康是美等也表現亮眼，挹注整體營收成長。 菲律賓7-ELEVEN持續擴張，計畫在2026年底達到5000家門市，並將重心放在北部呂宋島和南部民答那峨等地區的展店。 然而，7-Eleven在北美則計畫於2026財年關閉645家門市，但同時也將開設至少200家新店。 此外，7-Eleven在2026年也將持續深化會員生活圈經營，並推出多元主題活動與新品，以推升營運表現。\n\n統一超商的發展願景是成為「台灣第一、世界一流」的零售業者，並以提供消費者全方位的便利，創造引領消費者新優質生活型態為使命。 統一超商的創辦人是高清愿，他於1967年創立統一企業，並在1978年將7-ELEVEN引進台灣。 高清愿秉持「三好一公道」的經營理念，帶領統一超商不斷創新與變革，以提供消費者與世界同步的品牌與服務。",
+            "source_queries": 2,
+            "total_characters": 517
+          }
+        },
+        "brief": {
+          "company": "統一超商",
+          "title": "統一超商：台灣零售業領導者，引領便利生活新潮流",
+          "content": "統一超商股份有限公司（7-ELEVEN）成立於1987年，是台灣便利商店市場的龍頭，擁有超過50%的市佔率。公司以「真誠、創新、共享」為企業文化，致力於提供消費者全方位的便利服務。7-ELEVEN提供多樣化的商品與服務，包括24小時便利購物、繳費、寄取件等，並持續開發自有品牌商品，滿足消費者多元需求。公司積極導入新科技，如AI智慧貨架和循環杯服務，提升營運效率與顧客體驗。統一超商屢獲殊榮，展現其在永續發展、行銷創意等方面的卓越成果。展望未來，統一超商持續展店、深化會員生活圈經營，並積極拓展轉投資事業，朝著「台灣第一、世界一流」的零售業者目標邁進，為消費者創造更優質的生活型態。",
+          "length_category": "medium",
+          "word_count": 291,
+          "generation_time": 2.86
+        },
+        "tags": {
+          "company": "統一超商",
+          "tags": [
+            "7-ELEVEN",
+            "便利商店",
+            "零售業",
+            "永續發展",
+            "數位轉型",
+            "會員經濟",
+            "創新服務",
+            "自有品牌"
+          ],
+          "categories": {
+            "industry": [
+              "零售業",
+              "便利商店"
+            ],
+            "feature": [
+              "24小時營業",
+              "多元服務"
+            ],
+            "culture": [
+              "真誠",
+              "創新"
+            ],
+            "scale": [
+              "龍頭企業"
+            ]
+          },
+          "generation_time": 1.71
+        }
+      },
+      "comparison": {
+        "search": {
+          "tavily_time": 6.97,
+          "gemini_flash_time": 5.508,
+          "winner": "gemini_flash",
+          "improvement_percent": 21.0
+        },
+        "content_volume": {
+          "tavily_chars": 480,
+          "gemini_flash_chars": 1622,
+          "winner": "gemini_flash"
+        },
+        "brief": {
+          "tavily_words": 349,
+          "gemini_flash_words": 291,
+          "tavily_title": "統一超商：深耕便利生活，引領零售創新",
+          "gemini_flash_title": "統一超商：台灣零售業領導者，引領便利生活新潮流"
+        },
+        "tags": {
+          "tavily_count": 8,
+          "gemini_flash_count": 8,
+          "tavily_tags": [
+            "7-ELEVEN",
+            "便利商店",
+            "零售業",
+            "ESG永續",
+            "無人商店",
+            "智慧儲物櫃",
+            "員工福利",
+            "企業文化"
+          ],
+          "gemini_flash_tags": [
+            "7-ELEVEN",
+            "便利商店",
+            "零售業",
+            "永續發展",
+            "數位轉型",
+            "會員經濟",
+            "創新服務",
+            "自有品牌"
+          ]
+        },
+        "evaluation": {
+          "company": "統一超商",
+          "tavily": {
+            "company": "統一超商",
+            "provider": "tavily",
+            "dimensions": {
+              "relevance": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              },
+              "completeness": {
+                "score": 7,
+                "reason": "",
+                "max": 10.0
+              },
+              "accuracy": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "readability": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "professionalism": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              },
+              "tag_consistency": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              }
+            },
+            "overall_score": 8.2,
+            "summary": "簡介全面且準確，清晰呈現統一超商的業務、發展與企業文化，並提及未來展望，整體專業度高。",
+            "evaluation_time": 1.6
+          },
+          "gemini_flash": {
+            "company": "統一超商",
+            "provider": "gemini_flash",
+            "dimensions": {
+              "relevance": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              },
+              "completeness": {
+                "score": 7,
+                "reason": "",
+                "max": 10.0
+              },
+              "accuracy": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "readability": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "professionalism": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              },
+              "tag_consistency": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              }
+            },
+            "overall_score": 8.2,
+            "summary": "簡介全面且易讀，準確描述了統一超商的業務範圍、企業文化和未來發展方向，標籤與內容匹配度高。",
+            "evaluation_time": 1.35
+          },
+          "dimension_comparison": {
+            "relevance": {
+              "tavily": 8,
+              "gemini_flash": 8,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "completeness": {
+              "tavily": 7,
+              "gemini_flash": 7,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "accuracy": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "readability": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "professionalism": {
+              "tavily": 8,
+              "gemini_flash": 8,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "tag_consistency": {
+              "tavily": 8,
+              "gemini_flash": 8,
+              "winner": "gemini_flash",
+              "diff": 0
+            }
+          },
+          "winner_counts": {
+            "tavily": 0,
+            "gemini_flash": 0
+          },
+          "overall_winner": "gemini_flash"
+        }
+      }
+    },
+    {
+      "company": "長榮航空",
+      "tavily": {
+        "search_time": 8.504499912261963,
+        "search_success": 8,
+        "summaries": {
+          "foundation": {
+            "description": "品牌實力與基本資料",
+            "content": "Longyear Aviation was founded on March 8, 1978, and officially registered on April 7, 1978, with an initial capital of NT$100 billion, later increased to NT$35 billion. The current capital is NT$54 billion.\n\n長榮航空自1989年創立以來，多次獲獎，包括2016年獲得SKYTRAX五星級航空公司殊榮，連續13年榮獲AirlineRatings.com全球最安全航空公司。",
+            "source_queries": 2,
+            "total_characters": 287
+          },
+          "core": {
+            "description": "技術產品與服務核心",
+            "content": "長榮航空的核心產品是國際航線，主要服務包括星空聯盟網路和e-Menu餐點服務。\n\nEvergreen Aviation Technologies has strong R&D capabilities, focusing on aircraft maintenance and advanced manufacturing. It has become a top global player in aircraft maintenance. The company has expanded into high-value manufacturing and systems integration.",
+            "source_queries": 2,
+            "total_characters": 299
+          },
+          "vibe": {
+            "description": "職場環境與企業文化",
+            "content": "長榮航空員工福利包括多種補助和年終獎金。底薪+調薪為5000元。基層人員薪資優於當地最低薪資標準。\n\n長榮航空的企業文化強調創新和團隊合作，辦公室環境注重環保和節能。公司推行綠色採購，環境適合工作需求。",
+            "source_queries": 2,
+            "total_characters": 99
+          },
+          "future": {
+            "description": "近期動態與未來展望",
+            "content": "長榮航空2026年推出「春季啟航即刻起飛」限時優惠，8月31日前購票可享77折起。公司宣布再發3個月年中獎金，航勤和航太各有一個月。拚深化歐洲航網，與星宇航空競爭。\n\nLong-term vision of EVA Air is global expansion and sustainability. Founder is Chang Yung-fa. EVA Air aims to be a trusted, competitive airline.",
+            "source_queries": 2,
+            "total_characters": 226
+          }
+        },
+        "brief": {
+          "company": "長榮航空",
+          "title": "長榮航空：卓越飛行體驗與永續發展的領航者",
+          "content": "長榮航空，自1989年創立以來，以其卓越的服務品質與安全紀錄，贏得全球旅客的信賴。公司於1978年3月8日成立，並於4月7日正式註冊，初期資本額為新台幣100億元，後增資至540億元。長榮航空的核心業務為國際航線，提供星空聯盟網路及e-Menu餐點服務等多元選擇。多年來，長榮航空屢獲殊榮，包括2016年獲得SKYTRAX五星級航空公司認證，以及連續13年榮獲AirlineRatings.com全球最安全航空公司肯定。除了航空業務，長榮航空亦透過旗下Evergreen Aviation Technologies，積極投入飛機維修及先進製造，並已成為全球領先的飛機維修供應商。長榮航空重視員工福利，提供多種補助與年終獎金，並以優於當地最低薪資標準的待遇，吸引優秀人才。公司企業文化強調創新與團隊合作，辦公環境注重環保與節能。展望未來，長榮航空持續拓展全球航網，並致力於永續發展，期望成為一間值得信賴且具競爭力的航空公司。近期，公司推出「春季啟航即刻起飛」限時優惠，並宣布發放年中獎金，展現其積極拓展業務的決心。",
+          "length_category": "medium",
+          "word_count": 456,
+          "generation_time": 3.93
+        },
+        "tags": {
+          "company": "長榮航空",
+          "tags": [
+            "長榮航空",
+            "EVA Air",
+            "國際航線",
+            "星空聯盟",
+            "五星航空",
+            "飛機維修",
+            "員工福利",
+            "永續經營",
+            "限時優惠",
+            "歐洲航網"
+          ],
+          "categories": {
+            "industry": [
+              "航空公司",
+              "航空業"
+            ],
+            "feature": [
+              "安全航空",
+              "餐飲服務"
+            ],
+            "culture": [
+              "團隊合作",
+              "環保節能"
+            ],
+            "scale": [
+              "大型企業"
+            ]
+          },
+          "generation_time": 1.45
+        }
+      },
+      "gemini_flash": {
+        "search_time": 4.786719560623169,
+        "search_success": 8,
+        "summaries": {
+          "foundation": {
+            "description": "品牌實力與基本資料",
+            "content": "長榮航空的官網創立日期與實際營運日期相同，於1991年7月1日正式開航。長榮航空的資本額為新台幣540.04億元。\n\n長榮航空在航空業中擁有卓越的地位，其獲獎紀錄斐然。長榮航空連續多年獲得SKYTRAX五星級航空公司的肯定，並多次榮獲「全球最佳機艙清潔航空公司」等獎項，展現其優質的服務。此外，長榮航空也連續多年被評為全球最安全航空公司之一，顯示其對飛安的高度重視。長榮航空是台灣主要的航空公司之一，與中華航空共同構築了台灣的國際航空運輸網絡。",
+            "source_queries": 2,
+            "total_characters": 220
+          },
+          "core": {
+            "description": "技術產品與服務核心",
+            "content": "長榮航空的核心產品為國際客運及貨運航線，主要服務包括提供舒適的機上體驗，例如與知名品牌合作的過夜包、機上睡衣，以及多元的餐飲選擇，並持續創新與升級服務品質。 長榮航空也提供多樣化的服務，例如選位、選餐、預辦登機等。 此外，長榮航空致力於飛航安全、永續經營，並提供全球綿密的航線網絡，以滿足旅客的需求。\n\n長榮航空在技術架構方面，持續投入創新，例如研發安全風險管理系統，並與學術機構合作將人工智慧應用於飛行資料分析。 此外，長榮航空也建立了客服機器人及文字客服系統，提供24小時全年無休的服務。 在研發實力方面，長榮航空積極導入數位科技，例如e-Menu服務，並持續優化AI客服系統。 長榮航空也透過機隊更新計畫，引進新一代客機，並持續改善機上設備與服務，以提供旅客更舒適的旅程。",
+            "source_queries": 2,
+            "total_characters": 337
+          },
+          "vibe": {
+            "description": "職場環境與企業文化",
+            "content": "長榮航空的員工福利包含：依勞基法給予特別休假，並實施週休二日。提供勞保、職保、健保、團體定期人壽保險等保險，以及員工國外出差住院暨傷害醫療險。免費供應員工餐廳午餐。提供專業醫師醫療諮詢、一般醫療就診及定期免費健康檢查。此外，還有婚喪補助、生育補助、生日禮金等補助，以及員工及親屬可申請的免費或折扣機票。薪資方面，2024年非主管職平均年薪達224.7萬元，在航空業中居冠。\n\n長榮航空的企業文化強調「挑戰、創新、團隊」的精神，並以「飛航安全快捷、服務親切周到、經營有效創新」為經營理念。 長榮航空的辦公室環境，根據GoodJob的評價，員工對薪資福利、工作內容、工時狀況等有不同的評價。 此外，長榮航空也重視員工的健康與安全，並提供相關的訓練和保障。",
+            "source_queries": 2,
+            "total_characters": 323
+          },
+          "future": {
+            "description": "近期動態與未來展望",
+            "content": "長榮航空在 2026 年有多項重要發展：首先，長榮航空將於 6 月 26 日開通台北直飛華盛頓的航線，初期每週提供四班航班，這將使長榮航空在北美的航點增加至 10 個，成為台灣飛往北美最多目的地的航空公司。此外，長榮航空也將於 7 月引進兩架波音 787-9 新機，並汰換舊機。長榮航空在 1 月份被 AirlineRatings.com 評為 2026 年全球第八安全的航空公司，這已是連續 13 年獲得此殊榮。長榮航空也持續擴展航網，除了華盛頓航線外，也針對歐洲及亞洲航線進行增班。\n\n長榮航空的發展願景是成為世界一流的航空公司，秉持「安全、服務、永續」的經營核心，提供旅客安心舒適的飛航服務，並持續創新與升級飛行體驗。長榮航空的創辦人是張榮發，他於1988年宣布建立台灣第一間私人的國際航空公司，並於1991年正式開航。",
+            "source_queries": 2,
+            "total_characters": 361
+          }
+        },
+        "brief": {
+          "company": "長榮航空",
+          "title": "長榮航空：卓越飛行體驗，安全服務領航全球",
+          "content": "長榮航空，自1991年7月1日正式開航以來，以其卓越的服務與安全紀錄，奠定了在航空業的領先地位。作為台灣主要的航空公司之一，長榮航空資本額達新台幣540.04億元，並連續多年榮獲SKYTRAX五星級航空公司肯定，以及「全球最佳機艙清潔航空公司」等獎項。長榮航空的核心業務涵蓋國際客運及貨運航線，致力於提供舒適的機上體驗，包括與知名品牌合作的過夜包、多元餐飲選擇，以及選位、選餐等多元服務。長榮航空持續投入技術創新，例如研發安全風險管理系統，並導入數位科技，提升客戶服務效率。公司秉持「挑戰、創新、團隊」的精神，提供優渥的員工福利，包括高競爭力的薪資、完善的保險與福利制度。展望未來，長榮航空將於2026年開通台北直飛華盛頓航線，並引進新機，持續擴展航網，朝著成為世界一流航空公司的願景邁進。",
+          "length_category": "medium",
+          "word_count": 345,
+          "generation_time": 3.46
+        },
+        "tags": {
+          "company": "長榮航空",
+          "tags": [
+            "長榮航空",
+            "EVA Air",
+            "航空公司",
+            "五星航空",
+            "國際航線",
+            "機上服務",
+            "員工福利",
+            "飛安"
+          ],
+          "categories": {
+            "industry": [
+              "航空業",
+              "運輸業"
+            ],
+            "feature": [
+              "全球最佳機艙清潔",
+              "北美航線"
+            ],
+            "culture": [
+              "挑戰創新",
+              "團隊合作"
+            ],
+            "scale": [
+              "大型企業"
+            ]
+          },
+          "generation_time": 1.54
+        }
+      },
+      "comparison": {
+        "search": {
+          "tavily_time": 8.504,
+          "gemini_flash_time": 4.787,
+          "winner": "gemini_flash",
+          "improvement_percent": 43.7
+        },
+        "content_volume": {
+          "tavily_chars": 911,
+          "gemini_flash_chars": 1241,
+          "winner": "gemini_flash"
+        },
+        "brief": {
+          "tavily_words": 456,
+          "gemini_flash_words": 345,
+          "tavily_title": "長榮航空：卓越飛行體驗與永續發展的領航者",
+          "gemini_flash_title": "長榮航空：卓越飛行體驗，安全服務領航全球"
+        },
+        "tags": {
+          "tavily_count": 10,
+          "gemini_flash_count": 8,
+          "tavily_tags": [
+            "長榮航空",
+            "EVA Air",
+            "國際航線",
+            "星空聯盟",
+            "五星航空",
+            "飛機維修",
+            "員工福利",
+            "永續經營",
+            "限時優惠",
+            "歐洲航網"
+          ],
+          "gemini_flash_tags": [
+            "長榮航空",
+            "EVA Air",
+            "航空公司",
+            "五星航空",
+            "國際航線",
+            "機上服務",
+            "員工福利",
+            "飛安"
+          ]
+        },
+        "evaluation": {
+          "company": "長榮航空",
+          "tavily": {
+            "company": "長榮航空",
+            "provider": "tavily",
+            "dimensions": {
+              "relevance": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "completeness": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              },
+              "accuracy": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "readability": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "professionalism": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "tag_consistency": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              }
+            },
+            "overall_score": 8.8,
+            "summary": "長榮航空簡介全面且專業，涵蓋公司核心業務、成就、未來展望及近期活動，資訊準確易讀，標籤與內容高度一致。",
+            "evaluation_time": 1.53
+          },
+          "gemini_flash": {
+            "company": "長榮航空",
+            "provider": "gemini_flash",
+            "dimensions": {
+              "relevance": {
+                "score": 10,
+                "reason": "",
+                "max": 10.0
+              },
+              "completeness": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              },
+              "accuracy": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "readability": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "professionalism": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "tag_consistency": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              }
+            },
+            "overall_score": 8.8,
+            "summary": "長榮航空簡介全面且專業，涵蓋公司核心業務、服務特色、未來發展，並與標籤高度一致，展現了其作為一流航空公司的形象。",
+            "evaluation_time": 1.53
+          },
+          "dimension_comparison": {
+            "relevance": {
+              "tavily": 9,
+              "gemini_flash": 10,
+              "winner": "gemini_flash",
+              "diff": 1
+            },
+            "completeness": {
+              "tavily": 8,
+              "gemini_flash": 8,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "accuracy": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "readability": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "professionalism": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "tag_consistency": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            }
+          },
+          "winner_counts": {
+            "tavily": 0,
+            "gemini_flash": 1
+          },
+          "overall_winner": "gemini_flash"
+        }
+      }
+    }
+  ],
+  "summary": {
+    "avg_search_time": {
+      "tavily": 7.431,
+      "gemini_flash": 5.4
+    },
+    "speed_winner": "gemini_flash"
+  }
+}

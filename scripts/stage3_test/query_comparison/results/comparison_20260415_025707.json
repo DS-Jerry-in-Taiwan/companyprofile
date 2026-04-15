@@ -1,0 +1,332 @@
+{
+  "timestamp": "2026-04-15T02:57:07.095721",
+  "mode": "compare",
+  "companies": [
+    "鴻海"
+  ],
+  "results": [
+    {
+      "company": "鴻海",
+      "tavily": {
+        "search_time": 6.745444059371948,
+        "search_success": 8,
+        "summaries": {
+          "foundation": {
+            "description": "品牌實力與基本資料",
+            "content": "鴻海精密工業股份有限公司成立於1974年2月20日，資本額為139,642,222,940新台幣。\n\nFoxconn has been named among the top global innovators for nine consecutive years, recognized for its industry leadership and innovation. It is the top-ranked Taiwanese private enterprise in innovation. The company has a strong focus on sustainable and advanced technologies.",
+            "source_queries": 2,
+            "total_characters": 324
+          },
+          "core": {
+            "description": "技術產品與服務核心",
+            "content": "鴻海核心產品主要服務包括電子製造服務、半導體、AI晶片、智慧手機、筆電、伺服器、電動車、顯示器、5G、醫療設備等領域。此外，還涉及物流倉儲、軟體開發、工業互聯網整合方案。\n\nHon Hai's research institute focuses on AI, semiconductors, and next-gen communications to drive innovation and maintain competitive edge. The institute's breakthroughs enhance Hon Hai's long-term technological capabilities and market leadership. Hon Hai's strategic investments in advanced technologies aim to secure future growth and profitability.",
+            "source_queries": 2,
+            "total_characters": 435
+          },
+          "vibe": {
+            "description": "職場環境與企業文化",
+            "content": "Hon Hai's salary structure includes a 12-month base salary, annual bonuses, performance bonuses, and profit-sharing. The company also offers comprehensive benefits like health care, education support, and parental leave.\n\nFoxconn's office culture emphasizes employee well-being, sustainability, and high performance. The company promotes a balanced work-life environment and engages in large-scale employee engagement surveys. Its core values focus on stability, innovation, and ethical conduct.",
+            "source_queries": 2,
+            "total_characters": 493
+          },
+          "future": {
+            "description": "近期動態與未來展望",
+            "content": "鴻海預期2026年將大幅成長，受益於人工智慧需求和電動車量產。預計2026年將比2025年表現更好。鴻海的成長動能來自AI和電動車產能提升。\n\nFoxconn's founder is Terry Gou, and its development vision is led by Liu Yang-Wei. Liu emphasizes open collaboration and innovation. The company focuses on advanced technologies like AI and semiconductors.",
+            "source_queries": 2,
+            "total_characters": 275
+          }
+        },
+        "brief": {
+          "company": "鴻海",
+          "title": "鴻海精密：全球科技領導者，驅動未來創新與成長",
+          "content": "鴻海精密工業股份有限公司（Foxconn）成立於1974年，是全球領先的科技製造服務商，以其卓越的創新能力和產業領導地位聞名。公司資本額達新台幣1396億元，連續九年被評為全球頂尖創新者，並在台灣企業中名列前茅。鴻海的核心業務涵蓋電子製造服務、半導體、AI晶片、智慧手機、筆電、伺服器、電動車、顯示器、5G及醫療設備等多元領域，同時積極拓展物流倉儲、軟體開發和工業互聯網整合方案。公司研發機構專注於AI、半導體和下一代通訊技術，以保持競爭優勢並推動長期技術發展。鴻海提供具競爭力的薪資福利，包括12個月基本薪資、年終獎金、績效獎金和員工分紅，並提供完善的健康照護、教育補助和育嬰假等福利。公司重視員工福祉、永續發展和高效能，致力於打造平衡的工作生活環境。展望未來，鴻海預計在2026年迎來顯著成長，受益於AI需求和電動車量產，並由劉揚偉領導，強調開放合作與創新，持續深耕先進科技，實現企業永續發展。",
+          "length_category": "medium",
+          "word_count": 399,
+          "generation_time": 4.08
+        },
+        "tags": {
+          "company": "鴻海",
+          "tags": [
+            "鴻海",
+            "Foxconn",
+            "電子製造服務",
+            "AI晶片",
+            "電動車",
+            "科技製造",
+            "全球創新者",
+            "薪資福利",
+            "工業互聯網",
+            "2026年成長"
+          ],
+          "categories": {
+            "industry": [
+              "電子製造",
+              "科技"
+            ],
+            "feature": [
+              "創新",
+              "多元產品"
+            ],
+            "culture": [
+              "員工福利",
+              "開放合作"
+            ],
+            "scale": [
+              "大型企業"
+            ]
+          },
+          "generation_time": 1.27
+        }
+      },
+      "gemini_flash": {
+        "search_time": 5.580881118774414,
+        "search_success": 8,
+        "summaries": {
+          "foundation": {
+            "description": "品牌實力與基本資料",
+            "content": "鴻海官網的創立日期為1974年，資本額為新台幣139,642,222,940元。\n\n鴻海（2317）作為全球最大的電子製造服務（EMS）公司，產業地位穩固，是電子代工產業的龍頭，市佔率超過四成。 鴻海近年積極轉型，從代工巨擘轉型為 AI 與智慧系統解決方案提供者，並在 AI 伺服器市場佔有領先地位。 鴻海在 2025 年獲得 IR Impact 五項大獎，創下連續五年奪獎紀錄，肯定其在投資人關係上的努力。 此外，鴻海也是台灣唯一連續八年獲得科睿唯安「全球百大創新機構」的民營企業。",
+            "source_queries": 2,
+            "total_characters": 240
+          },
+          "core": {
+            "description": "技術產品與服務核心",
+            "content": "鴻海科技集團（Foxconn）的核心產品涵蓋消費性電子產品（如智慧手機、遊戲機）、雲端網路產品（如伺服器、網通設備）、電腦終端產品（如電腦、平板）以及元件及其他產品（如連接器、機構件）。主要服務則從代工製造起家，發展至創新式整合設計製造服務（IIDM），提供關鍵零組件、核心技術創新、軟體硬體整合到工業設計的一站式完整服務，並積極投入電動車、數位健康、機器人等三大未來產業，以及人工智慧、半導體、新世代通訊技術等三大核心技術，致力於成為全方位智慧生活提供者。\n\n鴻海（富士康）的技術架構與研發實力體現在多個方面。在技術架構方面，鴻海正積極發展AI伺服器、電動車（EV）和ICT產品，並透過規模優勢、自動化能力、全球布局、垂直整合與研發技術等五大支柱來強化競爭力。鴻海也與NVIDIA合作，建立AI工廠，利用NVIDIA Blackwell Ultra系統，加速AI在智慧城市、電動車和製造領域的應用。在研發實力方面，鴻海研究院專注於未來3到7年的前瞻技術研究，涵蓋人工智慧、資安、量子計算、半導體、新世代通訊等領域。鴻海的研發成果包括台灣第一個具備推理能力的繁體中文大型語言模型Foxbrain，以及在自駕車軌跡預測挑戰中獲得佳績的AI模型QCNet。此外，鴻海也積極投入電動車CDMS業務，並計劃在2026年下半年開始貢獻營運。",
+            "source_queries": 2,
+            "total_characters": 563
+          },
+          "vibe": {
+            "description": "職場環境與企業文化",
+            "content": "鴻海（富士康）的員工福利包含三節禮金、年終獎金、績效獎金、員工酬勞等，並提供健康檢查、生育結婚禮金等。 根據比薪水的調查，鴻海員工的平均年薪約為92萬，中位數約為84萬。 此外，鴻海也提供員工培訓、住宿改善等福利。 然而，部分員工認為升遷管道不明確，且辦公室政治問題存在。\n\n鴻海的企業文化近年來正經歷轉變，從創辦人郭台銘時期強調的強人狼性文化，逐漸轉向「分享、合作、共榮」的新思維。 鴻海鼓勵分享，不僅子公司間分享，各階層也鼓勵分享，甚至在海外也推廣此概念。 辦公室環境方面，鴻海在內湖大樓獲得LEED既有建築黃金級認證，並持續優化能源和水資源管理。 此外，鴻海也致力於打造高效、舒適的辦公環境，例如高雄軟體研發中心。 鴻海也重視員工的工作環境與安全，推動職業安全衛生管理系統，並定期舉辦安全相關活動。",
+            "source_queries": 2,
+            "total_characters": 350
+          },
+          "future": {
+            "description": "近期動態與未來展望",
+            "content": "鴻海在2026年的發展呈現強勁的成長趨勢，尤其在人工智慧（AI）領域表現突出。第一季營收突破2.1兆元，創下歷史同期新高，年增近3成。3月營收也達到8,037億元，月增34.9%，年增45.57%，同樣創下同期新高。這主要得益於AI伺服器需求的增長以及雲端網路產品和消費智能產品的強勁表現。鴻海也積極擴展電動車業務，參與台北國際車用電子展，展示從關鍵零件到整車的自製能力。此外，鴻海持續推動永續發展，並獲得全球百大創新機構的肯定。\n\n鴻海科技集團由郭台銘於1974年創立，他以10萬元新台幣起家，將鴻海打造成全球最大的電子代工製造商。 鴻海的願景是成為國際一流公司，並透過技術能力、聯盟合作、全球運籌管理和大規模生產，實現永續發展。 鴻海目前專注於電子產品的代工服務，並積極拓展電動車、AI、半導體等領域，致力於垂直整合，加速產業發展。 鴻海也制定了2030年的永續長程目標，涵蓋清潔能源、勞動人權、供應鏈ESG等，並將AI科技創新納入。",
+            "source_queries": 2,
+            "total_characters": 417
+          }
+        },
+        "brief": {
+          "company": "鴻海",
+          "title": "鴻海科技集團：全球EMS巨擘，AI轉型領航者",
+          "content": "鴻海科技集團（Foxconn），創立於1974年，以新台幣1396.4億元的資本額，奠定了其全球電子製造服務（EMS）龍頭的地位。作為產業先驅，鴻海市佔率超過四成，並積極從代工巨擘轉型為AI與智慧系統解決方案提供者。公司提供從關鍵零組件到整合設計製造服務（IIDM）的一站式完整服務，產品涵蓋消費性電子、雲端網路、電腦終端及元件等。鴻海不僅在AI伺服器市場佔有領先地位，更積極投入電動車、數位健康、機器人等未來產業，以及AI、半導體、新世代通訊等核心技術。鴻海持續獲得國際肯定，包括連續五年榮獲IR Impact大獎，以及連續八年獲科睿唯安「全球百大創新機構」的肯定。展望未來，鴻海將持續深化AI領域的發展，並擴展電動車業務，致力於成為全方位智慧生活提供者。",
+          "length_category": "medium",
+          "word_count": 329,
+          "generation_time": 3.11
+        },
+        "tags": {
+          "company": "鴻海",
+          "tags": [
+            "鴻海",
+            "Foxconn",
+            "電子製造服務",
+            "EMS",
+            "AI伺服器",
+            "電動車",
+            "IIDM",
+            "永續發展",
+            "科技巨擘",
+            "全球百大創新機構"
+          ],
+          "categories": {
+            "industry": [
+              "電子代工",
+              "科技"
+            ],
+            "feature": [
+              "AI解決方案",
+              "整合設計製造"
+            ],
+            "culture": [
+              "轉型",
+              "分享合作"
+            ],
+            "scale": [
+              "全球龍頭"
+            ]
+          },
+          "generation_time": 1.46
+        }
+      },
+      "comparison": {
+        "search": {
+          "tavily_time": 6.745,
+          "gemini_flash_time": 5.581,
+          "winner": "gemini_flash",
+          "improvement_percent": 17.3
+        },
+        "content_volume": {
+          "tavily_chars": 1527,
+          "gemini_flash_chars": 1570,
+          "winner": "gemini_flash"
+        },
+        "brief": {
+          "tavily_words": 399,
+          "gemini_flash_words": 329,
+          "tavily_title": "鴻海精密：全球科技領導者，驅動未來創新與成長",
+          "gemini_flash_title": "鴻海科技集團：全球EMS巨擘，AI轉型領航者"
+        },
+        "tags": {
+          "tavily_count": 10,
+          "gemini_flash_count": 10,
+          "tavily_tags": [
+            "鴻海",
+            "Foxconn",
+            "電子製造服務",
+            "AI晶片",
+            "電動車",
+            "科技製造",
+            "全球創新者",
+            "薪資福利",
+            "工業互聯網",
+            "2026年成長"
+          ],
+          "gemini_flash_tags": [
+            "鴻海",
+            "Foxconn",
+            "電子製造服務",
+            "EMS",
+            "AI伺服器",
+            "電動車",
+            "IIDM",
+            "永續發展",
+            "科技巨擘",
+            "全球百大創新機構"
+          ]
+        },
+        "evaluation": {
+          "company": "鴻海",
+          "tavily": {
+            "company": "鴻海",
+            "provider": "tavily",
+            "dimensions": {
+              "relevance": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "completeness": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              },
+              "accuracy": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "readability": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "professionalism": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "tag_consistency": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              }
+            },
+            "overall_score": 8.7,
+            "summary": "鴻海公司簡介全面且專業，涵蓋核心業務、未來展望及員工福利，展現其全球領先科技製造服務商的形象。",
+            "evaluation_time": 1.5
+          },
+          "gemini_flash": {
+            "company": "鴻海",
+            "provider": "gemini_flash",
+            "dimensions": {
+              "relevance": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "completeness": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              },
+              "accuracy": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "readability": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "professionalism": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "tag_consistency": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              }
+            },
+            "overall_score": 8.7,
+            "summary": "鴻海簡介全面且專業，清晰闡述公司現況與未來發展，標籤與內容高度相關。",
+            "evaluation_time": 1.48
+          },
+          "dimension_comparison": {
+            "relevance": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "completeness": {
+              "tavily": 8,
+              "gemini_flash": 8,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "accuracy": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "readability": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "professionalism": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "tag_consistency": {
+              "tavily": 8,
+              "gemini_flash": 8,
+              "winner": "gemini_flash",
+              "diff": 0
+            }
+          },
+          "winner_counts": {
+            "tavily": 0,
+            "gemini_flash": 0
+          },
+          "overall_winner": "gemini_flash"
+        }
+      }
+    }
+  ],
+  "summary": {
+    "avg_search_time": {
+      "tavily": 6.745,
+      "gemini_flash": 5.581
+    },
+    "speed_winner": "gemini_flash"
+  }
+}
