@@ -1,0 +1,664 @@
+{
+  "timestamp": "2026-04-15T01:34:36.070683",
+  "companies": [
+    "私立揚才文理短期補習班",
+    "台積電",
+    "鴻海"
+  ],
+  "queries_per_company": 8,
+  "results": [
+    {
+      "company": "私立揚才文理短期補習班",
+      "queries": [
+        {
+          "aspect": "foundation",
+          "query": "私立揚才文理短期補習班 官網 創立日期 資本額"
+        },
+        {
+          "aspect": "foundation",
+          "query": "私立揚才文理短期補習班 獲獎紀錄 產業地位"
+        },
+        {
+          "aspect": "core",
+          "query": "私立揚才文理短期補習班 核心產品 主要服務"
+        },
+        {
+          "aspect": "core",
+          "query": "私立揚才文理短期補習班 技術架構 研發實力"
+        },
+        {
+          "aspect": "vibe",
+          "query": "私立揚才文理短期補習班 員工福利 薪資待遇"
+        },
+        {
+          "aspect": "vibe",
+          "query": "私立揚才文理短期補習班 企業文化 辦公室環境"
+        },
+        {
+          "aspect": "future",
+          "query": "私立揚才文理短期補習班 2026 最新動態 新聞"
+        },
+        {
+          "aspect": "future",
+          "query": "私立揚才文理短期補習班 發展願景 創辦人"
+        }
+      ],
+      "tavily": {
+        "provider": "tavily",
+        "total_time": 7.4366607666015625,
+        "query_results": [
+          {
+            "query": "私立揚才文理短期補習班 官網 創立日期 資本額",
+            "aspect": "foundation",
+            "success": true,
+            "elapsed_time": 5.42883038520813,
+            "answer": "The private Yingcai Wenli Short-term Tutorial Class was established on January 12, 2001. Its capital is 25 million NT dollars. The company is registered in Taiwan.",
+            "error": ""
+          },
+          {
+            "query": "私立揚才文理短期補習班 獲獎紀錄 產業地位",
+            "aspect": "foundation",
+            "success": true,
+            "elapsed_time": 6.261605501174927,
+            "answer": "私立揚才文理短期補習班多次獲獎，產業地位穩固。其獲獎紀錄顯著，品質高居業界首位。其創意和服務在業界備受認可。",
+            "error": ""
+          },
+          {
+            "query": "私立揚才文理短期補習班 核心產品 主要服務",
+            "aspect": "core",
+            "success": true,
+            "elapsed_time": 6.222201108932495,
+            "answer": "The core services of 私立揚才文理短期補習班 include professional middle school and high school classes, one-on-one tutoring, and specialized test preparation courses. The main offerings are comprehensive, customized, and specialized programs.",
+            "error": ""
+          },
+          {
+            "query": "私立揚才文理短期補習班 技術架構 研發實力",
+            "aspect": "core",
+            "success": true,
+            "elapsed_time": 6.131409168243408,
+            "answer": "Private Yingcai Wenli Tutoring Center focuses on educational excellence, with a strong team and innovative teaching methods. It offers various tutoring services and has a solid development team. The center emphasizes personalized learning and high-quality teaching.",
+            "error": ""
+          },
+          {
+            "query": "私立揚才文理短期補習班 員工福利 薪資待遇",
+            "aspect": "vibe",
+            "success": true,
+            "elapsed_time": 5.645789861679077,
+            "answer": "Private Yingcai Wenli Short-Term Tutoring Center offers marriage, childbirth, and education training benefits. Salary ranges from NT$33,500 to NT$650 per hour for various positions. Specific benefits may vary by job.",
+            "error": ""
+          },
+          {
+            "query": "私立揚才文理短期補習班 企業文化 辦公室環境",
+            "aspect": "vibe",
+            "success": true,
+            "elapsed_time": 6.427188396453857,
+            "answer": "私立揚才文理短期補習班致力於提供優質教育環境，強調學生成長和教師發展。公司提供競爭性福利和穩定工作環境。目前招募多種教職及行政職缺。",
+            "error": ""
+          },
+          {
+            "query": "私立揚才文理短期補習班 2026 最新動態 新聞",
+            "aspect": "future",
+            "success": true,
+            "elapsed_time": 7.303426265716553,
+            "answer": "私立揚才文理短期補習班2026最新動態，招生中，提供暑假特訓班及作文班。聯絡電話03-327-3411。最新資訊請關注官方網站及Facebook。",
+            "error": ""
+          },
+          {
+            "query": "私立揚才文理短期補習班 發展願景 創辦人",
+            "aspect": "future",
+            "success": true,
+            "elapsed_time": 6.89139723777771,
+            "answer": "私立揚才文理短期補習班創辦人是Chris，他致力於教育培訓，並希望培育有志者加入團隊。他的願景是成為領先的教育培訓平台。",
+            "error": ""
+          }
+        ],
+        "success_count": 8,
+        "failure_count": 0
+      },
+      "gemini_flash": {
+        "provider": "gemini_flash",
+        "total_time": 4.896119594573975,
+        "query_results": [
+          {
+            "query": "私立揚才文理短期補習班 官網 創立日期 資本額",
+            "aspect": "foundation",
+            "success": true,
+            "elapsed_time": 3.509504795074463,
+            "answer": "私立揚才文理短期補習班的創立日期為2010年1月1日。根據查詢結果，目前無法直接取得該補習班的資本額資訊。\n",
+            "error": ""
+          },
+          {
+            "query": "私立揚才文理短期補習班 獲獎紀錄 產業地位",
+            "aspect": "foundation",
+            "success": true,
+            "elapsed_time": 4.166961908340454,
+            "answer": "私立揚才文理短期補習班成立於2010年，深耕大林口、龜山地區，並積極拓展至其他縣市，秉持「適性揚才、因材施教」的教育理念，專注於國、高中升學輔導領域，以「精緻團班」及「客製家教」聞名。 揚才補習班提供優質的工作環境與具競爭力的福利制度。 關於其獲獎紀錄與產業地位，目前搜尋結果中並未直接提及，但從其積極拓展分校、建構教育品牌及重視教學品質的努力來看，揚才補習班在補教業應具有一定的競爭力。\n",
+            "error": ""
+          },
+          {
+            "query": "私立揚才文理短期補習班 核心產品 主要服務",
+            "aspect": "core",
+            "success": true,
+            "elapsed_time": 4.074188470840454,
+            "answer": "私立揚才文理短期補習班的核心產品與主要服務包括：國中全科班、高中全科班、一對一家教班、客製化課程、私中衝刺班、英檢證照班、國小全能班及高職專科班。 揚才補習班致力於提供專業、關懷、激勵成長的教學環境，並以精緻團班和客製家教聞名。\n",
+            "error": ""
+          },
+          {
+            "query": "私立揚才文理短期補習班 技術架構 研發實力",
+            "aspect": "core",
+            "success": true,
+            "elapsed_time": 4.355036735534668,
+            "answer": "私立揚才文理短期補習班秉持「適性揚才、因材施教」的教育理念，專注於國、高中升學輔導，以「精緻團班」及「客製家教」聞名。 揚才補習班的前身為林口長庚家教中心，成立於2010年，由一群充滿活力與朝氣的家教老師組成教學團隊。 揚才補習班致力於打造精緻教學與貼心關懷並重的專業學習環境。 揚才補習班提供專業國中、高中全科班、一對一家教班、客製化課程、私中衝刺班、英檢證照班、國小全能班、高職專科班等服務。\n",
+            "error": ""
+          },
+          {
+            "query": "私立揚才文理短期補習班 員工福利 薪資待遇",
+            "aspect": "vibe",
+            "success": true,
+            "elapsed_time": 4.074414491653442,
+            "answer": "私立揚才文理短期補習班的員工福利包含獎金（全勤、年節、生日、年終、三節、激勵、績效獎金等）、保險（員工及眷屬住院慰問金）、餐飲津貼、娛樂活動（自強活動、員工聚餐、員工運動會）、補助（結婚、生育、喪葬補助）以及在職教育訓練和升遷制度。薪資方面，國高中國文老師的時薪介於450至1,000元之間。\n",
+            "error": ""
+          },
+          {
+            "query": "私立揚才文理短期補習班 企業文化 辦公室環境",
+            "aspect": "vibe",
+            "success": true,
+            "elapsed_time": 3.8774325847625732,
+            "answer": "私立揚才文理短期補習班的企業文化強調「適性揚才、因材施教」的教育理念，致力於打造精緻教學與貼心關懷並重的專業學習環境。 辦公室環境方面，根據徵才資訊，補習班內可能有師生合照牆等佈置。 揚才補習班在林口、龜山等地設有多個分校，並積極拓展至其他縣市。\n",
+            "error": ""
+          },
+          {
+            "query": "私立揚才文理短期補習班 2026 最新動態 新聞",
+            "aspect": "future",
+            "success": true,
+            "elapsed_time": 3.686856985092163,
+            "answer": "很抱歉，目前沒有找到關於私立揚才文理短期補習班 2026 年最新動態的新聞。 搜尋結果主要提供了補習班的相關資訊，包括其成立時間、地點、提供的課程、徵才資訊，以及分校資訊等。 此外，也找到了一些關於其他補習班的新聞，例如朝揚文教機構的相關報導，以及其他補習班的糾紛事件。\n",
+            "error": ""
+          },
+          {
+            "query": "私立揚才文理短期補習班 發展願景 創辦人",
+            "aspect": "future",
+            "success": true,
+            "elapsed_time": 2.934757709503174,
+            "answer": "私立揚才文理短期補習班的發展願景是致力於提供學生專業、關懷、激勵成長的教學環境，並建構教育品牌與嶄新教學模式，希望陪伴學生找到自信與方向。 揚才文理短期補習班的創辦人是吳映潔。\n",
+            "error": ""
+          }
+        ],
+        "success_count": 8,
+        "failure_count": 0
+      },
+      "comparison": {
+        "speed": {
+          "tavily_total": 7.437,
+          "gemini_flash_total": 4.896,
+          "difference": 2.541,
+          "improvement_percent": 34.2,
+          "winner": "tavily"
+        },
+        "reliability": {
+          "tavily_success_rate": "8/8",
+          "gemini_flash_success_rate": "8/8"
+        },
+        "aspect_comparison": {
+          "foundation": {
+            "tavily_avg": 5.845,
+            "gemini_avg": 3.838,
+            "winner": "gemini_flash"
+          },
+          "core": {
+            "tavily_avg": 6.177,
+            "gemini_avg": 4.215,
+            "winner": "gemini_flash"
+          },
+          "vibe": {
+            "tavily_avg": 6.036,
+            "gemini_avg": 3.976,
+            "winner": "gemini_flash"
+          },
+          "future": {
+            "tavily_avg": 7.097,
+            "gemini_avg": 3.311,
+            "winner": "gemini_flash"
+          }
+        }
+      }
+    },
+    {
+      "company": "台積電",
+      "queries": [
+        {
+          "aspect": "foundation",
+          "query": "台積電 官網 創立日期 資本額"
+        },
+        {
+          "aspect": "foundation",
+          "query": "台積電 獲獎紀錄 產業地位"
+        },
+        {
+          "aspect": "core",
+          "query": "台積電 核心產品 主要服務"
+        },
+        {
+          "aspect": "core",
+          "query": "台積電 技術架構 研發實力"
+        },
+        {
+          "aspect": "vibe",
+          "query": "台積電 員工福利 薪資待遇"
+        },
+        {
+          "aspect": "vibe",
+          "query": "台積電 企業文化 辦公室環境"
+        },
+        {
+          "aspect": "future",
+          "query": "台積電 2026 最新動態 新聞"
+        },
+        {
+          "aspect": "future",
+          "query": "台積電 發展願景 創辦人"
+        }
+      ],
+      "tavily": {
+        "provider": "tavily",
+        "total_time": 7.057715892791748,
+        "query_results": [
+          {
+            "query": "台積電 官網 創立日期 資本額",
+            "aspect": "foundation",
+            "success": true,
+            "elapsed_time": 6.006245136260986,
+            "answer": "台積電成立於1987年2月21日，資本額為新台幣13.775億元。公司在1994年首次上市，當前資本額達2,593.25億元。",
+            "error": ""
+          },
+          {
+            "query": "台積電 獲獎紀錄 產業地位",
+            "aspect": "foundation",
+            "success": true,
+            "elapsed_time": 6.108656644821167,
+            "answer": "Taiwan Semiconductor Manufacturing Company (TSMC) consistently ranks as a leading industry player and has won numerous awards for its supply chain excellence and technological leadership. TSMC's industry position remains strong, with multiple suppliers recognized annually.",
+            "error": ""
+          },
+          {
+            "query": "台積電 核心產品 主要服務",
+            "aspect": "core",
+            "success": true,
+            "elapsed_time": 3.622908115386963,
+            "answer": "台積電的核心產品是集成電路晶片製造服務，主要服務包括晶片製造、封裝與測試，並提供設計支援。其主要市場包括美國、台灣、歐洲和日本。",
+            "error": ""
+          },
+          {
+            "query": "台積電 技術架構 研發實力",
+            "aspect": "core",
+            "success": true,
+            "elapsed_time": 6.481244087219238,
+            "answer": "台積電擁有先進的技術架構和強大的研發實力，包括2奈米、1.4奈米及1奈米製程。其技術平台支持高效生產，並在全球領先。台積電累積了20年的研發經驗。",
+            "error": ""
+          },
+          {
+            "query": "台積電 員工福利 薪資待遇",
+            "aspect": "vibe",
+            "success": true,
+            "elapsed_time": 5.957240343093872,
+            "answer": "From 2020 to 2024, Taiwan Semiconductor Manufacturing Company's total employee compensation increased significantly, with average annual compensation rising to NT$357 million. The company's revenue and profit remained stable, and salary adjustments were implemented as planned.",
+            "error": ""
+          },
+          {
+            "query": "台積電 企業文化 辦公室環境",
+            "aspect": "vibe",
+            "success": true,
+            "elapsed_time": 7.057509660720825,
+            "answer": "TSMC emphasizes an inclusive, open culture, promoting diversity and equal opportunities. It aims to create a supportive, safe, and enjoyable work environment. The company values employee commitment and offers competitive benefits.",
+            "error": ""
+          },
+          {
+            "query": "台積電 2026 最新動態 新聞",
+            "aspect": "future",
+            "success": true,
+            "elapsed_time": 3.8248398303985596,
+            "answer": "Taiwan Semiconductor Manufacturing Company (TSMC) reported record-breaking Q1 2026 revenue, projecting continued growth driven by AI demand. Analysts expect positive impact on Taiwan's stock market. TSMC's Q1 revenue exceeded previous forecasts.",
+            "error": ""
+          },
+          {
+            "query": "台積電 發展願景 創辦人",
+            "aspect": "future",
+            "success": true,
+            "elapsed_time": 4.705732345581055,
+            "answer": "台積電創辦人張忠謀在1987年創立台積電，並定下願景成為全球領先的半導體代工公司。他致力於技術創新和市場領先地位。張忠謀的領導力和願景推動台積電成為全球知名的半導體公司。",
+            "error": ""
+          }
+        ],
+        "success_count": 8,
+        "failure_count": 0
+      },
+      "gemini_flash": {
+        "provider": "gemini_flash",
+        "total_time": 4.74167013168335,
+        "query_results": [
+          {
+            "query": "台積電 官網 創立日期 資本額",
+            "aspect": "foundation",
+            "success": true,
+            "elapsed_time": 3.779510259628296,
+            "answer": "台積電（TSMC）於1987年2月21日成立。 根據2024年的資料，台積電的實收資本額為新台幣2593億元。 台積電的官方網站為 www.tsmc.com。\n",
+            "error": ""
+          },
+          {
+            "query": "台積電 獲獎紀錄 產業地位",
+            "aspect": "foundation",
+            "success": true,
+            "elapsed_time": 4.561246395111084,
+            "answer": "台積電（TSMC）作為全球領先的晶圓代工廠，其產業地位無可撼動。 該公司擁有卓越的技術，尤其在先進製程方面保持領先，例如3奈米製程佔據市場主導地位。 台積電的成功源於其專注於晶圓代工的商業模式，以及持續的技術創新。 台積電的獲獎紀錄也反映了其在供應鏈管理、綠色製造和建廠安全等方面的卓越表現。 這些成就鞏固了台積電在全球半導體產業中的領導地位，並使其成為許多企業的重要合作夥伴。\n",
+            "error": ""
+          },
+          {
+            "query": "台積電 核心產品 主要服務",
+            "aspect": "core",
+            "success": true,
+            "elapsed_time": 3.6854069232940674,
+            "answer": "台積電（TSMC）的核心產品是半導體晶片，主要服務包括晶圓製造、封裝、測試，以及設計、掩模製作等相關技術支援。 這些服務涵蓋多種製程技術，例如CMOS邏輯、混合訊號、射頻、嵌入式記憶體等，並廣泛應用於高效能運算、智慧型手機、物聯網、車用電子等領域。\n",
+            "error": ""
+          },
+          {
+            "query": "台積電 技術架構 研發實力",
+            "aspect": "core",
+            "success": true,
+            "elapsed_time": 4.468096017837524,
+            "answer": "台積電在技術架構與研發實力方面，展現了全球領先地位。其技術架構涵蓋先進製程，如3奈米、5奈米等，並持續開發下一代技術，同時提供先進封裝技術，如CoWoS，以滿足高效能運算需求。研發方面，台積電每年投入巨額資金，專注於技術創新，包括邏輯、記憶體、互連、電路/系統設計和人工智慧等領域。台積電的研發實力使其能夠保持技術領先，並為客戶提供具有競爭力的半導體技術。此外，台積電也積極拓展特色工藝，以滿足不同應用場景的需求。\n",
+            "error": ""
+          },
+          {
+            "query": "台積電 員工福利 薪資待遇",
+            "aspect": "vibe",
+            "success": true,
+            "elapsed_time": 4.561059236526489,
+            "answer": "台積電員工的薪資福利相當優渥。根據2024年永續報告書，員工平均年薪及福利達到新台幣357萬元，較2020年成長44.5%。除了薪資外，台積電還提供多項福利，包括全球員工購股計畫，公司提供15%的購股補助。此外，台積電也提供優於業界平均水準的保險、退休金計畫、彈性福利方案，以及各種協助員工兼顧工作與生活的措施。\n",
+            "error": ""
+          },
+          {
+            "query": "台積電 企業文化 辦公室環境",
+            "aspect": "vibe",
+            "success": true,
+            "elapsed_time": 4.741411447525024,
+            "answer": "台積電的企業文化強調以客戶為中心，重視人才，並致力於提供員工優質的工作環境和福利。公司鼓勵員工自主學習，並提供多元的訓練機會，以促進個人與公司的共同成長。 辦公室環境方面，台積電在廠區內設有完善的餐飲設施、便利商店、書店等，並提供跨廠區交通接駁與宿舍。此外，公司也設有健身房、運動館等設施，並舉辦多樣的員工活動，以達到工作與生活的平衡。 然而，也有報導指出，台積電的工作文化可能與其他國家有所不同，例如美國的員工可能需要適應不同的工作時長。\n",
+            "error": ""
+          },
+          {
+            "query": "台積電 2026 最新動態 新聞",
+            "aspect": "future",
+            "success": true,
+            "elapsed_time": 3.8870468139648438,
+            "answer": "台積電（TSMC）在2026年第一季表現亮眼，營收達到356億美元，年增35%，主要受惠於AI晶片需求強勁。3月份營收達4151.92億元新台幣，年增45.2%。公司預計在4月16日舉行法說會，屆時將公布第一季財報。此外，台積電持續擴張全球業務，預計在美國等地投資設廠，並啟動四年漲價計畫，以應對成本上升。\n",
+            "error": ""
+          },
+          {
+            "query": "台積電 發展願景 創辦人",
+            "aspect": "future",
+            "success": true,
+            "elapsed_time": 3.689908504486084,
+            "answer": "台積電的發展願景是成為全球最先進及最大的專業積體電路技術及製造服務業者，並與客戶共同組成半導體產業的競爭團隊。 創辦人張忠謀，於1987年創立台積電，開創了全球「純晶圓代工」模式，並奠定了台灣在全球半導體製造業的重要地位。 張忠謀的願景早在41歲時就已定下，希望打造一家比世界級企業更具影響力的「偉大半導體公司」。\n",
+            "error": ""
+          }
+        ],
+        "success_count": 8,
+        "failure_count": 0
+      },
+      "comparison": {
+        "speed": {
+          "tavily_total": 7.058,
+          "gemini_flash_total": 4.742,
+          "difference": 2.316,
+          "improvement_percent": 32.8,
+          "winner": "tavily"
+        },
+        "reliability": {
+          "tavily_success_rate": "8/8",
+          "gemini_flash_success_rate": "8/8"
+        },
+        "aspect_comparison": {
+          "foundation": {
+            "tavily_avg": 6.057,
+            "gemini_avg": 4.17,
+            "winner": "gemini_flash"
+          },
+          "core": {
+            "tavily_avg": 5.052,
+            "gemini_avg": 4.077,
+            "winner": "gemini_flash"
+          },
+          "vibe": {
+            "tavily_avg": 6.507,
+            "gemini_avg": 4.651,
+            "winner": "gemini_flash"
+          },
+          "future": {
+            "tavily_avg": 4.265,
+            "gemini_avg": 3.788,
+            "winner": "gemini_flash"
+          }
+        }
+      }
+    },
+    {
+      "company": "鴻海",
+      "queries": [
+        {
+          "aspect": "foundation",
+          "query": "鴻海 官網 創立日期 資本額"
+        },
+        {
+          "aspect": "foundation",
+          "query": "鴻海 獲獎紀錄 產業地位"
+        },
+        {
+          "aspect": "core",
+          "query": "鴻海 核心產品 主要服務"
+        },
+        {
+          "aspect": "core",
+          "query": "鴻海 技術架構 研發實力"
+        },
+        {
+          "aspect": "vibe",
+          "query": "鴻海 員工福利 薪資待遇"
+        },
+        {
+          "aspect": "vibe",
+          "query": "鴻海 企業文化 辦公室環境"
+        },
+        {
+          "aspect": "future",
+          "query": "鴻海 2026 最新動態 新聞"
+        },
+        {
+          "aspect": "future",
+          "query": "鴻海 發展願景 創辦人"
+        }
+      ],
+      "tavily": {
+        "provider": "tavily",
+        "total_time": 7.915392875671387,
+        "query_results": [
+          {
+            "query": "鴻海 官網 創立日期 資本額",
+            "aspect": "foundation",
+            "success": true,
+            "elapsed_time": 6.828597784042358,
+            "answer": "鴻海精密工業股份有限公司成立于1974年2月20日，资本额为新台币139,642,222,940元。",
+            "error": ""
+          },
+          {
+            "query": "鴻海 獲獎紀錄 產業地位",
+            "aspect": "foundation",
+            "success": true,
+            "elapsed_time": 6.261497497558594,
+            "answer": "鴻海連續多年獲選全球創新機構，2026年排名全球第35名，並在台灣電子產業領域佔據重要地位。",
+            "error": ""
+          },
+          {
+            "query": "鴻海 核心產品 主要服務",
+            "aspect": "core",
+            "success": true,
+            "elapsed_time": 6.219405651092529,
+            "answer": "鴻海的核心產品主要服務智慧手機、筆電、伺服器、電動車、半導體、AI晶片、顯示器、5G、醫療設備等領域。此外，還涉及物流倉儲、軟體開發、工業互聯網整合方案。",
+            "error": ""
+          },
+          {
+            "query": "鴻海 技術架構 研發實力",
+            "aspect": "core",
+            "success": true,
+            "elapsed_time": 5.386521339416504,
+            "answer": "Hon Hai's technology architecture focuses on AI, semiconductors, next-gen communications, and quantum computing. The company's R&D strength is evident in its innovative developments and strategic partnerships. Hon Hai's tech initiatives drive its competitive edge in global markets.",
+            "error": ""
+          },
+          {
+            "query": "鴻海 員工福利 薪資待遇",
+            "aspect": "vibe",
+            "success": true,
+            "elapsed_time": 6.104528903961182,
+            "answer": "鴻海提供優渥薪資待遇，新畢業生起薪4.5萬元以上，碩士起薪5.2萬元以上，博士起薪6萬元以上，並有分紅獎金和績效獎金。",
+            "error": ""
+          },
+          {
+            "query": "鴻海 企業文化 辦公室環境",
+            "aspect": "vibe",
+            "success": true,
+            "elapsed_time": 5.347848653793335,
+            "answer": "Foxconn's office culture emphasizes stability, innovation, and international growth, with a focus on employee well-being and ethical practices. The company aims for continuous improvement and global competitiveness.",
+            "error": ""
+          },
+          {
+            "query": "鴻海 2026 最新動態 新聞",
+            "aspect": "future",
+            "success": true,
+            "elapsed_time": 7.915050745010376,
+            "answer": "In 2026, Hon Hai's full-year outlook is positive with strong growth in cloud networking, consumer intelligence, and components. The first quarter revenue reached NT$2.129 trillion, up 29.68% year-over-year, driven by AI and new product cycles. The company's second quarter is expected to show both quarterly and yearly growth.",
+            "error": ""
+          },
+          {
+            "query": "鴻海 發展願景 創辦人",
+            "aspect": "future",
+            "success": true,
+            "elapsed_time": 6.084501266479492,
+            "answer": "鴻海創辦人是郭台銘，他於1974年創立該公司。劉揚偉是現任董事長。鴻海致力於技術研發和創新。",
+            "error": ""
+          }
+        ],
+        "success_count": 8,
+        "failure_count": 0
+      },
+      "gemini_flash": {
+        "provider": "gemini_flash",
+        "total_time": 5.307825803756714,
+        "query_results": [
+          {
+            "query": "鴻海 官網 創立日期 資本額",
+            "aspect": "foundation",
+            "success": true,
+            "elapsed_time": 3.698106288909912,
+            "answer": "鴻海精密工業股份有限公司（鴻海）成立於1974年2月20日。 鴻海的官網是 www.honhai.com。 根據2025年2月26日的資料，鴻海的實收資本額為新台幣139,642,222,940元。\n",
+            "error": ""
+          },
+          {
+            "query": "鴻海 獲獎紀錄 產業地位",
+            "aspect": "foundation",
+            "success": true,
+            "elapsed_time": 4.457212686538696,
+            "answer": "鴻海（富士康）作為全球最大的電子製造服務（EMS）公司，產業地位穩固，在電子代工服務領域市佔率超過四成，是全球領先者。 鴻海的獲獎紀錄豐富，2025年獲得IR Impact大中華區「最佳企業- 科技類」等多個獎項，創下連續五年奪獎紀錄。 此外，鴻海也是台灣唯一連續八年獲得科睿唯安「全球百大創新機構」的民營企業。 鴻海積極投入AI、電動車等新興產業，並持續擴張，展現其技術創新與市場應變能力。\n",
+            "error": ""
+          },
+          {
+            "query": "鴻海 核心產品 主要服務",
+            "aspect": "core",
+            "success": true,
+            "elapsed_time": 4.172906160354614,
+            "answer": "鴻海的核心產品主要涵蓋消費性電子產品（如智慧手機、遊戲機）、雲端網路產品（如伺服器、網通設備）、電腦終端產品（如電腦、平板）以及元件與其他產品（如連接器、機構件）。 鴻海的主要服務則轉型為創新式整合設計製造服務（IIDM），提供從關鍵零組件、核心技術創新、軟體硬體整合到工業設計的一站式完整服務。 此外，鴻海也積極投入「電動車、數位健康、機器人」三大未來產業，並結合「人工智慧、半導體、新世代通訊」三大核心技術。\n",
+            "error": ""
+          },
+          {
+            "query": "鴻海 技術架構 研發實力",
+            "aspect": "core",
+            "success": true,
+            "elapsed_time": 5.307247877120972,
+            "answer": "鴻海（富士康）的技術架構與研發實力體現在多個方面。在技術架構方面，鴻海採用「3+3+3」策略，重點發展電動車（EV）、人工智慧（AI）和半導體等關鍵領域，並結合智慧製造平台。鴻海也積極拓展AI伺服器機櫃市場，並在系統組裝領域擁有全球領先的市佔率。\n\n研發實力方面，鴻海研究院是集團技術創新的重要引擎，設有五個研究中心，專注於新技術研發，並與國內外頂尖團隊合作。鴻海在AI、半導體、通訊等領域都有突破，例如開發Micro-LED量子亂數生成器，並與NVIDIA合作建立AI工廠，加速AI應用。鴻海連續九年獲選全球百大創新機構，顯示其在AI加速轉型下的創新實力。\n",
+            "error": ""
+          },
+          {
+            "query": "鴻海 員工福利 薪資待遇",
+            "aspect": "vibe",
+            "success": true,
+            "elapsed_time": 4.459765195846558,
+            "answer": "鴻海的員工福利包含多樣化的措施，例如團體保險、健康檢查補助、社團活動補助、教育訓練補助、生日及節慶禮品（禮金）、年終活動與摸彩、婚喪禮金、生育補助等。此外，鴻海也提供員工健身房、運動場等設施，並鼓勵員工生育。在薪資方面，根據比薪水資料庫，2024年鴻海員工的平均月薪約為5萬5608元，平均年薪約為89萬7811元，且年薪保障14個月，其餘依績效與部門盈餘發放。鴻海也提供碩士畢業生起薪5.2萬元以上的待遇。\n",
+            "error": ""
+          },
+          {
+            "query": "鴻海 企業文化 辦公室環境",
+            "aspect": "vibe",
+            "success": true,
+            "elapsed_time": 3.947157382965088,
+            "answer": "鴻海的企業文化曾被形容為「善變」，強調快速應變市場變化，並重視整合與和諧。 鴻海的辦公室環境，例如高雄軟體研發中心，致力於打造高效、舒適的辦公環境，融入在地特色，並鼓勵員工發揮創意。 鴻海也積極推動永續發展，例如內湖大樓獲得LEED黃金級認證，並重視員工的福祉。 此外，鴻海定期進行員工永續敬業度調查，以提升員工對公司的認同度，並優化職場體驗。\n",
+            "error": ""
+          },
+          {
+            "query": "鴻海 2026 最新動態 新聞",
+            "aspect": "future",
+            "success": true,
+            "elapsed_time": 4.172799348831177,
+            "answer": "鴻海 (Foxconn) 在 2026 年的發展重點包括：預計在 AI 伺服器領域實現強勁增長，儘管面臨關稅政策、地緣政治和全球貨幣政策等挑戰。 第一季營收增長 29.7%，主要受惠於 AI 需求。 鴻海持續擴大電動車 (EV) 業務，展示電動車平台和產品，並計劃在北美啟動 Model C 的在地化生產，以符合美國的稅收抵免要求，同時也展示了電池技術。 此外，鴻海也積極參與台北國際車用電子展，展示從關鍵零件到整車的自製能力，並與合作夥伴共同開發智慧座艙和智慧駕駛解決方案。 鴻海也持續獲得全球百大創新機構的肯定，並發起自然本解方全球倡議，展現其在 ESG 方面的努力。\n",
+            "error": ""
+          },
+          {
+            "query": "鴻海 發展願景 創辦人",
+            "aspect": "future",
+            "success": true,
+            "elapsed_time": 4.013204336166382,
+            "answer": "鴻海科技集團的創辦人是郭台銘，他於1974年創立鴻海，並將其打造成全球最大的電子代工製造商。 鴻海的願景是成為國際一流公司，並持續發展技術與創新，同時也關注永續發展，致力於ESG目標。 鴻海目前正朝向電動車、智慧健康、機器人等領域發展，並積極投入AI科技創新。\n",
+            "error": ""
+          }
+        ],
+        "success_count": 8,
+        "failure_count": 0
+      },
+      "comparison": {
+        "speed": {
+          "tavily_total": 7.915,
+          "gemini_flash_total": 5.308,
+          "difference": 2.608,
+          "improvement_percent": 32.9,
+          "winner": "tavily"
+        },
+        "reliability": {
+          "tavily_success_rate": "8/8",
+          "gemini_flash_success_rate": "8/8"
+        },
+        "aspect_comparison": {
+          "foundation": {
+            "tavily_avg": 6.545,
+            "gemini_avg": 4.078,
+            "winner": "gemini_flash"
+          },
+          "core": {
+            "tavily_avg": 5.803,
+            "gemini_avg": 4.74,
+            "winner": "gemini_flash"
+          },
+          "vibe": {
+            "tavily_avg": 5.726,
+            "gemini_avg": 4.203,
+            "winner": "gemini_flash"
+          },
+          "future": {
+            "tavily_avg": 7.0,
+            "gemini_avg": 4.093,
+            "winner": "gemini_flash"
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "tavily_avg": 7.47,
+    "gemini_flash_avg": 4.982,
+    "winner": "gemini_flash"
+  }
+}

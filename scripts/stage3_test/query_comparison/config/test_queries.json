@@ -1,0 +1,38 @@
+{
+    "companies": [
+        "Google",
+        "統一超商",
+        "長榮航空"
+    ],
+    "aspects": {
+        "foundation": {
+            "description": "品牌實力與基本資料",
+            "queries": [
+                "{company} 官網 創立日期 資本額",
+                "{company} 獲獎紀錄 產業地位"
+            ]
+        },
+        "core": {
+            "description": "技術產品與服務核心",
+            "queries": [
+                "{company} 核心產品 主要服務",
+                "{company} 技術架構 研發實力"
+            ]
+        },
+        "vibe": {
+            "description": "職場環境與企業文化",
+            "queries": [
+                "{company} 員工福利 薪資待遇",
+                "{company} 企業文化 辦公室環境"
+            ]
+        },
+        "future": {
+            "description": "近期動態與未來展望",
+            "queries": [
+                "{company} 2026 最新動態 新聞",
+                "{company} 發展願景 創辦人"
+            ]
+        }
+    },
+    "total_queries_per_company": 8
+}

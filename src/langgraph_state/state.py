@@ -87,6 +87,17 @@ class SearchResult:
 
 
 @dataclass
+class AspectSummaryResult:
+    """四面向彙整結果"""
+
+    aspect: str
+    description: str
+    content: str
+    source_queries: int
+    total_characters: int
+
+
+@dataclass
 class LLMResult:
     """LLM 生成結果"""
 
@@ -154,6 +165,7 @@ class CompanyBriefState(TypedDict):
 
     # 中間結果
     search_result: Optional[SearchResult]
+    aspect_summaries: Optional[Dict[str, AspectSummaryResult]]  # 四面向彙整結果
     llm_result: Optional[LLMResult]
     quality_check_result: Optional[QualityCheckResult]
     # Phase 14 Stage 3: 字數檢核結果
@@ -184,6 +196,7 @@ class NodeNames:
 
     # 功能節點
     SEARCH = "search"
+    SUMMARY = "summary"
     GENERATE = "generate"
     QUALITY_CHECK = "quality_check"
 
@@ -282,6 +295,7 @@ def create_initial_state(
         retry_counts={},
         # 中間結果
         search_result=None,
+        aspect_summaries=None,  # 四面向彙整結果
         llm_result=None,
         quality_check_result=None,
         word_count_validation=None,  # Phase 14 Stage 3 新增
@@ -335,6 +349,8 @@ def update_state_with_node_result(
         and node_result.output
     ):
         state["search_result"] = node_result.output
+    elif node_result.node_name == NodeNames.SUMMARY and node_result.output:
+        state["aspect_summaries"] = node_result.output
     elif (
         node_result.node_name in [NodeNames.GENERATE, NodeNames.RETRY_GENERATE]
         and node_result.output

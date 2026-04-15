@@ -1,0 +1,958 @@
+{
+  "timestamp": "2026-04-15T02:21:26.473692",
+  "mode": "compare",
+  "companies": [
+    "聯發科",
+    "華碩電腦",
+    "富邦金控"
+  ],
+  "results": [
+    {
+      "company": "聯發科",
+      "tavily": {
+        "search_time": 6.876729965209961,
+        "search_success": 8,
+        "summaries": {
+          "foundation": {
+            "description": "品牌實力與基本資料",
+            "content": "聯發科技成立於1997年5月28日，資本額為人民幣24.3億元。最新資本額為人民幣160.39億元。\n\nMediaTek has won numerous awards and consistently ranks among top international brands. It has secured top positions in various industry awards and maintains a strong industry standing.",
+            "source_queries": 2,
+            "total_characters": 235
+          },
+          "core": {
+            "description": "技術產品與服務核心",
+            "content": "MediaTek specializes in designing integrated circuits (ICs) for mobile devices, smart TVs, and connectivity solutions, including 5G and Wi-Fi chips. Its key products include SoCs for smartphones and smart TVs, and it is a leader in low-power IC design.\n\nMediaTek has strong R&D capabilities, demonstrated by its significant AI breakthroughs and advanced chip architectures. It focuses on AI applications and showcases high-performance computing.",
+            "source_queries": 2,
+            "total_characters": 443
+          },
+          "vibe": {
+            "description": "職場環境與企業文化",
+            "content": "聯發科員工薪資約在460萬元，福利費用略有下降。薪資競爭力高，福利全面。薪資有所調整，但仍高於市場平均。\n\nMediaTek offers a friendly work environment with amenities like a gym, doctor on-site, massage services, and a food court. It has been recognized as a top employer for its supportive workplace culture.",
+            "source_queries": 2,
+            "total_characters": 253
+          },
+          "future": {
+            "description": "近期動態與未來展望",
+            "content": "MediaTek reported a Q1 2026 revenue of NT$1,491.51 billion, a 2.71% year-over-year decrease but still above earlier estimates. The company's stock price has dropped since its yearly high, influenced by industry cycles and rising material costs.\n\n聯發科技（MediaTek）的創辦人是蔡明介。他是台灣知名企業家，曾任多家公司高層。蔡明介對台灣半導體產業有深遠影響。",
+            "source_queries": 2,
+            "total_characters": 303
+          }
+        },
+        "brief": {
+          "company": "聯發科",
+          "title": "聯發科技：全球領先的 IC 設計公司，驅動智慧互聯未來",
+          "content": "聯發科技（MediaTek）成立於 1997 年，是一家領先的 IC 設計公司，專注於為行動裝置、智慧電視和連線解決方案（包括 5G 和 Wi-Fi 晶片）設計整合電路。公司資本額已大幅增長，展現其強勁的發展潛力。MediaTek 在業界享有盛譽，屢獲殊榮，並持續名列國際品牌前茅。公司擁有強大的研發實力，在 AI 領域取得重大突破，並擁有先進的晶片架構，專注於 AI 應用和高效能運算。聯發科提供具競爭力的薪資福利，並提供友善的工作環境，包括健身房、駐場醫生、按摩服務和美食廣場等設施。儘管受到產業週期和材料成本上升的影響，聯發科仍持續展現其韌性，並由創辦人蔡明介帶領，持續對台灣半導體產業產生深遠影響。2026 年第一季營收為新台幣 1,491.51 億元，雖略有下降，但仍高於先前預估。",
+          "length_category": "medium",
+          "word_count": 346,
+          "generation_time": 3.54
+        },
+        "tags": {
+          "company": "聯發科",
+          "tags": [
+            "MediaTek",
+            "聯發科",
+            "IC設計",
+            "5G晶片",
+            "AI晶片",
+            "高薪福利",
+            "友善職場",
+            "台灣之光"
+          ],
+          "categories": {
+            "industry": [
+              "半導體",
+              "IC設計"
+            ],
+            "feature": [
+              "AI應用",
+              "晶片架構"
+            ],
+            "culture": [
+              "友善工作環境",
+              "高薪競爭力"
+            ],
+            "scale": [
+              "大型企業"
+            ]
+          },
+          "generation_time": 1.42
+        }
+      },
+      "gemini_flash": {
+        "search_time": 6.248801946640015,
+        "search_success": 8,
+        "summaries": {
+          "foundation": {
+            "description": "品牌實力與基本資料",
+            "content": "聯發科（MediaTek）成立於1997年5月28日，總部位於新竹科學園區。 根據2026年4月13日的資料，聯發科的實收資本額為新台幣16,039,042,900元。 聯發科的官方網站是 www.mediatek.com。\n\n聯發科在獲獎方面表現優異，曾多次獲得「經濟部產業科技發展獎」、「全球半導體聯盟（GSA）獎項」等多項殊榮，並連續多年入選「台灣最佳國際品牌」。 在產業地位上，聯發科是全球領先的 IC 設計公司，尤其在智慧型手機晶片領域佔有重要地位，是全球前五大、亞洲第一的 IC 設計廠，並在手機晶片出貨量上保持領先地位。 聯發科的產品已廣泛應用於手機、電視、汽車等終端產品，技術實力備受肯定。",
+            "source_queries": 2,
+            "total_characters": 301
+          },
+          "core": {
+            "description": "技術產品與服務核心",
+            "content": "聯發科（MediaTek）的核心產品主要包括行動運算平台（如智慧手機晶片）、智慧家庭產品、無線連接技術和物聯網產品。 聯發科的服務則涵蓋多個領域，包括提供晶片整合系統解決方案，以及針對智慧手機、智慧家庭、物聯網、Chromebook和平板電腦等提供技術支援。 聯發科也積極發展AI和5G等先進技術，並提供客製化ASIC解決方案。\n\n聯發科（MediaTek）在技術架構和研發實力方面表現出色。\n\n*   **技術架構：** 聯發科的技術架構涵蓋多個領域，包括5G、AI、多媒體和無線連接。 尤其在5G方面，聯發科致力於打造開放架構，與手機廠商合作，提供客製化的使用者體驗。 在AI方面，聯發科的系統單晶片（SoC）整合了神經處理單元（NPU），並提供全面的AI開發工具，目標是讓裝置具備AI代理人能力。 聯發科也積極布局6G，將行動通訊定位為驅動AI普及的關鍵手段。\n*   **研發實力：** 聯發科近三年投入超過3000億元新台幣於研發，並連續五年入選「全球百大創新企業」。 聯發科在半導體、人工智慧與通訊領域的頂尖國際學術會議上發表多篇論文，並連續23年在ISSCC（國際固態電路研討會）中有多篇論文入選，展現其深厚的技術底蘊。 聯發科也積極參與國際技術標準制定，並與產業界及學界合作，掌握最新技術趨勢。 聯發科的研發成果涵蓋從邊緣運算延伸至雲端的完整解決方案。",
+            "source_queries": 2,
+            "total_characters": 582
+          },
+          "vibe": {
+            "description": "職場環境與企業文化",
+            "content": "聯發科（MediaTek）的員工福利與薪資待遇在台灣的上市企業中具有競爭力。 根據2024年的報告，聯發科非主管職的全職員工平均年薪為新台幣431萬元，在台灣上市櫃公司中名列前茅。 聯發科提供具競爭力的薪酬，並有彈性福利，例如健檢補助。 員工的福利也包括健康保險等。 根據2025年的調查，聯發科員工對其整體薪酬和福利感到滿意。\n\n聯發科的企業文化強調國際視野、雙向溝通和永續發展。公司鼓勵員工參與全球主管溝通會和全員工溝通會，並透過雙月刊電子報傳達組織策略和企業文化。在辦公室環境方面，聯發科致力於打造舒適的工作環境，例如新竹總部大樓設計結合多元休憩及交流功能，並以科技森林為設計概念，營造光影灑落的氛圍。此外，聯發科也積極推動綠色環保和節能減碳，並在新建辦公大樓中採用黃金級綠建築標準。",
+            "source_queries": 2,
+            "total_characters": 343
+          },
+          "future": {
+            "description": "近期動態與未來展望",
+            "content": "聯發科在2026年的動態相當活躍。在3月份，聯發科營收創下歷史新高，達到632.19億元，第一季營收也達到財測高標。 聯發科持續在AI領域發力，推出新的AI晶片，並與Google合作開發TPU晶片。 聯發科也積極拓展新興市場，例如與微軟合作開發Micro LED光纜。 此外，聯發科在Wi-Fi 7和車用電子領域也有顯著進展。 然而，市場也關注聯發科的ASIC業務以及手機晶片出貨調整，以及Google TPU設計變更可能帶來的影響。\n\n聯發科（MediaTek）的發展願景是透過創新科技、頂尖產品、強大的商業模式和有效的企業回饋，來提升並豐富大眾生活。 聯發科成立於1997年，由蔡明介帶領聯華電子的IC設計部門分割出來。 蔡明介是聯發科的創辦人，也是台灣IC設計界的教父，他曾任聯發科技董事長。",
+            "source_queries": 2,
+            "total_characters": 347
+          }
+        },
+        "brief": {
+          "company": "聯發科",
+          "title": "聯發科：全球領先IC設計公司，驅動科技創新，豐富大眾生活",
+          "content": "聯發科（MediaTek）成立於1997年，是全球領先的IC設計公司，總部位於新竹科學園區。公司實收資本額達新台幣160億元，並以其卓越的技術實力與創新能力，在業界享有盛譽。聯發科的核心產品涵蓋行動運算平台、智慧家庭產品、無線連接技術和物聯網產品，並提供晶片整合系統解決方案及技術支援。公司在5G、AI等先進技術領域積極布局，研發投入超過3000億元，並連續多年入選「全球百大創新企業」。聯發科的企業文化強調國際視野、雙向溝通和永續發展，並提供具競爭力的薪酬福利。近期，聯發科營收創下歷史新高，並持續在AI、Wi-Fi 7和車用電子等領域發力。聯發科致力於透過創新科技，提升並豐富大眾生活，持續引領科技潮流。",
+          "length_category": "medium",
+          "word_count": 304,
+          "generation_time": 3.27
+        },
+        "tags": {
+          "company": "聯發科",
+          "tags": [
+            "MediaTek",
+            "聯發科",
+            "IC設計",
+            "5G",
+            "AI",
+            "晶片",
+            "智慧手機",
+            "物聯網"
+          ],
+          "categories": {
+            "industry": [
+              "半導體",
+              "科技"
+            ],
+            "feature": [
+              "創新",
+              "技術領先"
+            ],
+            "culture": [
+              "國際化",
+              "永續發展"
+            ],
+            "scale": [
+              "上市公司"
+            ]
+          },
+          "generation_time": 1.5
+        }
+      },
+      "comparison": {
+        "search": {
+          "tavily_time": 6.877,
+          "gemini_flash_time": 6.249,
+          "winner": "gemini_flash",
+          "improvement_percent": 9.1
+        },
+        "content_volume": {
+          "tavily_chars": 1234,
+          "gemini_flash_chars": 1573,
+          "winner": "gemini_flash"
+        },
+        "brief": {
+          "tavily_words": 346,
+          "gemini_flash_words": 304,
+          "tavily_title": "聯發科技：全球領先的 IC 設計公司，驅動智慧互聯未來",
+          "gemini_flash_title": "聯發科：全球領先IC設計公司，驅動科技創新，豐富大眾生活"
+        },
+        "tags": {
+          "tavily_count": 8,
+          "gemini_flash_count": 8,
+          "tavily_tags": [
+            "MediaTek",
+            "聯發科",
+            "IC設計",
+            "5G晶片",
+            "AI晶片",
+            "高薪福利",
+            "友善職場",
+            "台灣之光"
+          ],
+          "gemini_flash_tags": [
+            "MediaTek",
+            "聯發科",
+            "IC設計",
+            "5G",
+            "AI",
+            "晶片",
+            "智慧手機",
+            "物聯網"
+          ]
+        },
+        "evaluation": {
+          "company": "聯發科",
+          "tavily": {
+            "company": "聯發科",
+            "provider": "tavily",
+            "dimensions": {
+              "relevance": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              },
+              "completeness": {
+                "score": 7,
+                "reason": "",
+                "max": 10.0
+              },
+              "accuracy": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "readability": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "professionalism": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              },
+              "tag_consistency": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              }
+            },
+            "overall_score": 8.2,
+            "summary": "聯發科簡介全面且準確，涵蓋公司核心業務、發展潛力及福利，展現專業形象，標籤與內容匹配度高。",
+            "evaluation_time": 1.6
+          },
+          "gemini_flash": {
+            "company": "聯發科",
+            "provider": "gemini_flash",
+            "dimensions": {
+              "relevance": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "completeness": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              },
+              "accuracy": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "readability": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "professionalism": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "tag_consistency": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              }
+            },
+            "overall_score": 8.8,
+            "summary": "聯發科簡介全面且專業，涵蓋核心業務、技術優勢、未來發展方向，並與標籤高度一致，展現了其作為全球領先IC設計公司的形象。",
+            "evaluation_time": 1.5
+          },
+          "dimension_comparison": {
+            "relevance": {
+              "tavily": 8,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 1
+            },
+            "completeness": {
+              "tavily": 7,
+              "gemini_flash": 8,
+              "winner": "gemini_flash",
+              "diff": 1
+            },
+            "accuracy": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "readability": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "professionalism": {
+              "tavily": 8,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 1
+            },
+            "tag_consistency": {
+              "tavily": 8,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 1
+            }
+          },
+          "winner_counts": {
+            "tavily": 0,
+            "gemini_flash": 4
+          },
+          "overall_winner": "gemini_flash"
+        }
+      }
+    },
+    {
+      "company": "華碩電腦",
+      "tavily": {
+        "search_time": 6.804021596908569,
+        "search_success": 8,
+        "summaries": {
+          "foundation": {
+            "description": "品牌實力與基本資料",
+            "content": "華碩電腦成立於1990年4月2日，資本額為74.27億新台幣。公司官網是https://www.asus.com。\n\n華碩電腦多次獲獎，2005年榮獲十三項大獎。其商用電腦在台灣市場領先，2025年市占率達32.2%。",
+            "source_queries": 2,
+            "total_characters": 107
+          },
+          "core": {
+            "description": "技術產品與服務核心",
+            "content": "華碩電腦的核心產品包括主機板、筆記型電腦、顯示卡和智慧型手機。他們提供完整的生態系統服務。這些產品經過嚴格測試以確保兼容性。\n\n華碩擁有強大的研發實力，積極投入AI和雲端技術，並在伺服器領域領先。公司技術架構先進，包括NVIDIA和AMD處理器。預期2026年伺服器營收增長達100％。",
+            "source_queries": 2,
+            "total_characters": 141
+          },
+          "vibe": {
+            "description": "職場環境與企業文化",
+            "content": "華碩員工年薪平均約798,740元，工時約9.6小時，福利包括多元化且彈性的制度。\n\n華碩重視員工健康，提供定期檢查，並致力於環保工作環境。公司文化強調「五德」：謙、誠、勤、敏、勇。員工普遍認為公司有良好的培訓制度。",
+            "source_queries": 2,
+            "total_characters": 106
+          },
+          "future": {
+            "description": "近期動態與未來展望",
+            "content": "華碩預計2026年全年PC平均售價增長30%，首季伺服器業務成長4至5倍，全年力拚翻倍成長。\n\n華碩電腦由童子賢創立，其發展願景是成為全球領先的電腦及電子產品製造商。童子賢致力於技術創新和市場多樣化。",
+            "source_queries": 2,
+            "total_characters": 98
+          }
+        },
+        "brief": {
+          "company": "華碩電腦",
+          "title": "華碩電腦：創新科技與卓越品質的全球領導者",
+          "content": "華碩電腦（ASUS）成立於1990年，以74.27億新台幣的資本額奠定堅實基礎，並透過官方網站https://www.asus.com向全球展示其產品與服務。作為一家屢獲殊榮的科技公司，華碩在商用電腦領域表現卓越，2025年台灣市場佔有率達32.2%。\n\n華碩的核心產品包括主機板、筆記型電腦、顯示卡和智慧型手機，並提供完整的生態系統服務。公司擁有強大的研發實力，積極投入AI和雲端技術，尤其在伺服器領域表現領先，預計2026年營收將大幅增長。華碩的技術架構先進，採用NVIDIA和AMD處理器等尖端技術。公司重視員工發展與福祉，提供具競爭力的薪資福利，並致力於打造健康、環保的工作環境。華碩秉持「謙、誠、勤、敏、勇」的企業文化，為員工提供良好的培訓機會。\n\n展望未來，華碩預計2026年PC平均售價將顯著增長，伺服器業務也將迎來爆發性成長。公司由童子賢創立，其願景是成為全球領先的電腦及電子產品製造商，持續推動技術創新和市場多元化。",
+          "length_category": "medium",
+          "word_count": 417,
+          "generation_time": 4.02
+        },
+        "tags": {
+          "company": "華碩電腦",
+          "tags": [
+            "ASUS",
+            "華碩",
+            "電腦",
+            "筆記型電腦",
+            "主機板",
+            "AI",
+            "伺服器",
+            "研發",
+            "台灣之光",
+            "科技公司"
+          ],
+          "categories": {
+            "industry": [
+              "電腦硬體",
+              "電子產品"
+            ],
+            "feature": [
+              "技術創新",
+              "市場領先"
+            ],
+            "culture": [
+              "員工福利",
+              "企業文化"
+            ],
+            "scale": [
+              "大型企業"
+            ]
+          },
+          "generation_time": 1.6
+        }
+      },
+      "gemini_flash": {
+        "search_time": 6.30985164642334,
+        "search_success": 8,
+        "summaries": {
+          "foundation": {
+            "description": "品牌實力與基本資料",
+            "content": "華碩電腦股份有限公司成立於1989年，其官方網站為 https://www.asus.com。 根據2026年4月15日的資料，華碩的實收資本額為新台幣7,427,602,800元。\n\n華碩電腦在獲獎方面表現優異，屢獲國際設計大獎肯定，例如2023年獲得德國紅點設計大獎44個獎項，以及Good Design Award多個獎項。 在產業地位方面，華碩是全球PC、電競與創作者裝置市場的重要品牌之一。 在台灣商用電腦市場，華碩長期保持領先地位，商用筆電已連續多年蟬聯市占冠軍，商用桌機也穩居龍頭。 此外，華碩在AI PC市場也積極布局，在美國、加拿大和澳洲等市場處於領先地位。",
+            "source_queries": 2,
+            "total_characters": 286
+          },
+          "core": {
+            "description": "技術產品與服務核心",
+            "content": "華碩電腦的核心產品包括桌上型電腦、筆記型電腦、平板電腦、主機板、顯示卡、顯示器、儲存裝置、外圍裝置、行動電話、穿戴式裝置、投影機、網路通訊裝置等。 華碩的主要服務涵蓋產品維修、保固、線上支援，以及皇家俱樂部維修中心據點服務。 此外，華碩也積極發展AI PC、電競設備、伺服器與雲端解決方案等。\n\n華碩電腦（ASUS）在技術架構與研發實力方面表現出色。 華碩重視自主創新，研發人員眾多，並持續投入資源。 華碩的技術涵蓋主機板、顯示卡、筆記型電腦、智慧型手機等多元產品，並積極發展AI基礎架構解決方案，例如AI伺服器。 華碩在液冷技術方面也具備專業，並與多家合作夥伴共同提供專用冷卻解決方案。 華碩的研發實力也體現在其獲得的專利數量上，截至2024年底，已在全球取得7,593件專利。 華碩的創新策略以設計思維為核心，並以設計思維為基礎，專注於打造體貼人心的智慧生活。 華碩的產品創新、設計及品質皆備受全球市場肯定，並多次獲得獎項。",
+            "source_queries": 2,
+            "total_characters": 412
+          },
+          "vibe": {
+            "description": "職場環境與企業文化",
+            "content": "華碩電腦的員工福利相當優渥，除了符合法規的社會保險外，還提供團體綜合保險，甚至擴及員工家庭。福利活動多元，包括部門共好活動補助、社團、幸福農園、家庭日等。員工享有有薪事病假和幸福假。華碩也提供五心級的健康心理照顧。薪資方面，根據比薪水網站資料，平均月薪約為47,828元，年薪約為798,740元，員工透露薪資約有15到17個月。此外，華碩設有五星級休閒中心、美食街，並提供三節獎金、績效獎金等。\n\n華碩電腦的企業文化強調「華碩五德」：謙、誠、勤、敏、勇，並以「崇本務實」、「精實思維」、「創新惟美」為核心價值。 華碩的辦公室環境，尤其是在關渡的總部「立功大樓」，被設計成綠建築，並獲得LEED白金級認證。 總部內設有健身房、美食街、以及供員工休閒的娛樂室，例如撞球桌和桌上足球，以提供員工舒適的工作環境。 華碩也鼓勵員工彈性工作，提供居家辦公日，並提供多樣的福利，例如持股信託計劃和健康諮詢。",
+            "source_queries": 2,
+            "total_characters": 395
+          },
+          "future": {
+            "description": "近期動態與未來展望",
+            "content": "華碩電腦在 2026 年的動態主要集中在以下幾個方面：\n\n*   **產品發表與創新：** 華碩在 CES 2026 上推出了多款 AI 驅動的產品，包括 ExpertBook Ultra、Expert 系列、Chromebooks 和 MyExpert。同時，華碩也推出了全新的 Zenbook 系列，包括 Zenbook A16、A14、S16 和 S14，這些產品都採用了 Ceraluminum 材料，並搭載了最新的 Snapdragon 處理器，強調 AI 運算能力。\n*   **市場策略與合作：** 華碩持續擴展零售合作夥伴，例如 TUF Gaming A14 在 Antonline 和 B&H Photo 等通路上市。此外，華碩也與 GoPro 合作推出了 ProArt GoPro Edition。\n*   **價格調整：** 由於記憶體和 CPU 價格上漲，華碩預計在 2026 年第二季將調漲筆記型電腦價格，漲幅可能達到 25% 到 30%。\n*   **AI 發展：** 華碩積極擁抱 AI 趨勢，並在 CES 上展示了 AI 相關技術。華碩也擴編 AI 人才，並將 AI 應用於產品中。\n*   **營收展望：** 華碩內部對 2026 年的 NB 和 AI 伺服器出貨與營收目標持樂觀態度。\n\n華碩電腦的發展願景是成為數位新世代備受推崇的科技創新領導企業，致力於開發全方位科技產品解決方案，並持續追尋無與倫比的科技創新，為全球使用者創造體貼人心的智慧生活。華碩創辦人包括童子賢、徐世昌、廖敏雄、謝偉琦，而施崇棠於1993年起擔任董事長，帶領公司成長，並推動「設計思維」革命，強調以人為本，致力打造全方位的數位生活體驗。",
+            "source_queries": 2,
+            "total_characters": 722
+          }
+        },
+        "brief": {
+          "company": "華碩電腦",
+          "title": "華碩電腦：科技創新領導者，打造智慧生活體驗",
+          "content": "華碩電腦股份有限公司（ASUS）成立於1989年，是全球PC、電競與創作者裝置市場的領導品牌。 華碩以新台幣74.28億元的實收資本額為後盾，長期深耕技術研發，產品線涵蓋桌上型電腦、筆記型電腦、主機板、顯示卡等多元產品，並積極發展AI PC、伺服器與雲端解決方案。 華碩屢獲國際設計大獎肯定，如德國紅點設計大獎，並在台灣商用電腦市場保持領先地位。 華碩重視員工福利，提供優渥薪資、多元福利活動及五星級休閒設施，並鼓勵彈性工作。 華碩秉持「華碩五德」核心價值，以「設計思維」為核心，致力於打造體貼人心的智慧生活。 展望未來，華碩積極擁抱AI趨勢，擴大AI人才招募，並持續推出創新產品，力求成為數位新世代備受推崇的科技創新領導企業。",
+          "length_category": "medium",
+          "word_count": 314,
+          "generation_time": 3.32
+        },
+        "tags": {
+          "company": "華碩電腦",
+          "tags": [
+            "ASUS",
+            "華碩",
+            "PC",
+            "電競",
+            "AI PC",
+            "筆記型電腦",
+            "主機板",
+            "創新",
+            "設計",
+            "員工福利"
+          ],
+          "categories": {
+            "industry": [
+              "電腦硬體",
+              "科技"
+            ],
+            "feature": [
+              "國際設計大獎",
+              "AI驅動"
+            ],
+            "culture": [
+              "員工導向",
+              "設計思維"
+            ],
+            "scale": [
+              "大型企業"
+            ]
+          },
+          "generation_time": 1.61
+        }
+      },
+      "comparison": {
+        "search": {
+          "tavily_time": 6.804,
+          "gemini_flash_time": 6.31,
+          "winner": "gemini_flash",
+          "improvement_percent": 7.3
+        },
+        "content_volume": {
+          "tavily_chars": 452,
+          "gemini_flash_chars": 1815,
+          "winner": "gemini_flash"
+        },
+        "brief": {
+          "tavily_words": 417,
+          "gemini_flash_words": 314,
+          "tavily_title": "華碩電腦：創新科技與卓越品質的全球領導者",
+          "gemini_flash_title": "華碩電腦：科技創新領導者，打造智慧生活體驗"
+        },
+        "tags": {
+          "tavily_count": 10,
+          "gemini_flash_count": 10,
+          "tavily_tags": [
+            "ASUS",
+            "華碩",
+            "電腦",
+            "筆記型電腦",
+            "主機板",
+            "AI",
+            "伺服器",
+            "研發",
+            "台灣之光",
+            "科技公司"
+          ],
+          "gemini_flash_tags": [
+            "ASUS",
+            "華碩",
+            "PC",
+            "電競",
+            "AI PC",
+            "筆記型電腦",
+            "主機板",
+            "創新",
+            "設計",
+            "員工福利"
+          ]
+        },
+        "evaluation": {
+          "company": "華碩電腦",
+          "tavily": {
+            "company": "華碩電腦",
+            "provider": "tavily",
+            "dimensions": {
+              "relevance": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "completeness": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              },
+              "accuracy": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "readability": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "professionalism": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "tag_consistency": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              }
+            },
+            "overall_score": 8.7,
+            "summary": "華碩公司簡介全面且專業，涵蓋了公司歷史、核心產品、未來展望和企業文化，整體資訊準確且易於理解，標籤與內容匹配度高。",
+            "evaluation_time": 1.48
+          },
+          "gemini_flash": {
+            "company": "華碩電腦",
+            "provider": "gemini_flash",
+            "dimensions": {
+              "relevance": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "completeness": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              },
+              "accuracy": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "readability": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "professionalism": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "tag_consistency": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              }
+            },
+            "overall_score": 8.8,
+            "summary": "華碩的簡介全面且專業，清晰地傳達了公司的核心業務、創新方向和企業文化，並與標籤高度一致。",
+            "evaluation_time": 1.39
+          },
+          "dimension_comparison": {
+            "relevance": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "completeness": {
+              "tavily": 8,
+              "gemini_flash": 8,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "accuracy": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "readability": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "professionalism": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "tag_consistency": {
+              "tavily": 8,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 1
+            }
+          },
+          "winner_counts": {
+            "tavily": 0,
+            "gemini_flash": 1
+          },
+          "overall_winner": "gemini_flash"
+        }
+      }
+    },
+    {
+      "company": "富邦金控",
+      "tavily": {
+        "search_time": 7.171379804611206,
+        "search_success": 8,
+        "summaries": {
+          "foundation": {
+            "description": "品牌實力與基本資料",
+            "content": "富邦金控成立于1961年4月17日，资本额为2,000亿新台币。\n\n富邦金控及其子公司在2025年获得22座台灣企業永續獎，连续六年摘得「台灣十大永續典範企業獎」。富邦人壽、富邦證券也分别获得「台灣100大永續典範企業獎」。",
+            "source_queries": 2,
+            "total_characters": 110
+          },
+          "core": {
+            "description": "技術產品與服務核心",
+            "content": "富邦金控的核心產品包括銀行、保險、證券及投資信託服務。主要服務涵蓋財富管理、基金投資及環球市場評論。富邦金控在台灣及國際市場有廣泛的客戶基礎。\n\n富邦金控擁有先進的技術架構，積極推動人工智慧和機器學習，並成功運用這些技術提升數位服務。公司在數位金融應用和雲架構方面有顯著實力。",
+            "source_queries": 2,
+            "total_characters": 136
+          },
+          "vibe": {
+            "description": "職場環境與企業文化",
+            "content": "富邦金控員工福利包括全薪產假、健保、勞保、股票信託，以及多樣化的彈性福利。平均月薪約46.5萬。福利和薪資待遇普遍評價不錯。\n\n富邦金控致力打造多元共融的職場環境，推動健康職場和永續文化，榮獲友善家庭職場獎。",
+            "source_queries": 2,
+            "total_characters": 102
+          },
+          "future": {
+            "description": "近期動態與未來展望",
+            "content": "富邦金控在2026年2月创下历史同期新高，纯利达205.7亿元。富邦金控预期台股指数将挑战34,000点高峰。\n\nThe founder of Fubon Financial Holding is Tsai Wan-tai. The company has a vision to become an international, socially responsible institution. Fubon was established in 1961.",
+            "source_queries": 2,
+            "total_characters": 228
+          }
+        },
+        "brief": {
+          "company": "富邦金控",
+          "title": "富邦金控：領先金融服務，引領永續發展",
+          "content": "富邦金控，成立於1961年，以2,000億新台幣的資本額奠定堅實基礎，是台灣金融業的領導者。公司核心業務涵蓋銀行、保險、證券及投資信託，提供多元化的金融服務，包括財富管理、基金投資及環球市場評論，服務範圍覆蓋台灣及國際市場。富邦金控積極擁抱科技，運用人工智慧和機器學習提升數位服務，展現其在數位金融和雲架構方面的領先實力。公司不僅在業務上取得卓越成就，更致力於企業永續發展，於2025年榮獲22座台灣企業永續獎，並連續六年榮獲「台灣十大永續典範企業獎」，旗下富邦人壽、富邦證券亦獲獎肯定。富邦金控提供優渥的員工福利，包括全薪產假、健保、勞保、股票信託及彈性福利，平均月薪約46.5萬，並積極打造多元共融的職場環境，榮獲友善家庭職場獎。展望未來，富邦金控持續展現強勁的成長動能，於2026年2月創下歷史同期新高，純利達205.7億元，並預期台股指數將挑戰新高。富邦金控由蔡萬才創立，致力成為國際化、具社會責任的金融機構。",
+          "length_category": "medium",
+          "word_count": 409,
+          "generation_time": 4.02
+        },
+        "tags": {
+          "company": "富邦金控",
+          "tags": [
+            "富邦金控",
+            "金融服務",
+            "財富管理",
+            "數位金融",
+            "永續發展",
+            "企業永續",
+            "員工福利",
+            "多元共融"
+          ],
+          "categories": {
+            "industry": [
+              "金融業",
+              "金控公司"
+            ],
+            "feature": [
+              "科技金融",
+              "國際化"
+            ],
+            "culture": [
+              "友善職場",
+              "社會責任"
+            ],
+            "scale": [
+              "大型企業"
+            ]
+          },
+          "generation_time": 1.47
+        }
+      },
+      "gemini_flash": {
+        "search_time": 5.68114709854126,
+        "search_success": 8,
+        "summaries": {
+          "foundation": {
+            "description": "品牌實力與基本資料",
+            "content": "富邦金控的官方網站是 www.fubon.com。富邦金控成立於2001年12月19日，實收資本額為新台幣1,560.74億元。\n\n富邦金控在金融業中擁有卓越的地位，其獲獎紀錄豐碩，例如在2025年台灣企業永續獎中，富邦金控及其子公司共獲得22個獎項，為金融業之冠。富邦金控也多次獲得「台灣十大永續典範企業獎」等殊榮。富邦金控旗下子公司業務多元，包括銀行、壽險、產險、證券等，業務經營績效優異，在市場上居於領先地位。",
+            "source_queries": 2,
+            "total_characters": 206
+          },
+          "core": {
+            "description": "技術產品與服務核心",
+            "content": "富邦金控的核心產品與主要服務涵蓋多個金融領域，包括銀行、壽險、產險、證券、投資信託等。 旗下子公司提供多元化的金融服務，例如貸款、投資、財富管理、信用卡服務等，以滿足企業和個人的金融需求。 富邦金控的核心價值包括誠信、親切、專業和創新。\n\n富邦金控在技術架構方面，積極擁抱科技，將AI、雲端、數位轉型與金融科技融入日常營運，以提升服務效率和客戶體驗。 研發實力方面，富邦金控成立「生成式AI應用推動團隊」，並在子公司中廣泛應用AI技術，例如在核保、客服、理賠等方面，以優化流程並提供更智慧的金融服務。 富邦證券也推出新一代交易平台，導入「AI投資夥伴」概念，協助投資人做出更精準的決策。",
+            "source_queries": 2,
+            "total_characters": 291
+          },
+          "vibe": {
+            "description": "職場環境與企業文化",
+            "content": "富邦金控的員工福利包含依勞基法規定的休假制度，以及優於法規的友善假別。此外，還有退休計畫、持股信託、結婚生育、子女教育等相關福利補助。薪資方面，根據比薪水的資訊，富邦金控的平均月薪約為46.5K。Indeed.com 上的資訊顯示，富邦金控不同職位的薪資範圍有所不同，例如帳單文員的月薪約為25,456元，資訊人員的月薪則約為41,153元。\n\n富邦金控的核心價值觀包括誠信、親切、專業和創新。 企業文化強調誠信，並重視人才培育，將永續發展融入企業文化中。 富邦金控的辦公室環境，例如富邦人壽大樓，採用開放式設計，並注重綠建築概念，獲得LEED金級認證，鼓勵員工搭乘大眾運輸，並設有電動車充電樁，致力於打造幸福友善職場。 此外，富邦金控也積極推動永續發展，例如設立「富邦永續聚樂部」，提升員工的永續素養。",
+            "source_queries": 2,
+            "total_characters": 350
+          },
+          "future": {
+            "description": "近期動態與未來展望",
+            "content": "富邦金控在2026年持續展現穩健的經營策略，並積極擁抱科技與社會責任。 2026年適逢富邦集團65周年，富邦金控將持續深化海外布局，並強化與社會的連結，從綠色金融、公益投入、藝術文化與體育等多元面向發揮影響力。 富邦金控預計今年獲利將保持穩健，核心業務和股權投資（包括與人工智慧相關的領域）將有強勁表現。 富邦金控也將運用AI與數位能力提升營運效率與服務品質。 此外，富邦金控也宣布將擴大「Run For Green」跑步植樹倡議，轉化為支持公益團體的共好行動。\n\n富邦金控的發展願景是成為亞洲一流的金融機構。 創辦人為蔡萬才，他於1992年將國泰產物保險更名為富邦產物保險，成為富邦集團的核心企業。 蔡萬才的長子蔡明忠，現任富邦集團董事長。 富邦金控致力於建構兩岸三地最完整的金融服務平台，旗下子公司提供多元金融商品與服務。",
+            "source_queries": 2,
+            "total_characters": 361
+          }
+        },
+        "brief": {
+          "company": "富邦金控",
+          "title": "富邦金控：亞洲一流金融機構，引領永續創新",
+          "content": "富邦金控（www.fubon.com）成立於2001年，實收資本額達新台幣1,560.74億元，為台灣金融業的領導者。旗下子公司業務多元，涵蓋銀行、壽險、產險、證券、投資信託等，提供全方位的金融服務，滿足企業與個人需求。富邦金控秉持誠信、親切、專業和創新的核心價值，積極擁抱科技，將AI、雲端等技術融入營運，提升服務效率與客戶體驗。富邦金控在永續發展方面表現卓越，屢獲「台灣十大永續典範企業獎」等殊榮，並持續深化海外布局。富邦金控提供優於法規的員工福利，並致力於打造幸福友善職場。展望未來，富邦金控將持續擴大綠色金融影響力，並朝亞洲一流金融機構的願景邁進，為股東創造價值，並為社會做出貢獻。",
+          "length_category": "medium",
+          "word_count": 295,
+          "generation_time": 2.94
+        },
+        "tags": {
+          "company": "富邦金控",
+          "tags": [
+            "富邦金控",
+            "金融服務",
+            "壽險",
+            "產險",
+            "銀行",
+            "證券",
+            "永續發展",
+            "數位轉型",
+            "AI",
+            "員工福利",
+            "台灣金融業龍頭",
+            "綠色金融"
+          ],
+          "categories": {
+            "industry": [
+              "金融業",
+              "金控"
+            ],
+            "feature": [
+              "多元金融服務",
+              "科技創新"
+            ],
+            "culture": [
+              "誠信",
+              "永續經營"
+            ],
+            "scale": [
+              "大型企業"
+            ]
+          },
+          "generation_time": 1.62
+        }
+      },
+      "comparison": {
+        "search": {
+          "tavily_time": 7.171,
+          "gemini_flash_time": 5.681,
+          "winner": "gemini_flash",
+          "improvement_percent": 20.8
+        },
+        "content_volume": {
+          "tavily_chars": 576,
+          "gemini_flash_chars": 1208,
+          "winner": "gemini_flash"
+        },
+        "brief": {
+          "tavily_words": 409,
+          "gemini_flash_words": 295,
+          "tavily_title": "富邦金控：領先金融服務，引領永續發展",
+          "gemini_flash_title": "富邦金控：亞洲一流金融機構，引領永續創新"
+        },
+        "tags": {
+          "tavily_count": 8,
+          "gemini_flash_count": 12,
+          "tavily_tags": [
+            "富邦金控",
+            "金融服務",
+            "財富管理",
+            "數位金融",
+            "永續發展",
+            "企業永續",
+            "員工福利",
+            "多元共融"
+          ],
+          "gemini_flash_tags": [
+            "富邦金控",
+            "金融服務",
+            "壽險",
+            "產險",
+            "銀行",
+            "證券",
+            "永續發展",
+            "數位轉型",
+            "AI",
+            "員工福利",
+            "台灣金融業龍頭",
+            "綠色金融"
+          ]
+        },
+        "evaluation": {
+          "company": "富邦金控",
+          "tavily": {
+            "company": "富邦金控",
+            "provider": "tavily",
+            "dimensions": {
+              "relevance": {
+                "score": 10,
+                "reason": "",
+                "max": 10.0
+              },
+              "completeness": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "accuracy": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "readability": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "professionalism": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "tag_consistency": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              }
+            },
+            "overall_score": 9.0,
+            "summary": "富邦金控簡介全面且專業，涵蓋公司核心業務、發展策略、永續成就及員工福利，展現其在金融業的領導地位。",
+            "evaluation_time": 1.42
+          },
+          "gemini_flash": {
+            "company": "富邦金控",
+            "provider": "gemini_flash",
+            "dimensions": {
+              "relevance": {
+                "score": 10,
+                "reason": "",
+                "max": 10.0
+              },
+              "completeness": {
+                "score": 8,
+                "reason": "",
+                "max": 10.0
+              },
+              "accuracy": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "readability": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "professionalism": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              },
+              "tag_consistency": {
+                "score": 9,
+                "reason": "",
+                "max": 10.0
+              }
+            },
+            "overall_score": 8.8,
+            "summary": "富邦金控簡介全面且專業，清晰地傳達了公司核心價值、業務範圍、發展方向和社會責任，並與標籤高度一致。",
+            "evaluation_time": 1.44
+          },
+          "dimension_comparison": {
+            "relevance": {
+              "tavily": 10,
+              "gemini_flash": 10,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "completeness": {
+              "tavily": 9,
+              "gemini_flash": 8,
+              "winner": "tavily",
+              "diff": 1
+            },
+            "accuracy": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "readability": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "professionalism": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            },
+            "tag_consistency": {
+              "tavily": 9,
+              "gemini_flash": 9,
+              "winner": "gemini_flash",
+              "diff": 0
+            }
+          },
+          "winner_counts": {
+            "tavily": 1,
+            "gemini_flash": 0
+          },
+          "overall_winner": "tavily"
+        }
+      }
+    }
+  ],
+  "summary": {
+    "avg_search_time": {
+      "tavily": 6.951,
+      "gemini_flash": 6.08
+    },
+    "speed_winner": "gemini_flash"
+  }
+}
