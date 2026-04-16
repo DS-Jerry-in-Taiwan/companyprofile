@@ -58,6 +58,9 @@ data/test_samples/*.json
 !data/test_samples/sample_template.json
 tmp/
 
+# Stage 2 test reports
+scripts/stage2/*.json
+
 # Stage 3 test results
 scripts/stage3_test/query_comparison/results/
 
