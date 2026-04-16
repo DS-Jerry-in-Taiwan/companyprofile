@@ -55,7 +55,7 @@ import os
 import sys
 import json
 from typing import Dict, Any, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 # 動態計算專案根目錄
 _CURRENT_FILE = os.path.abspath(__file__)
@@ -71,22 +71,35 @@ PROJECT_ROOT = _PROJECT_ROOT
 
 # ===== 配置類別 =====
 @dataclass
+class ModelConfig:
+    """模型配置"""
+
+    model: str = "gemini-2.0-flash"
+    temperature: float = 0.2
+
+
+@dataclass
 class SearchConfig:
     """搜尋配置"""
 
     provider: str = "gemini_fewshot"  # 預設使用 gemini_fewshot
     max_results: int = 3
-    temperature: float = 0.2
-    model: str = "gemini-2.0-flash"
+    models: Dict[str, ModelConfig] = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "SearchConfig":
         """從字典創建配置"""
+        search_data = data.get("search", {})
+        models = {}
+        for name, cfg in data.get("models", {}).items():
+            models[name] = ModelConfig(
+                model=cfg.get("model", "gemini-2.0-flash"),
+                temperature=cfg.get("temperature", 0.2),
+            )
         return cls(
-            provider=data.get("provider", "gemini_fewshot"),
-            max_results=data.get("max_results", 3),
-            temperature=data.get("temperature", 0.2),
-            model=data.get("model", "gemini-2.0-flash"),
+            provider=search_data.get("provider", "gemini_fewshot"),
+            max_results=search_data.get("max_results", 3),
+            models=models,
         )
 
 
@@ -104,19 +117,23 @@ class ConfigDrivenSearchTool:
 
     def __init__(
         self,
-        config_path: Optional[str] = None,
         config_dict: Optional[Dict[str, Any]] = None,
+        config_path: Optional[str] = None,
     ):
         """
         初始化配置驅動搜尋工具
 
         Args:
-            config_path: 配置文件路徑（JSON 格式）
             config_dict: 直接傳入的配置字典（優先於 config_path）
+            config_path: 配置文件路徑（JSON 格式）
         """
         # 載入配置
         if config_dict is not None:
-            self.config = SearchConfig.from_dict(config_dict.get("search", {}))
+            # config_dict 傳入完整結構（含 search + models 區塊）
+            # 確保 models 不為 None，否則 from_dict 會出錯
+            if "models" not in config_dict:
+                config_dict = {**config_dict, "models": {}}
+            self.config = SearchConfig.from_dict(config_dict)
         elif config_path:
             self.config = self._load_config(config_path)
         else:
@@ -138,7 +155,7 @@ class ConfigDrivenSearchTool:
         with open(config_path, "r", encoding="utf-8") as f:
             config_data = json.load(f)
 
-        return SearchConfig.from_dict(config_data.get("search", {}))
+        return SearchConfig.from_dict(config_data)
 
     def _create_tool(self):
         """根據配置創建搜尋工具"""
@@ -157,15 +174,19 @@ class ConfigDrivenSearchTool:
                 max_results=self.config.max_results,
             )
         elif provider == "gemini_fewshot":
+            model_cfg = self.config.models.get("gemini_fewshot", ModelConfig())
             return create_search_tool(
                 "gemini_fewshot",
-                model=self.config.model,
-                temperature=self.config.temperature,
+                model=model_cfg.model,
+                temperature=model_cfg.temperature,
             )
         elif provider == "gemini_planner_tavily":
+            model_cfg = self.config.models.get("gemini_planner_tavily", ModelConfig())
             return create_search_tool(
                 "gemini_planner_tavily",
                 max_results=self.config.max_results,
+                model=model_cfg.model,
+                temperature=model_cfg.temperature,
             )
         elif provider == "parallel_multi_source":
             # 平行多來源搜尋
