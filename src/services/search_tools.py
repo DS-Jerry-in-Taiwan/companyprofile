@@ -239,21 +239,56 @@ class GeminiFewShotSearchTool(BaseSearchTool):
     資訊最完整，但速度稍慢
     """
 
-    GEMINI_PROMPT_TEMPLATE = """你是一個公司資訊搜尋專家。請搜尋「{company_name}」的詳細資訊。
+    GEMINI_PROMPT_TEMPLATE = """你是一個公司資訊搜尋專家。請搜尋「{company_name}」的詳細資訊，並以結構化 JSON 格式返回。
 
-【輸出格式 - 請嚴格遵守 JSON 格式】
+【核心任務】
+根據搜尋結果，提取公司的四個面向的資訊，並以 JSON 格式輸出。
+
+【輸出格式】
+嚴格按以下 JSON 格式輸出（無須額外說明文本）：
+
+```json
 {{
-    "company_name": "公司名稱",
-    "unified_number": "統一編號",
-    "capital": "資本額",
-    "founded_date": "成立時間",
-    "address": "公司地址",
-    "officer": "負責人",
-    "main_services": "主要服務",
-    "business_items": "營業項目"
+  "foundation": "品牌實力與基本資料（不超過 500 字）",
+  "core": "技術產品與服務核心（不超過 500 字）",
+  "vibe": "職場環境與企業文化（不超過 500 字）",
+  "future": "近期動態與未來展望（不超過 500 字）"
 }}
+```
 
-請搜尋並回覆 JSON。"""
+【特別要求】
+
+1. 信息準確性
+   - 只使用實際搜尋到的資訊，不要編造或推測
+   - 優先使用最新的資訊（偏好最近 12 個月）
+   - 官方渠道信息優先於媒體報導
+
+2. 字數控制
+   - 每個面向嚴格控制在 500 字以內
+   - 去除冗餘表達，保持簡潔
+   - 優先保留最核心、最有價值的信息
+
+3. 去重和合併
+   - 同一個面向內的相同信息，只保留一次
+   - 不同版本的信息，優先採用最新的、最權威的版本
+   - 跨面向的邊界信息，分配到更相關的面向
+
+4. 無法獲得的信息
+   - 如果某個面向找不到相關信息，返回：「【暫無相關資訊】該面向的相關資訊暫時無法獲取。」
+   - 不能留空或省略，保持結構完整
+
+5. 語言和風格
+   - 使用專業、客觀的語言，避免主觀評價
+   - 使用現在時態描述企業情況
+   - 使用具體數字和事實，而非模糊描述
+
+【輸出檢查清單】
+- [ ] 返回有效的 JSON（可被 Python `json.loads()` 解析）
+- [ ] 包含四個鍵：foundation、core、vibe、future
+- [ ] 每個值都是字符串類型
+- [ ] 每個值都不超過 500 字
+- [ ] 無編造信息，全部基於搜尋結果
+- [ ] JSON 前後無額外文本說明"""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -343,7 +378,7 @@ class GeminiPlannerTavilyTool(BaseSearchTool):
     "company_name": "{company_name}",
     "queries": [
         {{
-            "field": "欄位名稱",
+            "field": "面向名稱",
             "query": "Tavily 搜尋查詢",
             "priority": 1-3（1最高）,
             "description": "為什麼要查這個"
@@ -352,20 +387,17 @@ class GeminiPlannerTavilyTool(BaseSearchTool):
     "confidence": "高/中/低"
 }}
 
-【欄位定義】
-- unified_number: 統一編號（8位數）
-- capital: 資本額
-- founded_date: 成立時間
-- address: 公司地址
-- officer: 負責人
-- main_services: 主要產品/服務
-- business_items: 營業項目（盡量詳細）
+【面向定義】
+- foundation: 品牌實力與基本資料
+- core: 技術產品與服務核心
+- vibe: 職場環境與企業文化
+- future: 近期動態與未來展望
 
-【規則】
+【查詢規則】
 1. 根據公司名稱，規劃最適合的搜尋關鍵字
-2. 優先查高優先級欄位
-3. 每個查詢要具體明確
-4. 統一編號和資本額通常最重要（priority=1）
+2. 每個面向規劃 2-3 個查詢
+3. 優先查最重要的資訊
+4. 每個查詢要具體明確
 
 請回覆 JSON："""
 
@@ -376,6 +408,8 @@ class GeminiPlannerTavilyTool(BaseSearchTool):
         from src.services.tavily_search import TavilySearchProvider
 
         self.max_results = kwargs.get("max_results", 2)
+        self.model = kwargs.get("model", "gemini-2.0-flash")
+        self.temperature = kwargs.get("temperature", 0.1)
 
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
@@ -398,11 +432,11 @@ class GeminiPlannerTavilyTool(BaseSearchTool):
 
         start = time.time()
         planner_response = self.gemini_client.models.generate_content(
-            model="gemini-2.0-flash",
+            model=self.model,
             contents=planner_prompt,
             config=self._types.GenerateContentConfig(
                 tools=[self.search_tool],
-                temperature=0.1,
+                temperature=self.temperature,
             ),
         )
         planner_time = time.time() - start
@@ -478,37 +512,18 @@ class GeminiPlannerTavilyTool(BaseSearchTool):
     def _merge_results(
         self, queries: List[Dict], search_results: Dict[str, Any]
     ) -> Dict[str, str]:
-        """合併搜尋結果為結構化資料"""
+        """合併搜尋結果為結構化資料（按四面向）"""
         merged = {}
 
         for q in queries:
             field = q["field"]
             answer = search_results.get(field, {}).get("answer", "")
 
-            if field == "unified_number":
-                match = re.search(r"[0-9]{8}", answer)
-                merged[field] = match.group(0) if match else answer[:20]
-            elif field == "capital":
-                match = re.search(r"[0-9,]+[萬億]?[元]", answer)
-                merged[field] = match.group(0) if match else answer[:30]
-            elif field == "founded_date":
-                match = re.search(r"\d{4}年\d{1,2}月\d{1,2}日", answer)
-                if match:
-                    merged[field] = match.group(0)
-                else:
-                    year_match = re.search(r"\d{4}年", answer)
-                    merged[field] = year_match.group(0) if year_match else answer[:20]
-            elif field == "address":
-                match = re.search(
-                    r"[高雄市台北市新北市台中市台南市桃園市新竹市][^。，,。\n]{5,30}",
-                    answer,
-                )
-                merged[field] = match.group(0) if match else answer[:40]
-            elif field == "officer":
-                match = re.search(r"負責人[：:]\s*(\S+)", answer)
-                merged[field] = match.group(1) if match else answer[:10]
+            # 按面向合併多個查詢結果
+            if field in merged:
+                merged[field] += "\n" + answer  # 相同面向追加
             else:
-                merged[field] = answer[:100] if len(answer) > 100 else answer
+                merged[field] = answer
 
         return merged
 

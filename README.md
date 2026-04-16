@@ -1,6 +1,14 @@
 # 公司簡介生成與優化 API
 
+**當前版本**: v0.3.0 (Phase 15/16) - 2026-04-16
+
 這是一個採用 Serverless 架構的公司簡介生成與優化服務，部署於 AWS Lambda + API Gateway，提供 RESTful API 介面，支援從無到有生成公司簡介，以及優化現有的公司簡介內容。
+
+**最新更新**:
+- ✅ Phase 15: 模型配置統一管理
+- ✅ Phase 16: 搜尋時格式化優化（四面向結構化 JSON）
+
+**版本歷史**: v0.3.0 > v0.0.2 > v0.0.1
 
 ---
 
@@ -14,7 +22,8 @@
 
 ### 核心能力
 
-- **自動化資料蒐集**：支援多種搜尋策略（Tavily、Gemini）
+- **自動化資料蒐集**：支援多種搜尋策略（Tavily、Gemini），可配置切換
+- **四面向結構化搜尋**：搜尋結果直接以 foundation/core/vibe/future 四面向 JSON 回傳
 - **LLM 整合**：採用 Google Gemini 生成高品質內容
 - **三模板差異化**：支援 CONCISE / STANDARD / DETAILED 三種輸出模式
 - **風險控制**：內建敏感詞過濾與內容安全檢核
@@ -38,6 +47,28 @@
 | Deployment | Serverless Framework (AWS Lambda + API Gateway) |
 | Testing | Pytest |
 
+### 服務流程
+
+公司簡介生成服務採用 **LangGraph 狀態圖** 控制流程，包含以下節點：
+
+```
+搜尋 (search_node) → 摘要整理 (summary_node) → 生成 (generate_node) → 後處理 (post_processing)
+```
+
+**流程說明**：
+1. **搜尋節點**：根據公司名稱從網路取得相關資訊，直接返回四面向結構化 JSON（foundation/core/vibe/future）
+2. **摘要整理節點**：將結構化搜尋結果合併為四面向摘要
+3. **生成節點**：結合用戶輸入與四面向摘要生成簡介
+4. **後處理**：台灣用語轉換、風格優化
+
+**四面向結構化格式**：
+| 面向 | 說明 |
+|------|------|
+| `foundation` | 品牌實力與基本資料（成立時間、資本額、統一編號等） |
+| `core` | 技術產品與服務核心（主營業務、技術亮點等） |
+| `vibe` | 職場環境與企業文化（員工評價、企業文化等） |
+| `future` | 近期動態與未來展望（新聞、發展方向等） |
+
 ### 系統架構圖
 
 ```mermaid
@@ -55,6 +86,7 @@ graph TB
 
     subgraph Domain["領域層 Domain"]
         SN[search_node]
+        SUM[summary_node]
         GN[generate_node]
         FN[finalize_node]
         PP[Post-Processing<br/>post_processing.py]
@@ -83,6 +115,8 @@ graph TB
     CD --> GB
     GB --> LG
     LG --> SN
+    SN --> SUM
+    SUM --> GN
     LG --> GN
     LG --> FN
     GN --> PP
@@ -126,6 +160,7 @@ graph LR
 
     subgraph Layer4["第四層 - 領域節點"]
         SN[search_node]
+        SUM[summary_node]
         GN[generate_node]
         FN[finalize_node]
         PP[post_processing]
@@ -149,6 +184,8 @@ graph LR
     CD --> GB
     GB --> LG
     LG --> SN
+    SN --> SUM
+    SUM --> GN
     LG --> GN
     LG --> FN
     GN --> PP
@@ -481,6 +518,76 @@ TAIWAN_TERMS_ENABLED=true  # 啟用台灣用語轉換
 | Checkpoint 1 | ✅ 通過 | 100% |
 | 階段二: 核心功能 | ✅ 完成 | 100% |
 | Stage 3: 搜尋工具層 | ✅ 完成 | 100% |
+| 四面向流程整合 (2026-04-15) | ✅ 完成 | 100% |
+
+#### 架構變更（2026-04-15）
+
+| 變更項目 | 說明 |
+|----------|------|
+| 新增 `summarizer.py` | 四面向彙整器 |
+| 新增 `summary_node` | 摘要整理節點 |
+| 更新 `state.py` | 支援四面向狀態管理 |
+| Bug 修復 | API 輸入參數傳遞問題 |
+
+#### 效能提升
+
+| 版本 | 平均時間 | 提升 |
+|------|---------|------|
+| Baseline (b73c9bf) | 6.54s/case | - |
+| Phase 14整合後 | 5.52s/case | ~1.02s/case |
+
+---
+
+### v0.3.0 - Phase 15/16 模型配置統一與搜尋格式化
+
+**日期**: 2026-04-16
+
+#### Phase 15: 模型配置統一管理 ✅
+
+| 工項 | 說明 |
+|------|------|
+| `SearchConfig` + `ModelConfig` dataclass | 統一的配置結構 |
+| `_create_tool()` 模型傳遞 | 各 provider 的模型從 config 讀取 |
+| `GeminiPlannerTavilyTool` 參數化 | 移除硬編碼模型名稱 |
+| `config/search_config.json` 新 schema | `models` 區塊集中管理 |
+
+**成功標準**：
+- ✅ `models.gemini_fewshot.model` 改變時實際模型跟著變
+- ✅ `models.gemini_planner_tavily.model` 改變時實際模型跟著變
+- ✅ `generate_content` 呼叫中無硬編碼模型名稱
+- ✅ 所有模型配置只在 `config/search_config.json` 一處
+
+#### Phase 16: 搜尋時格式化優化 ✅
+
+| 工項 | 說明 |
+|------|------|
+| 設計 `design_spec.md` | 四面向 JSON schema 定義 |
+| `GeminiFewShotSearchTool` Prompt 更新 | 返回四面向結構化 JSON |
+| `GeminiPlannerTavilyTool` Prompt 更新 | 四面向規劃查詢 |
+| `summary_node` 合併邏輯更新 | 支援結構化資料合併 + Fallback |
+
+**流程改變**：
+```
+# Before (Phase 15)
+搜尋 → 純文字結果 → 拼接 → 四面向
+
+# After (Phase 16)
+搜尋（Prompt 要求四面向 JSON）→ 結構化結果 → 直接合併 → 四面向
+```
+
+**整合測試發現並修復的 Bug**：
+
+| Bug | 問題 | 修復 |
+|-----|------|------|
+| `search_node` 轉換格式錯誤 | `results=[{"data": ...}]` 導致 `is_structured_format` 永遠回傳 `False` | 改為 `results=[{"aspect": ..., "content": ...}]` |
+
+#### Phase 15/16 測試結果
+
+| 測試套件 | 結果 |
+|----------|------|
+| `tests/test_search_formatting.py` | ✅ 7/7 passed |
+| `tests/test_services.py` | ✅ 9/9 passed |
+| 端到端流程 | ✅ 全部通過 |
 
 ---
 

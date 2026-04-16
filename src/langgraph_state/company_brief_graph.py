@@ -118,11 +118,24 @@ def search_node(state: CompanyBriefState) -> CompanyBriefState:
         execution_time = time.time() - start_time
         logger.info(f"[TIMING] 搜尋階段完成，耗時 {execution_time * 1000:.2f}ms")
 
-        # 建立搜尋結果（轉換為舊格式以保持向後兼容）
+        # 建立搜尋結果（轉換為 Phase 16 結構化格式）
+        # 將 search_result.data 的四面向展開為 results 陣列
+        structured_results = []
+        if search_result.data:
+            for aspect, content in search_result.data.items():
+                if content:  # skip None or empty
+                    structured_results.append(
+                        {
+                            "aspect": aspect,
+                            "content": content,
+                            "success": True,
+                        }
+                    )
+
         result = SearchResult(
             success=search_result.success,
             answer=search_result.raw_answer,
-            results=[{"data": search_result.data}],  # 將新格式的 data 包裝進 results
+            results=structured_results,  # 四面向結構化格式
             source=search_result.tool_type,
             execution_time=execution_time,
             error=None if search_result.success else "搜尋失敗",
@@ -164,6 +177,68 @@ def search_node(state: CompanyBriefState) -> CompanyBriefState:
         return update_state_with_node_result(state, node_result)
 
 
+def is_structured_format(search_result):
+    """
+    檢查搜尋結果是否已經是結構化格式
+
+    Args:
+        search_result: SearchResult 物件
+
+    Returns:
+        bool: 如果搜尋結果包含多個不同面向則返回 True
+    """
+    if not search_result or not search_result.results:
+        return False
+
+    aspects = set()
+    for result in search_result.results:
+        if isinstance(result, dict) and "aspect" in result:
+            aspects.add(result["aspect"])
+
+    # 至少有 2 個面向認為是結構化格式
+    return len(aspects) >= 2
+
+
+def merge_structured_results(search_result):
+    """
+    合併結構化搜尋結果為四面向摘要
+
+    Args:
+        search_result: SearchResult 物件，包含結構化的 results
+
+    Returns:
+        Dict[str, AspectSummaryResult]: 四面向彙整結果
+    """
+    aspect_summaries = {}
+
+    for aspect in ["foundation", "core", "vibe", "future"]:
+        aspect_results = [
+            r
+            for r in search_result.results
+            if isinstance(r, dict) and r.get("aspect") == aspect
+        ]
+
+        if aspect_results:
+            # 合併同面向的多個結果
+            combined_parts = []
+            for r in aspect_results:
+                content = r.get("content") or r.get("answer", "")
+                if content and content.strip():
+                    combined_parts.append(content.strip())
+
+            combined_content = "\n\n".join(combined_parts)
+
+            aspect_summaries[aspect] = AspectSummaryResult(
+                aspect=aspect,
+                description=FourAspectSummarizer.ASPECT_DESCRIPTIONS[aspect],
+                content=combined_content,
+                source_queries=len(aspect_results),
+                total_characters=len(combined_content),
+            )
+
+    return aspect_summaries
+
+
 def summary_node(state: CompanyBriefState) -> CompanyBriefState:
     """
     四面向彙整節點 - 將搜尋結果彙整為四個面向
@@ -183,45 +258,54 @@ def summary_node(state: CompanyBriefState) -> CompanyBriefState:
         if not search_result or not search_result.success:
             raise Exception("No valid search result to summarize")
 
-        # 將搜尋結果轉換為 FourAspectSummarizer 格式
-        query_results = []
-        if search_result.results:
-            for result in search_result.results:
-                query_results.append(
-                    {
-                        "aspect": result.get("aspect", ""),
-                        "success": result.get("success", True),
-                        "answer": result.get("content") or result.get("answer", ""),
-                    }
+        # 檢查是否為結構化格式
+        if is_structured_format(search_result):
+            # 新邏輯：合併結構化資料
+            logger.info("偵測到結構化格式，使用結構化合併邏輯")
+            aspect_summaries = merge_structured_results(search_result)
+        else:
+            # 舊邏輯：使用現有的 FourAspectSummarizer
+            logger.info("使用 FourAspectSummarizer 彙整")
+
+            # 將搜尋結果轉換為 FourAspectSummarizer 格式
+            query_results = []
+            if search_result.results:
+                for result in search_result.results:
+                    query_results.append(
+                        {
+                            "aspect": result.get("aspect", ""),
+                            "success": result.get("success", True),
+                            "answer": result.get("content") or result.get("answer", ""),
+                        }
+                    )
+
+            # 如果沒有 aspect 欄位，使用預設的四面向
+            if not any(r.get("aspect") for r in query_results):
+                # 將 answer 內容分發到四個面向
+                answer_content = search_result.answer or ""
+                for aspect in ["foundation", "core", "vibe", "future"]:
+                    query_results.append(
+                        {
+                            "aspect": aspect,
+                            "success": True,
+                            "answer": answer_content,
+                        }
+                    )
+
+            # 使用 FourAspectSummarizer 彙整
+            summarizer = FourAspectSummarizer()
+            summaries = summarizer.summarize(query_results)
+
+            # 轉換為 AspectSummaryResult 格式
+            aspect_summaries = {}
+            for aspect, summary in summaries.items():
+                aspect_summaries[aspect] = AspectSummaryResult(
+                    aspect=summary.aspect,
+                    description=summary.description,
+                    content=summary.combined_content,
+                    source_queries=summary.source_queries,
+                    total_characters=summary.total_characters,
                 )
-
-        # 如果沒有 aspect 欄位，使用預設的四面向
-        if not any(r.get("aspect") for r in query_results):
-            # 將 answer 內容分發到四個面向
-            answer_content = search_result.answer or ""
-            for aspect in ["foundation", "core", "vibe", "future"]:
-                query_results.append(
-                    {
-                        "aspect": aspect,
-                        "success": True,
-                        "answer": answer_content,
-                    }
-                )
-
-        # 使用 FourAspectSummarizer 彙整
-        summarizer = FourAspectSummarizer()
-        summaries = summarizer.summarize(query_results)
-
-        # 轉換為 AspectSummaryResult 格式
-        aspect_summaries = {}
-        for aspect, summary in summaries.items():
-            aspect_summaries[aspect] = AspectSummaryResult(
-                aspect=summary.aspect,
-                description=summary.description,
-                content=summary.combined_content,
-                source_queries=summary.source_queries,
-                total_characters=summary.total_characters,
-            )
 
         execution_time = time.time() - start_time
         logger.info(f"[TIMING] 四面向彙整完成，耗時 {execution_time * 1000:.2f}ms")
