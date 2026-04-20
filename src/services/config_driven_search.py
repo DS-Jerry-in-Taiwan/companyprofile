@@ -84,7 +84,12 @@ class SearchConfig:
 
     provider: str = "gemini_fewshot"  # 預設使用 gemini_fewshot
     max_results: int = 3
+    parallel: bool = False
+    max_workers: int = 4
+    timeout: int = 15
+    strategies: Dict[str, Dict] = field(default_factory=dict)
     models: Dict[str, ModelConfig] = field(default_factory=dict)
+    default_strategy: str = "basic"
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "SearchConfig":
@@ -99,6 +104,11 @@ class SearchConfig:
         return cls(
             provider=search_data.get("provider", "gemini_fewshot"),
             max_results=search_data.get("max_results", 3),
+            parallel=search_data.get("parallel", False),
+            max_workers=search_data.get("max_workers", 4),
+            timeout=search_data.get("timeout", 15),
+            strategies=data.get("strategies", {}),
+            default_strategy=data.get("default_strategy", "basic"),
             models=models,
         )
 
@@ -157,11 +167,11 @@ class ConfigDrivenSearchTool:
 
         return SearchConfig.from_dict(config_data)
 
-    def _create_tool(self):
+    def _create_tool(self, provider: Optional[str] = None):
         """根據配置創建搜尋工具"""
-        from src.services.search_tools import create_search_tool, BaseSearchTool
+        from src.services.tool_factory import SearchToolFactory
 
-        provider = self.config.provider.lower()
+        provider = (provider or self.config.provider).lower()
 
         print(f"🔧 配置驅動搜尋工具初始化")
         print(f"   Provider: {provider}")
@@ -169,35 +179,62 @@ class ConfigDrivenSearchTool:
 
         # 根據 provider 創建對應的工具
         if provider == "tavily":
-            return create_search_tool(
+            return SearchToolFactory.get_tool(
                 "tavily",
-                max_results=self.config.max_results,
+                {"max_results": self.config.max_results},
             )
         elif provider == "gemini_fewshot":
             model_cfg = self.config.models.get("gemini_fewshot", ModelConfig())
-            return create_search_tool(
+            return SearchToolFactory.get_tool(
                 "gemini_fewshot",
-                model=model_cfg.model,
-                temperature=model_cfg.temperature,
+                {
+                    "model": model_cfg.model,
+                    "temperature": model_cfg.temperature,
+                },
             )
         elif provider == "gemini_planner_tavily":
             model_cfg = self.config.models.get("gemini_planner_tavily", ModelConfig())
-            return create_search_tool(
+            return SearchToolFactory.get_tool(
                 "gemini_planner_tavily",
-                max_results=self.config.max_results,
-                model=model_cfg.model,
-                temperature=model_cfg.temperature,
+                {
+                    "max_results": self.config.max_results,
+                    "model": model_cfg.model,
+                    "temperature": model_cfg.temperature,
+                },
             )
         elif provider == "parallel_multi_source":
             # 平行多來源搜尋
-            return create_search_tool(
+            return SearchToolFactory.get_tool(
                 "parallel_multi_source",
-                sources=["tavily", "gemini_fewshot"],
-                timeout=15,
+                {"sources": ["tavily", "gemini_fewshot"], "timeout": 15},
+            )
+        elif provider == "parallel_aspect_search":
+            # 平行面向搜尋
+            model_cfg = self.config.models.get("parallel_aspect_search", ModelConfig())
+            return SearchToolFactory.get_tool(
+                "parallel_aspect_search",
+                {
+                    "model": model_cfg.model,
+                    "temperature": model_cfg.temperature,
+                    "max_workers": self.config.max_workers,
+                    "timeout": self.config.timeout,
+                },
+            )
+        elif provider == "parallel_field_search":
+            # Phase19: 平行字段搜尋
+            model_cfg = self.config.models.get("parallel_field_search", ModelConfig())
+            return SearchToolFactory.get_tool(
+                "parallel_field_search",
+                {
+                    "model": model_cfg.model,
+                    "temperature": model_cfg.temperature,
+                    "max_workers": 7,  # 7 個字段
+                    "timeout": self.config.timeout,
+                },
             )
         else:
             print(f"⚠️ 未知的 provider: {provider}，使用預設 gemini_fewshot")
-            return create_search_tool("gemini_fewshot")
+            return SearchToolFactory.get_tool("gemini_fewshot")
 
     def search(self, query: str, **kwargs) -> "SearchResult":
         """
@@ -217,6 +254,49 @@ class ConfigDrivenSearchTool:
         print(f"   Provider: {self.config.provider}")
 
         result = self._tool.search(query, **kwargs)
+
+        print(f"   ✅ 成功")
+        print(f"   ⏱️  耗時: {result.elapsed_time:.2f}s")
+        print(f"   📝 回答長度: {result.answer_length} 字")
+
+        return result
+
+    def search_with_strategy(
+        self, query: str, strategy: Optional[str] = None
+    ) -> "SearchResult":
+        """
+        使用指定策略搜尋
+
+        Args:
+            query: 查詢字串
+            strategy: 策略名稱（如果為 None，使用預設策略）
+
+        Returns:
+            SearchResult: 搜尋結果
+        """
+        from src.services.search_tools import SearchResult
+
+        # 如果沒有指定策略，使用預設策略
+        if strategy is None:
+            strategy = self.config.default_strategy
+
+        print(f"\n📤 策略驅動搜尋執行")
+        print(f"   Query: {query}")
+        print(f"   Strategy: {strategy}")
+
+        # 獲取策略配置
+        if strategy in self.config.strategies:
+            strategy_config = self.config.strategies[strategy]
+            provider = strategy_config.get("provider", self.config.provider)
+            print(f"   Provider: {provider}")
+
+            # 創建該策略的工具
+            tool = self._create_tool(provider)
+            result = tool.search(query, **strategy_config)
+        else:
+            # 使用預設配置
+            print(f"   ⚠️ 策略 {strategy} 不存在，使用預設配置")
+            result = self._tool.search(query)
 
         print(f"   ✅ 成功")
         print(f"   ⏱️  耗時: {result.elapsed_time:.2f}s")

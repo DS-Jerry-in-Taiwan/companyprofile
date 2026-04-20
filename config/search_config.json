@@ -1,1 +1,59 @@
-{"comment": "\u641c\u5c0b\u7b56\u7565\u914d\u7f6e\u6587\u4ef6 - \u4fee\u6539 provider \u6b04\u4f4d\u5373\u53ef\u5207\u63db\u7b56\u7565", "available_providers": {"tavily": "Tavily \u6279\u6b21\u641c\u5c0b - \u5feb\u901f\u30011\u6b21 API\uff0c\u81ea\u7136\u8a9e\u8a00\u56de\u61c9", "gemini_fewshot": "Gemini Few-shot \u641c\u5c0b - \u5b8c\u6574\u30011\u6b21 API\u3001JSON \u683c\u5f0f", "gemini_planner_tavily": "Gemini \u898f\u5283 + Tavily \u57f7\u884c - \u5f48\u6027\u3001\u591a\u6b65\u9a5f", "parallel_multi_source": "\u5e73\u884c\u591a\u4f86\u6e90\u641c\u5c0b - \u540c\u6642\u57f7\u884c Tavily + Gemini\uff0c\u53d6\u6700\u5feb\u7d50\u679c + \u591a\u6e90\u9a57\u8b49"}, "search": {"provider": "gemini_fewshot", "max_results": 3}, "models": {"gemini_fewshot": {"model": "gemini-2.0-flash-lite", "temperature": 0.2}, "gemini_planner_tavily": {"model": "gemini-2.0-flash", "temperature": 0.1}}}
+{
+  "comment": "搜尋策略配置文件 - 修改 provider 欄位即可切換策略",
+  "available_providers": {
+    "tavily": "Tavily 批次搜尋 - 快速、1次 API",
+    "gemini_fewshot": "Gemini Few-shot 搜尋 - 完整、1次 API",
+    "gemini_planner_tavily": "Gemini 規劃 + Tavily 執行",
+    "parallel_multi_source": "平行多來源搜尋",
+    "parallel_aspect_search": "平行面向搜尋 - 4 面向獨立查詢",
+    "parallel_field_search": "平行字段搜尋 - 7 字段獨立查詢 (Phase19)"
+  },
+  "search": {
+    "provider": "gemini_fewshot",
+    "max_results": 3,
+    "parallel": true,
+    "max_workers": 7,
+    "timeout": 20
+  },
+  "strategies": {
+    "fast": {
+      "provider": "tavily",
+      "description": "快速驗證（1-2s）"
+    },
+    "basic": {
+      "provider": "gemini_fewshot",
+      "description": "基本簡介（5-8s）"
+    },
+    "complete": {
+      "provider": "gemini_fewshot",
+      "description": "完整簡介（4-6s）- Phase19 平行字段搜尋",
+      "parallel": true,
+      "max_workers": 7,
+      "timeout": 20
+    },
+    "deep": {
+      "provider": "parallel_multi_source",
+      "description": "深度分析（15-20s）",
+      "parallel": true
+    }
+  },
+  "default_strategy": "complete",
+  "models": {
+    "gemini_fewshot": {
+      "model": "gemini-2.0-flash-lite",
+      "temperature": 0.2
+    },
+    "gemini_planner_tavily": {
+      "model": "gemini-2.0-flash",
+      "temperature": 0.1
+    },
+    "parallel_aspect_search": {
+      "model": "gemini-2.0-flash",
+      "temperature": 0.2
+    },
+    "parallel_field_search": {
+      "model": "gemini-2.0-flash",
+      "temperature": 0.2
+    }
+  }
+}

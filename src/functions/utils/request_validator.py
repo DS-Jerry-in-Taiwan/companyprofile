@@ -47,6 +47,15 @@ def validate_request(data: Dict[str, Any]) -> Dict[str, Any]:
             details=[{"field": "optimization_mode", "reason": "invalid enum value"}],
         )
 
+    # Phase 17: 搜尋策略
+    search_strategy = data.get("search_strategy", "complete")
+    if search_strategy not in ("fast", "basic", "complete", "deep"):
+        raise ValidationError(
+            "search_strategy must be fast, basic, complete or deep",
+            details=[{"field": "search_strategy", "reason": "invalid enum value"}],
+        )
+    data["search_strategy"] = search_strategy
+
     # Validate optional numeric fields
     capital = data.get("capital")
     if capital is not None:

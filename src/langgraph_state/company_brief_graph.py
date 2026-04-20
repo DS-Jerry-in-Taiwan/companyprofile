@@ -109,33 +109,40 @@ def search_node(state: CompanyBriefState) -> CompanyBriefState:
             sys.path.insert(0, PROJECT_ROOT)
 
         # 使用配置驅動搜尋工具（新）
-        from src.services.config_driven_search import search as config_search
+        from src.services.config_driven_search import ConfigDrivenSearchTool
 
         # 執行搜尋（帶計時）
+        # 使用策略驅動搜尋，移除「官網」關鍵字
+        tool = ConfigDrivenSearchTool()
         with measure("搜尋階段"):
-            search_result = config_search(f"{state['organ']} 官網")
+            search_result = tool.search_with_strategy(state["organ"])
 
         execution_time = time.time() - start_time
         logger.info(f"[TIMING] 搜尋階段完成，耗時 {execution_time * 1000:.2f}ms")
 
-        # 建立搜尋結果（轉換為 Phase 16 結構化格式）
-        # 將 search_result.data 的四面向展開為 results 陣列
+        # 建立搜尋結果（轉換為結構化格式）
+        # Phase19: 支援具體字段格式 (unified_number, capital 等)
         structured_results = []
         if search_result.data:
-            for aspect, content in search_result.data.items():
-                if content:  # skip None or empty
-                    structured_results.append(
-                        {
-                            "aspect": aspect,
-                            "content": content,
-                            "success": True,
-                        }
-                    )
+            for field, content in search_result.data.items():
+                # 跳過 _metadata
+                if field == "_metadata":
+                    continue
+                # 跳過空值，但 "未找到" 是有效狀態
+                if not content or content == "未找到":
+                    continue
+                structured_results.append(
+                    {
+                        "aspect": field,  # 使用字段名作為 aspect
+                        "content": content,
+                        "success": True,
+                    }
+                )
 
         result = SearchResult(
             success=search_result.success,
             answer=search_result.raw_answer,
-            results=structured_results,  # 四面向結構化格式
+            results=structured_results,  # 結構化格式
             source=search_result.tool_type,
             execution_time=execution_time,
             error=None if search_result.success else "搜尋失敗",
@@ -211,6 +218,18 @@ def merge_structured_results(search_result):
     """
     aspect_summaries = {}
 
+    # Phase19: 具體字段到四面向的映射
+    FIELD_TO_ASPECT = {
+        "unified_number": "foundation",
+        "capital": "foundation",
+        "founded_date": "foundation",
+        "address": "foundation",
+        "officer": "foundation",
+        "main_services": "core",
+        "business_items": "core",
+    }
+
+    # 先處理舊的四面向格式
     for aspect in ["foundation", "core", "vibe", "future"]:
         aspect_results = [
             r
@@ -219,7 +238,6 @@ def merge_structured_results(search_result):
         ]
 
         if aspect_results:
-            # 合併同面向的多個結果
             combined_parts = []
             for r in aspect_results:
                 content = r.get("content") or r.get("answer", "")
@@ -235,6 +253,34 @@ def merge_structured_results(search_result):
                 source_queries=len(aspect_results),
                 total_characters=len(combined_content),
             )
+
+    # Phase19: 處理新的具體字段格式
+    for r in search_result.results:
+        if isinstance(r, dict):
+            field = r.get("aspect")
+            if field and field in FIELD_TO_ASPECT:
+                aspect = FIELD_TO_ASPECT[field]
+                content = r.get("content", "")
+
+                if aspect not in aspect_summaries:
+                    aspect_summaries[aspect] = AspectSummaryResult(
+                        aspect=aspect,
+                        description=FourAspectSummarizer.ASPECT_DESCRIPTIONS.get(aspect, ""),
+                        content="",
+                        source_queries=0,
+                        total_characters=0,
+                    )
+
+                # 添加內容
+                if content and content.strip():
+                    existing = aspect_summaries[aspect].content
+                    aspect_summaries[aspect] = AspectSummaryResult(
+                        aspect=aspect,
+                        description=aspect_summaries[aspect].description,
+                        content=existing + "\n\n" + content.strip() if existing else content.strip(),
+                        source_queries=aspect_summaries[aspect].source_queries + 1,
+                        total_characters=len(content.strip()),
+                    )
 
     return aspect_summaries
 
