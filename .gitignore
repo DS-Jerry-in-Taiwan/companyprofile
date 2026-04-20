@@ -64,6 +64,17 @@ scripts/stage2/*.json
 # Stage 3 test results
 scripts/stage3_test/query_comparison/results/
 
+# Local debug scripts
+scripts/debug/
+
+# Local development scripts
+scripts/local_dev/
+
+# Test files (local testing only)
+tests/
+scripts/checkpoint1/
+scripts/phase_comparison/
+
 # Local debug and test files
 debug_loader.py
 examples/
