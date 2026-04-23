@@ -413,6 +413,15 @@ def post_process(llm_result, original_brief=None, template_type="standard"):
             strip=True,
         )
 
+        # Phase 22: 移除 Markdown 語法
+        try:
+            from src.functions.utils.markdown_cleaner import clean_markdown
+
+            safe_html = clean_markdown(safe_html)
+            logger.info("已應用 Markdown 清理到 body_html")
+        except ImportError as e:
+            logger.warning(f"markdown_cleaner 模組未找到，跳過 Markdown 清理: {e}")
+
         # Phase 14: 移除冗言
         safe_html = _remove_verbose_phrases(safe_html)
 
@@ -462,6 +471,18 @@ def post_process(llm_result, original_brief=None, template_type="standard"):
         summary = llm_result.get("summary", "")
         if summary:
             summary = _remove_verbose_phrases(summary)
+
+        # Phase 22: 也移除 summary 中的 Markdown
+        if summary:
+            try:
+                from src.functions.utils.markdown_cleaner import clean_markdown
+
+                summary = clean_markdown(summary)
+                logger.info("已應用 Markdown 清理到 summary")
+            except ImportError as e:
+                logger.warning(
+                    f"markdown_cleaner 模組未找到，跳過 summary Markdown 清理: {e}"
+                )
 
         # Phase 14.1: 台灣用語轉換 (summary)
         if TAIWAN_TERMS_AVAILABLE and summary:
