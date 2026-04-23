@@ -1,6 +1,6 @@
 # 公司簡介生成與優化 API
 
-**當前版本**: v1.0.0 (Phase 21) - 2026-04-23
+**當前版本**: v0.3.6 (Phase 21) - 2026-04-23
 
 這是一個採用 Serverless 架構的公司簡介生成與優化服務，部署於 AWS Lambda + API Gateway，提供 RESTful API 介面，支援從無到有生成公司簡介，以及優化現有的公司簡介內容。
 
@@ -8,7 +8,7 @@
 - ✅ Phase 21: 錯誤處理標準化
 - ✅ Phase 17/19: 搜尋工具優化
 
-**版本歷史**: v1.0.0 > v0.3.0 > v0.0.2 > v0.0.1
+**版本歷史**: v0.3.6 > v0.3.5 > ... > v0.3.0 > v0.2.0 > v0.1.0
 
 ---
 
@@ -487,7 +487,7 @@ TAIWAN_TERMS_ENABLED=true  # 啟用台灣用語轉換
 
 ## 版本變動
 
-### v1.0.0 - Phase 21 錯誤處理標準化
+### v0.3.6 - Phase 21 錯誤處理標準化
 
 **日期**: 2026-04-23
 
@@ -502,7 +502,7 @@ TAIWAN_TERMS_ENABLED=true  # 啟用台灣用語轉換
 | **降級機制** | 當 `aspect_summaries` 為空時，使用 `user_input` 生成 |
 | **user_input dict** | 統一為 dict 格式（capital, employees, founded_year, inputText） |
 
-**錯誤回應格式（修正後）**：
+**錯誤回應格式**：
 
 ```json
 {
@@ -548,6 +548,92 @@ TAIWAN_TERMS_ENABLED=true  # 啟用台灣用語轉換
 | `src/services/config_loader.py` | 配置載入模組 |
 
 ---
+
+### v0.3.0 - Phase 15/16 模型配置統一與搜尋格式化
+
+**日期**: 2026-04-16
+
+#### Phase 15: 模型配置統一管理 ✅
+
+| 工項 | 說明 |
+|------|------|
+| `SearchConfig` + `ModelConfig` dataclass | 統一的配置結構 |
+| `_create_tool()` 模型傳遞 | 各 provider 的模型從 config 讀取 |
+| `GeminiPlannerTavilyTool` 參數化 | 移除硬編碼模型名稱 |
+| `config/search_config.json` 新 schema | `models` 區塊集中管理 |
+
+#### Phase 16: 搜尋時格式化優化 ✅
+
+| 工項 | 說明 |
+|------|------|
+| 設計 `design_spec.md` | 四面向 JSON schema 定義 |
+| `GeminiFewShotSearchTool` Prompt 更新 | 返回四面向結構化 JSON |
+| `GeminiPlannerTavilyTool` Prompt 更新 | 四面向規劃查詢 |
+| `summary_node` 合併邏輯更新 | 支援結構化資料合併 + Fallback |
+
+**整合測試發現並修復的 Bug**：
+
+| Bug | 問題 | 修復 |
+|-----|------|------|
+| `search_node` 轉換格式錯誤 | `results=[{"data": ...}]` 導致 `is_structured_format` 永遠回傳 `False` | 改為 `results=[{"aspect": ..., "content": ...}]` |
+
+---
+
+### v0.2.0 - Phase 14 功能修復
+
+**日期**: 2026-04-13
+
+#### 新增功能
+
+| 功能 | 說明 |
+|------|------|
+| **搜尋工具層** | 配置驅動的搜尋策略切換體系 |
+| **三模板差異化** | CONCISE / STANDARD / DETAILED 三種模式 |
+| **字數限制優化** | Prompt 層控制 + 字數檢核 + LLM 重寫 |
+| **台灣用語轉換** | 自動將中國用語轉換為台灣用語（300+ 詞彙） |
+
+#### 架構變更
+
+| 變更項目 | 說明 |
+|----------|------|
+| 新增 `search_tools.py` | 搜尋工具層核心（工廠 + 工具類） |
+| 新增 `config_driven_search.py` | 配置驅動搜尋工具 |
+| 新增 `config/search_config.json` | 搜尋策略配置文件 |
+| 新增 `word_count_validator.py` | 字數檢核模組 |
+| 新增 `summarizer.py` | 四面向彙整器 |
+| 新增 `summary_node` | 摘要整理節點 |
+
+#### 效能提升
+
+| 版本 | 平均時間 | 提升 |
+|------|---------|------|
+| Baseline | 6.54s/case | - |
+| Phase 14整合後 | 5.52s/case | ~1.02s/case |
+
+---
+
+### v0.1.0 - Phase 12/13 基礎版本
+
+**日期**: 2026-04-08
+
+#### 基礎功能
+
+| 功能 | 說明 |
+|------|------|
+| API 基礎架構 | Flask + Serverless |
+| LLM 整合 | Google Gemini |
+| 搜尋服務 | Serper API |
+| 風險控制 | 敏感詞過濾 |
+| LangGraph | 狀態管理系統 |
+
+#### 存在的問題
+
+| 問題 | 說明 |
+|------|------|
+| 字數限制不精確 | 內容超出限制 |
+| 模板無差異化 | 三種模式輸出相同 |
+| 冗言過多 | LLM 生成多餘的開頭語 |
+| 中國用語 | 未轉換為台灣用語 |
 
 ### v0.3.0 - Phase 15/16 模型配置統一與搜尋格式化
 
