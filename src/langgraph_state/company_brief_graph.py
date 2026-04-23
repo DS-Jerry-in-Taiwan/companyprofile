@@ -57,6 +57,27 @@ from .summarizer import FourAspectSummarizer  # 四面向彙整器
 # Phase 14 Stage 3: 台灣用語轉換
 from src.functions.utils.post_processing import post_process
 
+# Phase20: 配置驅動
+try:
+    from src.services.config_loader import (
+        get_field_to_aspect_mapping,
+        get_aspect_to_fields_mapping,
+        reload_config
+    )
+    CONFIG_DRIVEN_ENABLED = True
+except ImportError:
+    CONFIG_DRIVEN_ENABLED = False
+    # Fallback 預設映射
+    DEFAULT_FIELD_TO_ASPECT = {
+        "unified_number": "foundation",
+        "capital": "foundation",
+        "founded_date": "foundation",
+        "address": "foundation",
+        "officer": "foundation",
+        "main_services": "core",
+        "business_items": "core",
+    }
+
 logger = logging.getLogger(__name__)
 
 # ===== 節點執行函式 =====
@@ -218,16 +239,11 @@ def merge_structured_results(search_result):
     """
     aspect_summaries = {}
 
-    # Phase19: 具體字段到四面向的映射
-    FIELD_TO_ASPECT = {
-        "unified_number": "foundation",
-        "capital": "foundation",
-        "founded_date": "foundation",
-        "address": "foundation",
-        "officer": "foundation",
-        "main_services": "core",
-        "business_items": "core",
-    }
+    # Phase20: 從配置讀取字段到面向的映射
+    if CONFIG_DRIVEN_ENABLED:
+        FIELD_TO_ASPECT = get_field_to_aspect_mapping()
+    else:
+        FIELD_TO_ASPECT = DEFAULT_FIELD_TO_ASPECT
 
     # 先處理舊的四面向格式
     for aspect in ["foundation", "core", "vibe", "future"]:
@@ -274,12 +290,13 @@ def merge_structured_results(search_result):
                 # 添加內容
                 if content and content.strip():
                     existing = aspect_summaries[aspect].content
+                    new_content = existing + "\n\n" + content.strip() if existing else content.strip()
                     aspect_summaries[aspect] = AspectSummaryResult(
                         aspect=aspect,
                         description=aspect_summaries[aspect].description,
-                        content=existing + "\n\n" + content.strip() if existing else content.strip(),
+                        content=new_content,
                         source_queries=aspect_summaries[aspect].source_queries + 1,
-                        total_characters=len(content.strip()),
+                        total_characters=len(new_content),  # 修正：計算完整 content 長度
                     )
 
     return aspect_summaries
@@ -414,41 +431,39 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
 
         # 四面向模式：使用 aspect_summaries 生成簡介
         aspect_summaries = state.get("aspect_summaries")
-        if aspect_summaries:
-            # 格式化四面向內容
-            aspect_parts = []
-            for aspect_name in ["foundation", "core", "vibe", "future"]:
-                if aspect_name in aspect_summaries:
-                    summary = aspect_summaries[aspect_name]
-                    aspect_parts.append(f"【{summary.description}】\n{summary.content}")
-            web_content = "\n\n".join(aspect_parts)
-            logger.info(f"使用四面向內容生成簡介，共 {len(aspect_summaries)} 個面向")
-        # 向後兼容：使用傳統搜尋結果
-        elif state.get("search_result") and state["search_result"].success:
-            if state["search_result"].answer:
-                web_content = state["search_result"].answer
-            elif state["search_result"].results:
-                # 合併搜尋結果內容
-                contents = []
-                for result in state["search_result"].results[:3]:  # 最多取3個結果
-                    if result.get("content"):
-                        contents.append(result["content"])
-                web_content = "\n\n".join(contents)
+        user_input = state.get("user_input")  # dict 格式
 
-        # 建立 Prompt（Phase 11: 添加 word_limit, Phase 14: 添加選填欄位, Phase 14 Stage 2: 添加 optimization_mode）
+        # 檢查 aspect_summaries 是否有內容
+        has_aspect_content = False
+        if aspect_summaries:
+            for key in ["foundation", "core", "vibe", "future"]:
+                value = aspect_summaries.get(key)
+                if value and hasattr(value, "content") and value.content:
+                    has_aspect_content = True
+                    break
+
+        if has_aspect_content:
+            # 有 aspect_summaries，使用 aspect 格式
+            from src.functions.utils.prompt_builder import format_content
+            web_content = format_content(aspect_summaries)
+            logger.info(f"使用 aspect_summaries 生成簡介")
+        elif user_input:
+            # aspect_summaries 為空，使用 user_input（dict 格式）
+            from src.functions.utils.prompt_builder import format_content
+            web_content = format_content(user_input)
+            logger.info(f"aspect_summaries 為空，使用 user_input 生成簡介")
+        else:
+            # 兩者都沒有，無法生成
+            raise Exception("無法生成簡介：無搜尋結果且無用戶素材")
+
+        # 建立 Prompt（簡化：user_input 已經包含所有欄位）
         prompt = build_generate_prompt(
             organ=state["organ"],
             organ_no=state.get("organ_no"),
             company_url=state.get("company_url"),
-            user_brief=state.get("user_brief"),
             web_content=web_content,
             word_limit=state.get("word_limit"),
-            capital=state.get("capital"),
-            employees=state.get("employees"),
-            founded_year=state.get("founded_year"),
-            optimization_mode=state.get(
-                "optimization_mode"
-            ),  # Phase 14 Stage 2: 傳遞模板類型
+            optimization_mode=state.get("optimization_mode"),
         )
 
         # 呼叫 LLM（Phase 11: 傳遞 word_limit）
@@ -886,13 +901,10 @@ class CompanyBriefGraph:
         organ: str,
         organ_no: Optional[str] = None,
         company_url: Optional[str] = None,
-        user_brief: Optional[str] = None,
+        user_input: Optional[Dict[str, Any]] = None,
         word_limit: Optional[int] = None,
-        capital: Optional[int] = None,
-        employees: Optional[int] = None,
-        founded_year: Optional[int] = None,
         optimization_mode: Optional[str] = None,
-        max_rewrite_attempts: int = 2,  # Phase 14 Stage 3: 最大重寫次數
+        max_rewrite_attempts: int = 2,
     ) -> Dict[str, Any]:
         """
         執行公司簡介生成流程
@@ -901,35 +913,48 @@ class CompanyBriefGraph:
             organ: 公司名稱
             organ_no: 統一編號
             company_url: 公司官網
-            user_brief: 用戶簡介
-            word_limit: 字數限制（Phase 11 新增）
-            capital: 資本額（Phase 14 新增）
-            employees: 員工人數（Phase 14 新增）
-            founded_year: 成立年份（Phase 14 新增）
-            optimization_mode: 模板類型 (concise/standard/detailed)（Phase 14 Stage 2 新增）
-            max_rewrite_attempts: 最大重寫次數（Phase 14 Stage 3 新增）
+            user_input: 規格化輸入 dict（Phase 21 新增）
+            word_limit: 字數限制
+            optimization_mode: 模板類型 (concise/standard/detailed)
+            max_rewrite_attempts: 最大重寫次數
 
         Returns:
             Dict[str, Any]: 最終結果
         """
         logger.info(f"開始生成 {organ} 的公司簡介")
 
-        # 建立初始狀態（Phase 11: 添加 word_limit, Phase 14: 添加選填欄位, Phase 14 Stage 2: 添加 optimization_mode）
+        # 建立初始狀態
         initial_state = create_initial_state(
             organ,
             organ_no,
             company_url,
-            user_brief,
+            user_input,
             word_limit,
-            capital,
-            employees,
-            founded_year,
             optimization_mode,
             max_rewrite_attempts,
         )
 
         # 使用 LangGraph 執行
         final_state = self.compiled_graph.invoke(initial_state)
+
+        # ===== Phase 21: 檢查錯誤並拋出 =====
+        # 如果錯誤處理節點被執行過（error_handled=True），表示有錯誤但已被處理成罐頭內容
+        # 我們不應該返回罐頭內容，而是應該拋出錯誤讓上層處理
+        final_result = final_state.get("final_result", {}) or {}
+        error_handled = final_result.get("error_handled", False)
+
+        if error_handled:
+            # 從 final_result["errors"] 取出實際錯誤訊息
+            error_messages = final_result.get("errors", [])
+            error_detail = "; ".join(error_messages) if error_messages else "處理失敗"
+
+            from src.functions.utils.error_handler import ExternalServiceError, ErrorCode
+            raise ExternalServiceError(
+                code=ErrorCode.SVC_004.code,
+                message=f"無法生成公司簡介：{error_detail}",
+                recoverable=True
+            )
+        # ==================================
 
         # Phase 14 Stage 2: 在回傳前呼叫 finalize_state
         # 套用 differentiate_template 模板差異化截斷
@@ -960,13 +985,10 @@ def generate_company_brief(
     organ: str,
     organ_no: Optional[str] = None,
     company_url: Optional[str] = None,
-    user_brief: Optional[str] = None,
+    user_input: Optional[Dict[str, Any]] = None,
     word_limit: Optional[int] = None,
-    capital: Optional[int] = None,
-    employees: Optional[int] = None,
-    founded_year: Optional[int] = None,
     optimization_mode: Optional[str] = None,
-    max_rewrite_attempts: int = 2,  # Phase 14 Stage 3: 最大重寫次數
+    max_rewrite_attempts: int = 2,
 ) -> Dict[str, Any]:
     """
     生成公司簡介的便捷函式
@@ -975,13 +997,10 @@ def generate_company_brief(
         organ: 公司名稱
         organ_no: 統一編號
         company_url: 公司官網
-        user_brief: 用戶簡介
-        word_limit: 字數限制（Phase 11 新增）
-        capital: 資本額（Phase 14 新增）
-        employees: 員工人數（Phase 14 新增）
-        founded_year: 成立年份（Phase 14 新增）
-        optimization_mode: 模板類型 (concise/standard/detailed)（Phase 14 Stage 2 新增）
-        max_rewrite_attempts: 最大重寫次數（Phase 14 Stage 3 新增）
+        user_input: 規格化輸入 dict（Phase 21 新增）
+        word_limit: 字數限制
+        optimization_mode: 模板類型 (concise/standard/detailed)
+        max_rewrite_attempts: 最大重寫次數
 
     Returns:
         Dict[str, Any]: 生成結果
@@ -991,11 +1010,8 @@ def generate_company_brief(
         organ,
         organ_no,
         company_url,
-        user_brief,
+        user_input,
         word_limit,
-        capital,
-        employees,
-        founded_year,
         optimization_mode,
         max_rewrite_attempts,
     )
