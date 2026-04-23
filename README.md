@@ -549,6 +549,34 @@ TAIWAN_TERMS_ENABLED=true  # 啟用台灣用語轉換
 
 ---
 
+### v0.3.5 - Phase 20 配置驅動重構
+
+**日期**: 2026-04-22
+
+#### Phase 20: 配置驅動搜尋重構 ✅
+
+| 工項 | 說明 |
+|------|------|
+| **ConfigDrivenSearchTool** | 配置驅動的搜尋工具，根據 config 自動選擇 provider |
+| **field_mapping.json** | 字段到面向的映射配置 |
+| **config_loader.py** | 配置載入模組 |
+
+---
+
+### v0.3.1 - Phase 17/19 搜尋工具優化
+
+**日期**: 2026-04-18
+
+#### Phase 17/19: 搜尋工具優化 ✅
+
+| 工項 | 說明 |
+|------|------|
+| **ParallelMultiSourceTool** | 平行多來源搜尋工具 |
+| **ParallelFieldSearch** | 平行字段搜尋（7個字段獨立查詢） |
+| **Gemini Fewshot 優化** | 新增穩定的 Fewshot 方案 |
+
+---
+
 ### v0.3.0 - Phase 15/16 模型配置統一與搜尋格式化
 
 **日期**: 2026-04-16
