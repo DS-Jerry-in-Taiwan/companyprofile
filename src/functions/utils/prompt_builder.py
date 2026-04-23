@@ -99,12 +99,9 @@ def build_generate_prompt(
     organ,
     organ_no=None,
     company_url=None,
-    user_brief=None,
+    user_input=None,
     web_content=None,
     word_limit=None,
-    capital=None,
-    employees=None,
-    founded_year=None,
     optimization_mode=None,
 ):
     """
@@ -114,12 +111,9 @@ def build_generate_prompt(
         organ: 公司名稱（必需）
         organ_no: 統一編號（可選）
         company_url: 公司官網（可選）
-        user_brief: 用戶提供的簡介素材（可選）
+        user_input: 用戶提供的簡介素材 dict（Phase 21 新增）
         web_content: 網路搜尋取得的內容（可選）
         word_limit: 字數限制（可選，預設為 300）
-        capital: 資本額（可選）
-        employees: 員工人數（可選）
-        founded_year: 成立年份（可選）
         optimization_mode: 模板類型 (concise/standard/detailed)（可選，預設為 standard）
 
     Returns:
@@ -134,46 +128,31 @@ def build_generate_prompt(
         sections.append(f"統一編號：{organ_no}")
     if company_url:
         sections.append(f"官網：{company_url}")
-    if capital:
-        # 將資本額轉換為「萬元」顯示，更易讀
-        capital_wan = capital / 10000
-        if capital_wan >= 10000:
-            sections.append(f"資本額：{capital_wan / 10000:.2f} 億元")
-        else:
-            sections.append(f"資本額：{capital_wan:.0f} 萬元")
-    if employees:
-        sections.append(f"員工人數：約 {employees} 人")
-    if founded_year:
-        sections.append(f"成立年份：西元 {founded_year} 年")
 
-    # 2. 用戶提供的素材
-    if user_brief:
+    # Phase 21: user_input 是 dict，直接格式化輸出
+    if user_input:
         sections.append(f"\n## 用戶提供的素材")
-        sections.append(f"{user_brief}")
+        sections.append(format_content(user_input))
 
-    # 3. 網路搜尋取得的內容
+    # 2. 網路搜尋取得的內容
     if web_content:
         sections.append(f"\n## 網路搜尋取得的資訊")
         sections.append(f"{web_content}")
 
-    # 4. 必須使用的關鍵資訊清單（使用數字標記法）
+    # 3. 必須使用的關鍵資訊清單（使用數字標記法）
+    # Phase 21: 從 user_input 取出數值欄位用於驗證
     required_info = []
-    required_numbers = []  # 用於驗證的數字列表
-    if capital:
-        # 統一使用「萬元」或「億元」單位
-        capital_wan = capital / 10000
-        if capital_wan >= 10000:
-            required_info.append(f"[資本額]: {capital_wan / 10000:.2f} 億元")
-            required_numbers.append(f"{capital_wan / 10000:.2f} 億")
-        else:
-            required_info.append(f"[資本額]: {capital_wan:.0f} 萬元")
-            required_numbers.append(f"{capital_wan:.0f} 萬")
-    if employees:
-        required_info.append(f"[員工人數]: 約 {employees} 人")
-        required_numbers.append(f"{employees}")
-    if founded_year:
-        required_info.append(f"[成立年份]: {founded_year} 年")
-        required_numbers.append(f"{founded_year}")
+    required_numbers = []
+    if user_input:
+        if user_input.get("capital"):
+            required_info.append(f"[資本額]: {user_input['capital']}")
+            required_numbers.append(user_input["capital"])
+        if user_input.get("employees"):
+            required_info.append(f"[員工人數]: {user_input['employees']}")
+            required_numbers.append(user_input["employees"])
+        if user_input.get("founded_year"):
+            required_info.append(f"[成立年份]: {user_input['founded_year']}")
+            required_numbers.append(user_input["founded_year"])
 
     # 5. 加入 Few-shot 範例（當有選填資訊時）
     if required_info:
@@ -312,3 +291,39 @@ def validate_info_usage(output_text, capital=None, employees=None, founded_year=
             missing.append(f"成立年份 (應包含: {founded_year}年)")
 
     return len(missing) == 0, missing
+
+
+def format_content(data):
+    """
+    自動判斷資料格式並格式化輸出
+
+    Args:
+        data: dict，aspect_summaries 或 user_input 格式
+
+    Returns:
+        str: 格式化後的字串
+    """
+    if not data:
+        return ""
+
+    # 判斷格式：aspect 格式有 foundation/core/vibe/future 鍵
+    if any(key in data for key in ["foundation", "core", "vibe", "future"]):
+        # aspect 格式
+        parts = []
+        for key in ["foundation", "core", "vibe", "future"]:
+            value = data.get(key)
+            if value:
+                if hasattr(value, "content"):
+                    content = value.content
+                else:
+                    content = str(value)
+                if content and content.strip():
+                    parts.append(f"【{key}】\n{content}")
+        return "\n\n".join(parts)
+    else:
+        # user_input 格式
+        parts = []
+        for key, value in data.items():
+            if value:
+                parts.append(f"{key}：{value}")
+        return "\n".join(parts)

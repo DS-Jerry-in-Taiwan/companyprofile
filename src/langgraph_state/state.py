@@ -147,7 +147,7 @@ class CompanyBriefState(TypedDict):
     organ: str
     organ_no: Optional[str]
     company_url: Optional[str]
-    user_brief: Optional[str]
+    user_input: Optional[Dict[str, Any]] = None  # 規格化輸入 dict（Phase 21 新增）
     word_limit: Optional[int]  # Phase 11 新增
     # Phase 14: 新增選填欄位
     capital: Optional[int]  # 資本額
@@ -251,13 +251,13 @@ def create_initial_state(
     organ: str,
     organ_no: Optional[str] = None,
     company_url: Optional[str] = None,
-    user_brief: Optional[str] = None,
+    user_input: Optional[Dict[str, Any]] = None,
     word_limit: Optional[int] = None,
     capital: Optional[int] = None,
     employees: Optional[int] = None,
     founded_year: Optional[int] = None,
     optimization_mode: Optional[str] = None,
-    max_rewrite_attempts: int = 2,  # Phase 14 Stage 3: 最大重寫次數
+    max_rewrite_attempts: int = 2,
 ) -> CompanyBriefState:
     """
     建立初始狀態
@@ -266,13 +266,13 @@ def create_initial_state(
         organ: 公司名稱
         organ_no: 統一編號
         company_url: 公司官網
-        user_brief: 用戶簡介
-        word_limit: 字數限制（Phase 11 新增）
-        capital: 資本額（Phase 14 新增）
-        employees: 員工人數（Phase 14 新增）
-        founded_year: 成立年份（Phase 14 新增）
-        optimization_mode: 模板類型 (concise/standard/detailed)（Phase 14 Stage 2 新增）
-        max_rewrite_attempts: 最大重寫次數（Phase 14 Stage 3 新增）
+        user_input: 規格化輸入 dict（Phase 21 新增）
+        word_limit: 字數限制
+        capital: 資本額
+        employees: 員工人數
+        founded_year: 成立年份
+        optimization_mode: 模板類型
+        max_rewrite_attempts: 最大重寫次數
 
     Returns:
         CompanyBriefState: 初始狀態
@@ -282,7 +282,7 @@ def create_initial_state(
         organ=organ,
         organ_no=organ_no,
         company_url=company_url,
-        user_brief=user_brief,
+        user_input=user_input,
         word_limit=word_limit,
         capital=capital,
         employees=employees,

@@ -33,17 +33,19 @@ except ImportError as e:
         "請確認 langgraph 相關依賴已正確安裝。"
     )
 
+from src.functions.utils.error_handler import ExternalServiceError, LLMServiceError
+
 
 def generate_brief(data):
     """
-    主要的公司簡介生成函式
+    生成公司簡介
 
     Args:
-        data (dict): 包含以下鍵值的字典：
-            - organ (str): 公司名稱
+        data: dict，包含以下欄位
+            - organ (str): 公司名稱（必需）
             - organNo (str, optional): 統一編號
             - companyUrl (str, optional): 公司官網
-            - inputText (str, optional): 用戶提供的簡介
+            - inputText (str, optional): 用戶提供的簡介素材
             - word_limit (int, optional): 字數限制
             - capital (int, optional): 資本額
             - employees (int, optional): 員工人數
@@ -55,30 +57,53 @@ def generate_brief(data):
     """
     organ = data["organ"]
     organ_no = data.get("organNo")
-    input_text = data.get("inputText")
     company_url = data.get("companyUrl")
+    input_text = data.get("inputText")
     word_limit = data.get("word_limit")
     capital = data.get("capital")
     employees = data.get("employees")
     founded_year = data.get("founded_year")
     optimization_mode = data.get("optimization_mode")  # Phase 14 Stage 2: 模板類型
 
+    # 彙整 user_input dict（規格化 input）
+    user_input = {}
+    if organ_no:
+        user_input["unified_number"] = organ_no
+    if capital:
+        capital_wan = capital / 10000
+        if capital_wan >= 10000:
+            user_input["capital"] = f"{capital_wan / 10000:.2f} 億元"
+        else:
+            user_input["capital"] = f"{capital_wan:.0f} 萬元"
+    if founded_year:
+        user_input["founded_year"] = f"{founded_year} 年"
+    if employees:
+        user_input["employees"] = f"{employees} 人"
+    if input_text:
+        user_input["user_brief"] = input_text
+
     logger.info(
         f"使用 LangGraph 流程生成 {organ} 的簡介，模板類型: {optimization_mode or 'standard'}"
     )
 
-    # 使用 LangGraph 狀態圖進行處理
-    result = generate_company_brief(
-        organ=organ,
-        organ_no=organ_no,
-        company_url=company_url,
-        user_brief=input_text,
-        word_limit=word_limit,
-        capital=capital,
-        employees=employees,
-        founded_year=founded_year,
-        optimization_mode=optimization_mode,  # Phase 14 Stage 2: 傳遞模板類型
-    )
+    try:
+        # 使用 LangGraph 狀態圖進行處理
+        # 傳入 user_input dict（規格化 input）
+        result = generate_company_brief(
+            organ=organ,
+            organ_no=organ_no,
+            company_url=company_url,
+            user_input=user_input if user_input else None,
+            word_limit=word_limit,
+            optimization_mode=optimization_mode,
+        )
+    except ExternalServiceError as e:
+        from src.functions.utils.error_handler import LLMServiceError
+        raise LLMServiceError(
+            code=e.code,
+            message=e.message,
+            recoverable=e.recoverable
+        )
 
     # 確保回傳格式與原有 API 一致
     return {
