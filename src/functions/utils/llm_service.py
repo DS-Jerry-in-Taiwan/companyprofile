@@ -51,6 +51,8 @@ def call_llm(prompt, word_limit=None) -> dict:
 
 def _call_llm_with_retry(prompt, word_limit=None) -> dict:
     """使用重試機制的 LLM 呼叫"""
+    from src.langchain.error_handlers import RetryableError, NonRetryableError
+
     try:
         retry_config = get_retry_config()
 
@@ -64,10 +66,20 @@ def _call_llm_with_retry(prompt, word_limit=None) -> dict:
         # 將參數打包為字典傳遞給裝飾後的函數
         return llm_call_with_retry({"prompt": prompt, "word_limit": word_limit})
 
+    except NonRetryableError as e:
+        # 不可重試的錯誤，直接上拋
+        logger.error(f"LLM call failed (non-retryable): {e.error_type} - {str(e)}")
+        raise
+    except RetryableError as e:
+        # 可重試的錯誤，但已用盡重試次數
+        logger.error(f"LLM call failed (retryable, exhausted): {e.error_type} - {str(e)}")
+        raise
     except Exception as e:
-        logger.error(f"LLM call with retry failed: {e}")
-        # 作為最後手段，回傳預設回應
-        return _get_default_response(prompt)
+        # 未知錯誤，不應該吃掉的異常
+        logger.error(f"LLM call failed (unexpected): {type(e).__name__} - {str(e)}")
+        from src.langchain.error_handlers import NonRetryableError
+        from src.functions.utils.error_handler import ErrorCode
+        raise NonRetryableError(f"Unexpected LLM error: {type(e).__name__}", ErrorCode.LLM_008.code, e)
 
 
 def _call_llm_original(prompt, word_limit=None) -> dict:

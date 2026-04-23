@@ -56,9 +56,10 @@ def build_success_response(payload, generated):
     # 從 body_html 提取內容
     body_html = generated.get("body_html", "")
     extracted = extract_content_from_html(body_html)
-    
+
     return {
         "success": True,
+        "code": "SUCCESS",  # 統一成功代碼
         "organNo": payload.get("organNo"),
         "organ": payload.get("organ"),
         "mode": payload.get("mode"),
@@ -73,7 +74,7 @@ def build_success_response(payload, generated):
     }
 
 
-def build_error_response(code, message, details=None):
+def build_error_response(code, message, details=None, request_id=None):
     response = {
         "success": False,
         "code": code,
@@ -81,6 +82,8 @@ def build_error_response(code, message, details=None):
     }
     if details:
         response["details"] = details
+    if request_id:
+        response["request_id"] = request_id
     return response
 
 

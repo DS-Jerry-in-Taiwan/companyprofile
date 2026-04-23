@@ -61,6 +61,23 @@ from google.genai import types as genai_types
 
 load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 
+# Phase20: 配置驅動
+try:
+    from src.services.config_loader import get_fields, get_field_to_aspect_mapping
+    CONFIG_DRIVEN_ENABLED = True
+except ImportError:
+    CONFIG_DRIVEN_ENABLED = False
+    # Fallback 預設字段
+    DEFAULT_FIELDS = [
+        "unified_number",
+        "capital",
+        "founded_date",
+        "address",
+        "officer",
+        "main_services",
+        "business_items"
+    ]
+
 
 # ===== 工具類型枚舉 =====
 class SearchToolType(Enum):
@@ -303,6 +320,47 @@ class GeminiFewShotSearchTool(BaseSearchTool):
         },
     )
 
+    def _build_dynamic_prompt(self, company_name: str) -> str:
+        """
+        Phase20: 動態生成 prompt（從配置讀取字段）
+
+        Args:
+            company_name: 公司名稱
+
+        Returns:
+            str: 完整的 prompt 字串
+        """
+        # 從配置讀取字段列表
+        if CONFIG_DRIVEN_ENABLED:
+            fields = get_fields()
+        else:
+            fields = DEFAULT_FIELDS
+
+        # 生成字段列表文字
+        field_list_text = "\n".join([f"{i+1}. {field}" for i, field in enumerate(fields)])
+
+        # 組合 prompt
+        prompt = f"""你是一個公司資訊搜尋專家。請搜尋「{company_name}」的詳細資訊。
+
+【搜尋任務】
+請使用 Google Search 搜尋並提取以下具體字段資訊：
+
+{field_list_text}
+
+【輸出格式】
+請用 JSON 格式回覆，格式如下：
+{{"unified_number": "值", "capital": "值", "founded_date": "值", "address": "值", "officer": "值", "main_services": "值", "business_items": "值"}}
+
+【嚴格要求】
+- 只使用實際搜尋到的資訊，絕對不要編造或推測
+- 如果某字段找不到相關資訊，使用 "未找到"
+- 絕對不要用 xxx 或任何占位符
+- 使用專業、客觀的語言
+- 用繁體中文回答
+- 只回覆 JSON，不要有其他內容"""
+
+        return prompt
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         from google import genai
@@ -325,7 +383,8 @@ class GeminiFewShotSearchTool(BaseSearchTool):
 
     def search(self, query: str, **kwargs) -> SearchResult:
         """執行 Gemini Few-shot 搜尋"""
-        prompt = self.GEMINI_PROMPT_TEMPLATE.format(company_name=query)
+        # Phase20: 使用動態生成的 prompt
+        prompt = self._build_dynamic_prompt(query)
 
         start = time.time()
         response = self.client.models.generate_content(

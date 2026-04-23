@@ -93,3 +93,10 @@ brave-search-mcp-server/
 # Local backups and scripts
 backups/
 copy_mcp_config.sh
+
+# Phase 20/21 test results (local only)
+config/field_mapping.json.backup
+scripts/stage3_test/config_driven/
+scripts/stage3_test/config_driven_integration_results.json
+scripts/test_*.py
+scripts/scripts/

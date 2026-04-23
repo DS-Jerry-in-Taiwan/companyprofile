@@ -24,7 +24,12 @@ if os.environ.get("STAGE") is None:
 
 from utils.request_validator import validate_request, ValidationError
 from utils.core_dispatcher import dispatch_core_logic
-from utils.error_handler import ExternalServiceError, LLMServiceError
+from utils.error_handler import (
+    ExternalServiceError,
+    LLMServiceError,
+    ErrorResponse,
+    ErrorDetail,
+)
 from utils.response_formatter import (
     build_success_response,
     build_error_response,
@@ -107,21 +112,29 @@ def process_company_profile():
 
         except ValidationError as ve:
             response_time_ms = (time.time() - start_time) * 1000
-            error_msg = f"驗證錯誤: {ve.message}"
 
-            # 記錄警告並偵測異常
-            log_warning(
-                error_msg,
+            # 記錄客戶端輸入錯誤（level: INFO，不是 WARNING）
+            log_info(
+                ve.message,
                 component="validation",
                 error_code=ve.code,
                 error_details=ve.details,
             )
 
             anomaly_id = detect_and_report_anomaly(
-                error_msg, "OrganBriefOptimization", trace_id
+                ve.message, "OrganBriefOptimization", trace_id
             )
 
-            response_data = build_error_response(ve.code, ve.message, ve.details)
+            error_response = ErrorResponse(
+                success=False,
+                error=ErrorDetail(
+                    code=ve.code,
+                    message=ve.message,
+                    details=str(ve.details) if ve.details else None,
+                    trace_id=trace_id,
+                )
+            )
+            response_data = error_response.to_dict()
 
             log_api_response(
                 method="POST",
@@ -146,16 +159,24 @@ def process_company_profile():
                 error_msg, "OrganBriefOptimization", trace_id
             )
 
-            response_data = build_server_error_response(
-                se.message, request_id=request_id
+            # 使用例外原有的錯誤碼，而非 hardcoded "INTERNAL_SERVER_ERROR"
+            error_response = ErrorResponse(
+                success=False,
+                error=ErrorDetail(
+                    code=se.code,
+                    message=se.message,
+                    recoverable=getattr(se, 'recoverable', True),
+                    trace_id=trace_id,
+                )
             )
+            response_data = error_response.to_dict()
 
             log_api_response(
                 method="POST",
                 path="/v1/company/profile/process",
                 status_code=500,
                 response_time_ms=response_time_ms,
-                response_data={"status": "error", "request_id": request_id},
+                response_data={"status": "error", "error_code": se.code},
                 component="api_gateway",
                 anomaly_id=anomaly_id,
             )
@@ -173,7 +194,16 @@ def process_company_profile():
                 error_msg, "OrganBriefOptimization", trace_id
             )
 
-            response_data = build_server_error_response(str(e), request_id=request_id)
+            # 使用 ErrorResponse schema
+            error_response = ErrorResponse(
+                success=False,
+                error=ErrorDetail(
+                    code="INTERNAL_SERVER_ERROR",
+                    message=str(e),
+                    trace_id=trace_id,
+                )
+            )
+            response_data = error_response.to_dict()
 
             log_api_response(
                 method="POST",
@@ -285,4 +315,4 @@ def get_version():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0", port=5000, threaded=True)
