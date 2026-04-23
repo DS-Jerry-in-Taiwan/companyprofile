@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Field Mapping Configuration",
+  "description": "字段 ↔ 面向映射配置的 JSON Schema",
+  "type": "object",
+  "required": ["fields", "mapping", "aspects"],
+  "properties": {
+    "comment": {
+      "type": "string",
+      "description": "配置檔說明"
+    },
+    "version": {
+      "type": "string",
+      "description": "版本號",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "fields": {
+      "type": "array",
+      "description": "字段列表",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "mapping": {
+      "type": "object",
+      "description": "字段 → 面向映射",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["foundation", "core", "vibe", "future"]
+      }
+    },
+    "aspects": {
+      "type": "array",
+      "description": "面向列表",
+      "items": {
+        "type": "string",
+        "enum": ["foundation", "core", "vibe", "future"]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false
+}
