@@ -66,26 +66,45 @@ def classify_error(error: Exception) -> str:
         str: 錯誤類型字串
     """
     error_name = type(error).__name__
+    error_str = str(error).lower()
+    error_details = getattr(error, "error", {}) or {}
+    error_message = error_details.get("message", "") if isinstance(error_details, dict) else str(error_details)
 
     # 網路相關錯誤
-    if "Timeout" in error_name or "timeout" in str(error).lower():
+    if "Timeout" in error_name or "timeout" in error_str:
         return "TimeoutError"
-    elif "Connection" in error_name or "connection" in str(error).lower():
+    elif "Connection" in error_name or "connection" in error_str:
         return "ConnectionError"
-    elif hasattr(error, "response") and hasattr(error.response, "status_code"):
+
+    # Gemini API 429 RESOURCE_EXHAUSTED
+    if "resource_exhausted" in error_str or "RESOURCE_EXHAUSTED" in str(error):
+        return "HTTPError(429)"
+
+    # HTTP 狀態碼檢查
+    if hasattr(error, "response") and hasattr(error.response, "status_code"):
         status_code = error.response.status_code
-        if status_code == 503:
-            return "HTTPError(503)"
-        elif status_code == 429:
+        if status_code == 429:
             return "HTTPError(429)"
-    elif "rate limit" in str(error).lower() or "rate_limit" in str(error).lower():
+        elif status_code == 503:
+            return "HTTPError(503)"
+        elif status_code == 401:
+            return "AuthenticationError"
+        elif status_code == 403:
+            return "AuthenticationError"
+
+    # 通用錯誤關鍵字
+    if "rate limit" in error_str or "rate_limit" in error_str:
         return "RateLimitError"
-    elif "auth" in str(error).lower() or "unauthorized" in str(error).lower():
+    elif "auth" in error_str or "unauthorized" in error_str:
         return "AuthenticationError"
-    elif "invalid" in str(error).lower() or "bad request" in str(error).lower():
+    elif "invalid" in error_str or "bad request" in error_str:
         return "InvalidRequestError"
-    elif "validation" in str(error).lower():
+    elif "validation" in error_str:
         return "ValidationError"
+    elif "not found" in error_str or "404" in error_str:
+        return "NotFoundError"
+    elif "deadline" in error_str or "exceeded" in error_str:
+        return "TimeoutError"
 
     # 預設為可重試的錯誤
     return "UnknownError"
@@ -155,15 +174,76 @@ class RunnableRetry:
                 last_error = e
                 error_type = classify_error(e)
 
+                # 通用錯誤訊息提取
+                def extract_clean_error(exc):
+                    error_str = str(exc)
+                    parts = []
+                    
+                    # 檢測是否為 API 錯誤結構 {"error": {"code": ..., "message": ..., "status": ...}}
+                    if "'error':" in error_str or '"error":' in error_str:
+                        try:
+                            # 找 code
+                            code = ""
+                            if "'code':" in error_str:
+                                code = error_str.split("'code':")[1].split(",")[0].strip()
+                            elif '"code":' in error_str:
+                                code = error_str.split('"code":')[1].split(",")[0].strip()
+                            
+                            # 找 message
+                            message = ""
+                            if "'message':" in error_str:
+                                msg_part = error_str.split("'message':")[1]
+                                if ", 'status'" in msg_part:
+                                    message = msg_part.split(", 'status'")[0].strip()
+                                elif ", \"status\"" in msg_part:
+                                    message = msg_part.split(", \"status\"")[0].strip()
+                                else:
+                                    message = msg_part.split("}")[0].strip()
+                            elif '"message":' in error_str:
+                                msg_part = error_str.split('"message":')[1]
+                                if ', "status"' in msg_part:
+                                    message = msg_part.split(', "status"')[0].strip()
+                                else:
+                                    message = msg_part.split("}")[0].strip()
+                            
+                            # 找 status
+                            status = ""
+                            if "'status':" in error_str:
+                                status = error_str.split("'status':")[1].split("}")[0].strip()
+                            elif '"status":' in error_str:
+                                status = error_str.split('"status":')[1].split("}")[0].strip()
+                            
+                            
+                            # 組合簡潔訊息：code + status + message
+                            if code and code.isdigit():
+                                parts.append(f"({code})")
+                            if status and status not in ["'UNKNOWN'", '"UNKNOWN"']:
+                                parts.append(status.strip("'\""))
+                            if message and message not in ["'Unknown'", '"Unknown"']:
+                                msg_clean = message.strip("'\"")[:50]
+                                if msg_clean:
+                                    parts.append(msg_clean)
+                            
+                            if parts:
+                                return " ".join(parts)
+                        except (IndexError, AttributeError):
+                            pass
+                    
+                    # 如果不是 API 錯誤結構或有問題，直接截取乾淨訊息
+                    return error_str[:80] if error_str else error_type
+
                 logger.warning(
-                    f"[{self.name}] 第 {attempt} 次嘗試失敗: {error_type} - {str(e)}"
+                    f"[{self.name}] 第 {attempt} 次嘗試失敗: {error_type}"
                 )
 
                 # 檢查是否為不可重試的錯誤
                 if not self.retry_config.is_retryable(error_type):
                     logger.error(f"[{self.name}] 不可重試的錯誤: {error_type}")
+                    clean_msg = extract_clean_error(e)
                     raise NonRetryableError(
-                        f"Non-retryable error: {error_type}", error_type, e
+                        f"{error_type}: {clean_msg}",
+                        error_type,
+                        e
                     )
 
                 # 檢查是否已達最大重試次數
