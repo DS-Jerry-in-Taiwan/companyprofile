@@ -1,14 +1,14 @@
 # 公司簡介生成與優化 API
 
-**當前版本**: v0.3.0 (Phase 15/16) - 2026-04-16
+**當前版本**: v1.0.0 (Phase 21) - 2026-04-23
 
 這是一個採用 Serverless 架構的公司簡介生成與優化服務，部署於 AWS Lambda + API Gateway，提供 RESTful API 介面，支援從無到有生成公司簡介，以及優化現有的公司簡介內容。
 
 **最新更新**:
-- ✅ Phase 15: 模型配置統一管理
-- ✅ Phase 16: 搜尋時格式化優化（四面向結構化 JSON）
+- ✅ Phase 21: 錯誤處理標準化
+- ✅ Phase 17/19: 搜尋工具優化
 
-**版本歷史**: v0.3.0 > v0.0.2 > v0.0.1
+**版本歷史**: v1.0.0 > v0.3.0 > v0.0.2 > v0.0.1
 
 ---
 
@@ -24,6 +24,8 @@
 
 - **自動化資料蒐集**：支援多種搜尋策略（Tavily、Gemini），可配置切換
 - **四面向結構化搜尋**：搜尋結果直接以 foundation/core/vibe/future 四面向 JSON 回傳
+- **錯誤處理標準化**：32 個錯誤代碼 + ErrorResponse schema + 統一錯誤回應格式
+- **降級機制**：搜尋失敗時使用 user_input 生成簡介
 - **LLM 整合**：採用 Google Gemini 生成高品質內容
 - **三模板差異化**：支援 CONCISE / STANDARD / DETAILED 三種輸出模式
 - **風險控制**：內建敏感詞過濾與內容安全檢核
@@ -535,6 +537,68 @@ TAIWAN_TERMS_ENABLED=true  # 啟用台灣用語轉換
 |------|---------|------|
 | Baseline (b73c9bf) | 6.54s/case | - |
 | Phase 14整合後 | 5.52s/case | ~1.02s/case |
+
+---
+
+### v1.0.0 - Phase 21 錯誤處理標準化
+
+**日期**: 2026-04-23
+
+#### Phase 21: 錯誤處理標準化 ✅
+
+| 工項 | 說明 |
+|------|------|
+| **ErrorCode 枚舉** | 統一管理 32 個錯誤代碼（SVC_xxx, LLM_xxx, API_xxx, SCH_xxx） |
+| **ErrorResponse schema** | API 錯誤回應格式 `{success, error: {code, message, timestamp, trace_id, recoverable}}` |
+| **錯誤代碼使用枚舉** | `company_brief_graph.py`, `llm_service.py` 使用 `ErrorCode.SVC_004.code` |
+| **錯誤訊息清理** | 自動提取 API 錯誤的 code, status, message，簡化顯示 |
+| **降級機制** | 當 `aspect_summaries` 為空時，使用 `user_input` 生成 |
+| **user_input dict** | 統一為 dict 格式（capital, employees, founded_year, inputText） |
+
+**錯誤回應格式（修正後）**：
+
+```json
+{
+    "success": false,
+    "error": {
+        "code": "SVC_004",
+        "message": "無法生成公司簡介：搜尋服務暫時無法使用",
+        "timestamp": "2026-04-23T06:22:26.554041",
+        "trace_id": "trace-...",
+        "recoverable": true
+    }
+}
+```
+
+**錯誤訊息格式（修正後）**：
+
+```
+# 之前（太長）
+429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'Rate limit exceeded', 'status': 'RESOURCE_EXHAUSTED'}}
+
+# 之後（簡潔）
+(429) RESOURCE_EXHAUSTED Rate limit exceeded
+```
+
+#### Phase 21 完成項目
+
+| 項目 | 狀態 |
+|------|------|
+| ErrorCode 枚舉完整性 | ✅ 32 個正確 |
+| ErrorResponse schema | ✅ 回傳格式正確 |
+| ErrorCode 使用枚舉 | ✅ 兩處修正 |
+| 錯誤訊息清理 | ✅ 自動提取 |
+| 搜尋超時測試 | ✅ SVC_002 映射正確 |
+| SVC_001/003/004 測試 | ✅ SVC_004 已實作 |
+| LLM 429 | ⚠️ API 配額充足，未能觸發實際測試 |
+
+#### 新增檔案
+
+| 檔案 | 說明 |
+|------|------|
+| `config/field_mapping.json` | 字段到面向的映射配置 |
+| `config/field_mapping_schema.json` | 配置 schema 定義 |
+| `src/services/config_loader.py` | 配置載入模組 |
 
 ---
 
