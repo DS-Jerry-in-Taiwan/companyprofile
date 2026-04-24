@@ -1,10 +1,12 @@
 from typing import Optional
 import os
+import logging
 from sqlalchemy import Column, String, Integer, Text, create_engine, select
 from sqlalchemy.orm import declarative_base, sessionmaker
 from .base import StorageInterface
 
 Base = declarative_base()
+logger = logging.getLogger(__name__)
 
 
 class LLMResponse(Base):
@@ -59,9 +61,19 @@ class SQLiteStorage(StorageInterface):
         try:
             session.add(LLMResponse(**item))
             session.commit()
+            logger.info(
+                f"DB WRITE | request_id={item.get('request_id')} "
+                f"organ_no={item.get('organ_no')} mode={item.get('mode')} "
+                f"model={item.get('model')} tokens={item.get('tokens_used')} "
+                f"latency={item.get('latency_ms')}ms word_count={item.get('word_count')}"
+            )
             return True
         except Exception as e:
             session.rollback()
+            logger.warning(
+                f"DB WRITE FAILED | request_id={item.get('request_id')} "
+                f"organ_no={item.get('organ_no')} error={e}"
+            )
             raise e
         finally:
             session.close()
@@ -71,9 +83,18 @@ class SQLiteStorage(StorageInterface):
         try:
             result = session.get(LLMResponse, request_id)
             if result is None:
+                logger.info(f"DB READ | request_id={request_id} → not found")
                 return None
             data = {c.name: getattr(result, c.name) for c in result.__table__.columns}
+            logger.info(
+                f"DB READ | request_id={request_id} "
+                f"organ_no={data.get('organ_no')} mode={data.get('mode')} "
+                f"word_count={data.get('word_count')}"
+            )
             return data
+        except Exception as e:
+            logger.warning(f"DB READ FAILED | request_id={request_id} error={e}")
+            raise e
         finally:
             session.close()
 
@@ -82,9 +103,15 @@ class SQLiteStorage(StorageInterface):
         try:
             stmt = select(LLMResponse).where(LLMResponse.organ_no == organ_no)
             results = session.execute(stmt).scalars().all()
+            logger.info(
+                f"DB LIST | organ_no={organ_no} count={len(results)}"
+            )
             return [
                 {c.name: getattr(r, c.name) for c in r.__table__.columns}
                 for r in results
             ]
+        except Exception as e:
+            logger.warning(f"DB LIST FAILED | organ_no={organ_no} error={e}")
+            raise e
         finally:
             session.close()
