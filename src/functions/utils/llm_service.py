@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import re
 import uuid
 import time
 import threading
@@ -249,7 +250,7 @@ def _call_llm_core(
             "response_raw": response_text,
             "response_processed": parsed.model_dump_json() if parsed else None,
             "is_json": 1 if parsed else 0,
-            "word_count": len(response_text.split()),
+            "word_count": len(re.findall(r'[\u4e00-\u9fff]|[a-zA-Z]+|\d+', response_text)),
             "model": service.model_name,
             "tokens_used": (
                 response.usage_metadata.total_token_count

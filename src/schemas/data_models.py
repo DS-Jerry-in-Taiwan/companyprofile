@@ -47,7 +47,7 @@ class CleanedData(BaseModel):
         """計算字數、字元數和 token 數"""
         self.char_count = len(self.content_text)
         # 簡單的中英文分詞計數
-        self.word_count = len(self.content_text.split())
+        self.word_count = len(re.findall(r'[\u4e00-\u9fff]|[a-zA-Z]+|\d+', self.content_text))
         # 估算 token 數（中文約 1.5 個字/Token，英文約 4 個字元/Token）
         self.token_count = self._estimate_tokens()
 

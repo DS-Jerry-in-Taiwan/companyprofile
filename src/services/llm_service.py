@@ -1,5 +1,6 @@
 import os
 import json
+import re
 import uuid
 import time
 import logging
@@ -93,7 +94,7 @@ class LLMService:
             "response_raw": response.text,
             "response_processed": parsed.model_dump_json() if parsed else None,
             "is_json": 1 if parsed else 0,
-            "word_count": len(response.text.split()),
+            "word_count": len(re.findall(r'[\u4e00-\u9fff]|[a-zA-Z]+|\d+', response.text)),
             "model": self.model_name,
             "tokens_used": (
                 response.usage_metadata.total_token_count
@@ -149,7 +150,7 @@ class LLMService:
             "response_raw": response.text,
             "response_processed": parsed.model_dump_json() if parsed else None,
             "is_json": 1 if parsed else 0,
-            "word_count": len(response.text.split()),
+            "word_count": len(re.findall(r'[\u4e00-\u9fff]|[a-zA-Z]+|\d+', response.text)),
             "model": self.model_name,
             "tokens_used": (
                 response.usage_metadata.total_token_count
