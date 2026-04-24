@@ -457,6 +457,7 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
             raise Exception("無法生成簡介：無搜尋結果且無用戶素材")
 
         # 建立 Prompt（簡化：user_input 已經包含所有欄位）
+        _prompt_meta = {}
         prompt = build_generate_prompt(
             organ=state["organ"],
             organ_no=state.get("organ_no"),
@@ -464,11 +465,20 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
             web_content=web_content,
             word_limit=state.get("word_limit"),
             optimization_mode=state.get("optimization_mode"),
+            _metadata=_prompt_meta,
         )
 
         # 呼叫 LLM（Phase 11: 傳遞 word_limit）
         with measure("LLM 生成"):
-            llm_response = call_llm(prompt, word_limit=state.get("word_limit"))
+            llm_response = call_llm(
+                prompt,
+                word_limit=state.get("word_limit"),
+                organ_no=state.get("organ_no"),
+                structure_key=_prompt_meta.get("structure_key"),
+                opening_key=_prompt_meta.get("opening_key"),
+                sentence_key=_prompt_meta.get("sentence_key"),
+                template_name=_prompt_meta.get("template_name"),
+            )
 
         execution_time = time.time() - start_time
         logger.info(f"[TIMING] LLM 生成完成，耗時 {execution_time * 1000:.2f}ms")
