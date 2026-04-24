@@ -42,14 +42,14 @@ class SQLiteStorage(StorageInterface):
     """SQLite 存储适配器"""
 
     def __init__(self, connection: str):
-        # 解析相對路徑 → 轉為相對於專案根目錄的絕對路徑
-        if connection.startswith("sqlite:///") and not os.path.isabs(connection.replace("sqlite:///", "")):
+        # 排除 :memory: 和絕對路徑，只處理相對路徑
+        if connection.startswith("sqlite:///") and not connection.endswith(":memory:"):
             db_path = connection.replace("sqlite:///", "")
-            # 動態計算專案根目錄（src/storage/ → 專案根）
-            _self_dir = os.path.dirname(os.path.abspath(__file__))          # .../src/storage
-            _project_root = os.path.dirname(os.path.dirname(_self_dir))     # .../
-            resolved = os.path.join(_project_root, db_path)
-            connection = f"sqlite:///{resolved}"
+            if not os.path.isabs(db_path):
+                _self_dir = os.path.dirname(os.path.abspath(__file__))
+                _project_root = os.path.dirname(os.path.dirname(_self_dir))
+                resolved = os.path.join(_project_root, db_path)
+                connection = f"sqlite:///{resolved}"
         self.engine = create_engine(connection)
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)

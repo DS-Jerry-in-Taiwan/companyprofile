@@ -236,6 +236,34 @@ def _call_llm_core(
         # 總處理時間（API call + parsing）
         _duration_ms = int((time.time() - _start) * 1000)
 
+        # ── 建構回傳結果（JSON 解析成功 or 純文字後處理） ────
+        if parsed:
+            result_data = {
+                "title": parsed.title,
+                "body_html": parsed.body_html,
+                "summary": parsed.summary,
+            }
+            processed_json = parsed.model_dump_json()
+        else:
+            # 從 prompt 中提取公司名稱
+            company_name = "公司"
+            if isinstance(prompt, str):
+                for line in prompt.split("\n"):
+                    if "公司名稱" in line:
+                        parts = line.split("：")
+                        if len(parts) > 1:
+                            company_name = parts[1].strip()
+                            break
+
+            result_data = {
+                "title": f"{company_name} - 企業簡介",
+                "body_html": f"<p>{response_text}</p>",
+                "summary": response_text[:100] + "..."
+                if len(response_text) > 100
+                else response_text,
+            }
+            processed_json = json.dumps(result_data, ensure_ascii=False)
+
         # ── 非同步儲存（不阻塞主流程） ────────────────
         _try_save_response({
             "request_id": str(uuid.uuid4()),
@@ -248,7 +276,7 @@ def _call_llm_core(
             "prompt_sentence_key": sentence_key,
             "prompt_template_name": template_name,
             "response_raw": response_text,
-            "response_processed": parsed.model_dump_json() if parsed else None,
+            "response_processed": processed_json,
             "is_json": 1 if parsed else 0,
             "word_count": len(re.findall(r'[\u4e00-\u9fff]|[a-zA-Z]+|\d+', response_text)),
             "model": service.model_name,
@@ -262,31 +290,7 @@ def _call_llm_core(
         })
         # ──────────────────────────────────────────────
 
-        # 回傳解析結果或 fallback
-        if parsed:
-            return {
-                "title": parsed.title,
-                "body_html": parsed.body_html,
-                "summary": parsed.summary,
-            }
-        else:
-            # 從 prompt 中提取公司名稱
-            company_name = "公司"
-            if isinstance(prompt, str):
-                for line in prompt.split("\n"):
-                    if "公司名稱" in line:
-                        parts = line.split("：")
-                        if len(parts) > 1:
-                            company_name = parts[1].strip()
-                            break
-
-            return {
-                "title": f"{company_name} - 企業簡介",
-                "body_html": f"<p>{response_text}</p>",
-                "summary": response_text[:100] + "..."
-                if len(response_text) > 100
-                else response_text,
-            }
+        return result_data
 
     except Exception as e:
         if LANGCHAIN_AVAILABLE:
