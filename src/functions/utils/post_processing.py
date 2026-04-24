@@ -445,23 +445,9 @@ def post_process(llm_result, original_brief=None, template_type="standard"):
         except ImportError as e:
             logger.warning(f"content_diversifier 模組未找到，跳過多樣化處理: {e}")
 
-        # Phase 23: 模板多樣化 (文章框架/情境/句型)
-        try:
-            from src.functions.utils.structure_library import (
-                get_random_structure,
-                get_random_sentence_pattern,
-                STRUCTURE_NAMES,
-                SENTENCE_NAMES,
-            )
-
-            structure_key = get_random_structure()
-            sentence_key = get_random_sentence_pattern()
-            logger.info(
-                f"已選取文章框架: {STRUCTURE_NAMES.get(structure_key, structure_key)}, "
-                f"句型: {SENTENCE_NAMES.get(sentence_key, sentence_key)}"
-            )
-        except ImportError as e:
-            logger.warning(f"structure_library 模組未找到，跳過模板多樣化: {e}")
+        # Phase 23: 模板多樣化 — 由 prompt_builder.py 在 Prompt 層注入框架/情境/句型指導
+        # v0.3.8: 選擇與應用邏輯已移至 build_generate_prompt()，此處不再重複選取
+        logger.debug("Phase 23 多樣化由 Prompt 層處理（prompt_builder.build_generate_prompt）")
 
         # Phase 14 Agent F/G: 模板差異化 (新增)
         try:
