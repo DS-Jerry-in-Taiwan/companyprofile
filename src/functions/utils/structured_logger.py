@@ -19,14 +19,31 @@ import threading
 _local = threading.local()
 
 
+# 敏感欄位列表 - 記錄時應過濾
+SENSITIVE_FIELDS = {"organNo", "password", "token", "secret", "api_key", "key"}
+
+def _filter_sensitive_fields(data: Dict = None) -> Dict:
+    """過濾敏感欄位"""
+    if not data:
+        return {}
+    return {k: "***" if k.lower() in SENSITIVE_FIELDS else v 
+            for k, v in data.items()}
+
+
 class StructuredLogger:
     """結構化日誌記錄器"""
 
     def __init__(self, name: str = __name__):
         self.logger = logging.getLogger(name)
         self.logger.setLevel(logging.INFO)
-
-        # 移除既有的 handlers
+        
+        # 如果 root logger 已有 handler，則上傳到 root，不重複輸出
+        if logging.getLogger().handlers:
+            self.logger.propagate = True
+            # 不再新增 handler
+            return
+            
+        # 否則建立自己的 handler（只有 Lambda 環境才這麼做）
         for handler in self.logger.handlers[:]:
             self.logger.removeHandler(handler)
 
@@ -114,11 +131,13 @@ class StructuredLogger:
         """記錄 API 請求"""
         if "component" not in kwargs:
             kwargs["component"] = "api"
+        # 過濾敏感欄位
+        safe_data = _filter_sensitive_fields(request_data) if request_data else {}
         self.info(
             f"API Request: {method} {path}",
             method=method,
             path=path,
-            request_data=request_data,
+            request_data=safe_data,
             **kwargs,
         )
 
