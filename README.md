@@ -1,14 +1,15 @@
 # 公司簡介生成與優化 API
 
-**當前版本**: v0.3.6 (Phase 21) - 2026-04-23
+**當前版本**: v0.3.8 (Phase 23) - 2026-04-23
 
 這是一個採用 Serverless 架構的公司簡介生成與優化服務，部署於 AWS Lambda + API Gateway，提供 RESTful API 介面，支援從無到有生成公司簡介，以及優化現有的公司簡介內容。
 
 **最新更新**:
+- ✅ Phase 23: 模板多樣化（Prompt + 三個庫）
+- ✅ Phase 22: Markdown 清理
 - ✅ Phase 21: 錯誤處理標準化
-- ✅ Phase 17/19: 搜尋工具優化
 
-**版本歷史**: v0.3.6 > v0.3.5 > ... > v0.3.0 > v0.2.0 > v0.1.0
+**版本歷史**: v0.3.8 > v0.3.7 > v0.3.6 > v0.3.5 > ... > v0.3.0 > v0.2.0 > v0.1.0
 
 ---
 
@@ -486,6 +487,77 @@ TAIWAN_TERMS_ENABLED=true  # 啟用台灣用語轉換
 ---
 
 ## 版本變動
+
+### v0.3.8 - Phase 23 模板多樣化
+
+**日期**: 2026-04-23
+
+#### Phase 23a: Prompt 更新 ✅
+
+| 工項 | 說明 |
+|------|------|
+| **generate Prompt** | 加入撰寫原則 5-7：開頭多樣化、段落結構多樣化、句型變化 |
+| **optimize Prompt** | 加入優化指令 5-6：開頭多樣化、段落結構多樣化 |
+| **源頭治理** | 讓 LLM 本身知道要輸出多樣化內容，而非依賴後處理硬改 |
+
+#### Phase 23b: 模板庫實作 ✅
+
+| 工項 | 說明 |
+|------|------|
+| **文章框架庫** | 6 種段落順序（traditional, service_first, value_first, future_oriented, feature_first, data_oriented）|
+| **情境庫** | 5 種開頭方式（產業、市場、問題、趨勢、使用者）|
+| **句型庫** | 7 種句型（服務、特色、數據、問句、情境、成就、承諾）|
+| **輔助函式** | `get_random_structure()`, `get_random_opening()`, `get_random_sentence_pattern()`, `render_opening()`, `render_sentence()`|
+
+**解決的問題**：v0.2.0 測試報告中發現的「模板過於一致」（#2）與「句型僵化」（#3）。
+
+#### 新增檔案
+
+| 檔案 | 說明 |
+|------|------|
+| `src/functions/utils/structure_library.py` | Phase 23b 三個庫（文章框架庫 6 + 情境庫 5 + 句型庫 7）|
+| `tests/test_structure_library.py` | Phase 23b 單元測試（34 項）|
+| `scripts/test_phase23_prompt.py` | Phase 23a Prompt 驗證腳本 |
+| `scripts/test_structure_diversification.py` | Phase 23b 整合測試腳本 |
+
+#### 修改檔案
+
+| 檔案 | 變更 |
+|------|------|
+| `src/functions/generate_prompt_template.txt` | 加入撰寫原則 5-7 |
+| `src/functions/optimize_prompt_template.txt` | 加入優化指令 5-6 |
+| `src/functions/utils/post_processing.py` | 匯入 structure_library，記錄選用框架/句型日誌 |
+
+---
+
+### v0.3.7 - Phase 22 Markdown 清理
+
+**日期**: 2026-04-23
+
+#### Phase 22: Markdown 格式汙染清理 ✅
+
+| 工項 | 說明 |
+|------|------|
+| **Markdown 清理模組** | 新增 `src/functions/utils/markdown_cleaner.py`，提供 `clean_markdown()` 與 `clean_markdown_aggressive()` |
+| **移除格式汙染** | 自動移除 LLM 輸出中的 `**bold**`、`## header`、`### header` 等 Markdown 語法 |
+| **電話保護** | 使用佔位符策略，保留 `***-****-****` 格式不被誤清 |
+| **整合點** | 在 `post_processing.py` 的 body_html 與 summary 流程中插入清理 |
+
+**解決的問題**：v0.2.0 測試報告中發現的「格式汙染」— LLM 輸出殘留 `**公司名稱**`、`## 公司簡介` 等 Markdown 語法。
+
+#### 新增檔案
+
+| 檔案 | 說明 |
+|------|------|
+| `src/functions/utils/markdown_cleaner.py` | Markdown 清理模組（clean_markdown + clean_markdown_aggressive）|
+
+#### 修改檔案
+
+| 檔案 | 變更 |
+|------|------|
+| `src/functions/utils/post_processing.py` | 在 body_html 與 summary 處理流程插入 `clean_markdown()` |
+
+---
 
 ### v0.3.6 - Phase 21 錯誤處理標準化
 
