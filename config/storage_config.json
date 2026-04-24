@@ -1,0 +1,9 @@
+{
+  "storage": {
+    "development": {
+      "type": "sqlite",
+      "connection": "sqlite:///data/llm_responses.db"
+    }
+  },
+  "default": "development"
+}
