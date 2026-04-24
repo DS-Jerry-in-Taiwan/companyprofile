@@ -14,7 +14,6 @@ from dataclasses import dataclass
 import logging
 
 # 設定日誌
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

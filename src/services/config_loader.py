@@ -9,8 +9,7 @@ import logging
 import os
 from typing import Dict, List
 
-# 設定 logging
-logging.basicConfig(level=logging.INFO)
+# 設定 logging（不重複設定，避免雙重輸出）
 logger = logging.getLogger(__name__)
 
 # 配置路徑

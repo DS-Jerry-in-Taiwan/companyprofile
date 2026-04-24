@@ -14,13 +14,33 @@ from datetime import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-# 設定本地開發預設值（如果環境變數未設定）
-if os.environ.get("VERSION") is None:
-    os.environ["VERSION"] = "local-dev"
-if os.environ.get("BUILD_DATE") is None:
-    os.environ["BUILD_DATE"] = datetime.now().strftime("%Y%m%d-%H%M%S")
-if os.environ.get("STAGE") is None:
-    os.environ["STAGE"] = "local"
+# 統一設定 root logger（只設一次，避免重複）
+_root_logger = logging.getLogger()
+_root_logger.setLevel(logging.INFO)
+if not _root_logger.handlers:
+    formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(formatter)
+    _root_logger.addHandler(_handler)
+
+# 禁用 werkzeug
+log = logging.getLogger("werkzeug")
+log.setLevel(logging.WARNING)
+
+# 敏感欄位遮蔽
+SENSITIVE_FIELDS = {"organNo", "password", "token", "secret", "api_key", "key"}
+
+def _mask_sensitive(data: dict) -> dict:
+    if not data:
+        return {}
+    return {k: "***" if k in SENSITIVE_FIELDS else v for k, v in data.items()}
+
+# 必須在 import 之前定義 app
+app = Flask(__name__)
+CORS(app)
+
+# 計時工具
+timing_logger = logging.getLogger(__name__)
 
 from utils.request_validator import validate_request, ValidationError
 from utils.core_dispatcher import dispatch_core_logic

@@ -4,7 +4,92 @@ Prompt Builder
 - 組裝 LLM Prompt
 - 包含 Few-shot 範例以提升資訊使用率
 - Phase 14 Stage 2: 支援三模板差異化提示詞
+- Phase 23: 注入框架/情境/句型多樣化指導（v0.3.8）
 """
+
+import logging
+from typing import Optional, List, Dict, Any
+
+logger = logging.getLogger(__name__)
+
+# Phase 23: 惰性導入 structure_library（避免循環依賴）
+_STRUCTURE_LIBRARY = None
+
+
+def _get_structure_library():
+    """惰性載入 structure_library 模組"""
+    global _STRUCTURE_LIBRARY
+    if _STRUCTURE_LIBRARY is None:
+        try:
+            from src.functions.utils.structure_library import (
+                get_random_structure,
+                get_random_opening,
+                get_random_sentence_pattern,
+                get_structure_flow,
+                STRUCTURE_NAMES,
+                SITUATION_OPENINGS,
+                SENTENCE_PATTERNS,
+                SITUATION_NAMES,
+                SENTENCE_NAMES,
+            )
+
+            _STRUCTURE_LIBRARY = {
+                "get_random_structure": get_random_structure,
+                "get_random_opening": get_random_opening,
+                "get_random_sentence_pattern": get_random_sentence_pattern,
+                "get_structure_flow": get_structure_flow,
+                "STRUCTURE_NAMES": STRUCTURE_NAMES,
+                "SITUATION_OPENINGS": SITUATION_OPENINGS,
+                "SENTENCE_PATTERNS": SENTENCE_PATTERNS,
+                "SITUATION_NAMES": SITUATION_NAMES,
+                "SENTENCE_NAMES": SENTENCE_NAMES,
+            }
+        except ImportError:
+            logger.warning("structure_library 模組不可用，多樣化功能將跳過")
+            _STRUCTURE_LIBRARY = {}
+    return _STRUCTURE_LIBRARY
+
+
+# Phase 23: 框架段落區塊標題對應（用於生成段落順序提示）
+STRUCTURE_SECTION_TITLES = {
+    "foundation": "成立背景與基本資訊",
+    "core": "核心服務與產品",
+    "vibe": "企業理念與競爭力",
+    "future": "未來展望與發展方向",
+    "core_values": "核心價值與理念",
+    "core_features": "核心特色與優勢",
+    "scale": "企業規模與資本",
+}
+
+# Phase 23: 框架段落順序說明（中文）
+STRUCTURE_FLOW_DESCRIPTIONS = {
+    "traditional": "先介紹公司背景，再說明服務與競爭力，最後展望未來",
+    "service_first": "從核心服務切入，再補充公司背景與特色",
+    "value_first": "以核心價值與理念開場，帶出公司背景與服務",
+    "future_oriented": "先描繪願景與未來方向，再回顧公司背景與核心能力",
+    "feature_first": "從核心特色與優勢開始，再說明公司背景與服務",
+    "data_oriented": "以企業規模和資本數據開頭，再介紹背景與核心業務",
+}
+
+# Phase 23: 開頭風格說明（用於多樣化指導）
+OPENING_DESCRIPTIONS = {
+    "industry": "以產業情境開頭：先鋪陳公司所處的產業背景，再自然帶出公司",
+    "market": "以市場情境開頭：先描述市場變化或趨勢，再帶出公司在市場中的定位",
+    "problem": "以問題情境開頭：先點出行業面臨的挑戰或痛點，再帶出公司的解決方案",
+    "trend": "以趨勢情境開頭：先說明產業發展趨勢，再帶出公司順應趨勢的布局",
+    "user": "以使用者情境開頭：從目標客戶的需求或場景切入，再帶出公司的服務",
+}
+
+# Phase 23: 句型風格說明（用於多樣化指導）
+SENTENCE_DESCRIPTIONS = {
+    "service": "服務導向：以「專注於[產業]的[公司]，提供[服務]」的結構強調服務內容",
+    "feature": "特色導向：以「以[特色]聞名的[公司]，[行動]」的結構突顯獨特優勢",
+    "data": "數據導向：以「擁有[歷史]年歷史的[公司]，[描述]」的結構強調經驗與規模",
+    "question": "問句式：以提問引起讀者共鳴與好奇，再帶出公司的解決方案",
+    "situation": "情境描述：先描繪具體場景或情境，再帶出公司在該情境中扮演的角色",
+    "achievement": "成就導向：以「作為[產業]領域的領導者，[公司]...」彰顯市場地位",
+    "commitment": "承諾導向：以「[公司]致力於[服務]...」展現公司使命與價值主張",
+}
 
 # Few-shot 範例：展示如何正確使用數字資訊
 FEW_SHOT_EXAMPLES = """
@@ -95,6 +180,117 @@ TEMPLATE_DESCRIPTIONS = {
 }
 
 
+# ============================================================
+# Phase 23: 多樣化指導區塊建構
+# ============================================================
+
+
+def _build_structure_guide(structure_key: str) -> str:
+    """建構框架指導文字"""
+    lib = _get_structure_library()
+    if not lib:
+        return ""
+    get_flow = lib["get_structure_flow"]
+    names = lib["STRUCTURE_NAMES"]
+    flow = get_flow(structure_key)
+    name = names.get(structure_key, structure_key)
+    flow_desc = STRUCTURE_FLOW_DESCRIPTIONS.get(structure_key, "")
+
+    # 將段落 key 轉換為中文標題
+    section_titles = [STRUCTURE_SECTION_TITLES.get(k, k) for k in flow]
+    sections_str = " → ".join(section_titles)
+
+    parts = [
+        f"框架類型：{name}（{structure_key}）",
+        f"段落順序建議：{flow_desc}",
+        f"具體安排：{sections_str}",
+    ]
+    return "\n".join(parts)
+
+
+def _build_opening_guide(opening_key: str) -> str:
+    """建構開頭風格指導文字"""
+    desc = OPENING_DESCRIPTIONS.get(opening_key, "")
+    names = {
+        "industry": "產業情境",
+        "market": "市場情境",
+        "problem": "問題情境",
+        "trend": "趨勢情境",
+        "user": "使用者情境",
+    }
+    name = names.get(opening_key, opening_key)
+    return f"開頭風格：{name}\n說明：{desc}"
+
+
+def _build_sentence_guide(sentence_key: str) -> str:
+    """建構句型風格指導文字"""
+    desc = SENTENCE_DESCRIPTIONS.get(sentence_key, "")
+    names = {
+        "service": "服務導向",
+        "feature": "特色導向",
+        "data": "數據導向",
+        "question": "問句式",
+        "situation": "情境描述",
+        "achievement": "成就導向",
+        "commitment": "承諾導向",
+    }
+    name = names.get(sentence_key, sentence_key)
+    return f"句型風格：{name}\n說明：{desc}"
+
+
+def build_diversity_guide(
+    structure_key: str = "traditional",
+    opening_key: str = "industry",
+    sentence_key: str = "service",
+) -> str:
+    """
+    建構多樣化指導區塊內容
+
+    生成一段「結構與風格多樣化指導」文字，
+    包含框架類型、開頭風格、句型風格三方面的說明。
+
+    Args:
+        structure_key: 框架 key
+        opening_key: 情境 key
+        sentence_key: 句型 key
+
+    Returns:
+        格式化的多樣化指導字串
+    """
+    guide_parts = ["\n## 結構與風格多樣化指導", ""]
+
+    # 框架
+    structure_guide = _build_structure_guide(structure_key)
+    if structure_guide:
+        guide_parts.append("### 框架指導")
+        guide_parts.append(structure_guide)
+        guide_parts.append("")
+
+    # 開頭
+    opening_guide = _build_opening_guide(opening_key)
+    if opening_guide:
+        guide_parts.append("### 開頭指導")
+        guide_parts.append(opening_guide)
+        guide_parts.append("")
+
+    # 句型
+    sentence_guide = _build_sentence_guide(sentence_key)
+    if sentence_guide:
+        guide_parts.append("### 句型指導")
+        guide_parts.append(sentence_guide)
+        guide_parts.append("")
+
+    guide_parts.append("### 執行要求")
+    guide_parts.append("1. 請依照上述框架指導安排段落順序")
+    guide_parts.append("2. 參考開頭風格撰寫開場白，可依據選擇的情境選擇適合的開頭方式")
+    guide_parts.append("3. 運用指定的句型變化，避免通篇使用相同句型結構")
+
+    return "\n".join(guide_parts)
+
+
+# ============================================================
+
+
 def build_generate_prompt(
     organ,
     organ_no=None,
@@ -103,6 +299,12 @@ def build_generate_prompt(
     web_content=None,
     word_limit=None,
     optimization_mode=None,
+    # Phase 23: 多樣化參數
+    structure_key=None,
+    opening_key=None,
+    sentence_key=None,
+    # Phase 24: 接收 dict，呼叫後會填入 framework metadata
+    _metadata=None,
 ):
     """
     組裝 GENERATE 模式的完整 prompt，包含所有素材。
@@ -115,6 +317,10 @@ def build_generate_prompt(
         web_content: 網路搜尋取得的內容（可選）
         word_limit: 字數限制（可選，預設為 300）
         optimization_mode: 模板類型 (concise/standard/detailed)（可選，預設為 standard）
+        structure_key: 文章框架 key（Phase 23，可選，預設 random）
+        opening_key: 開頭情境 key（Phase 23，可選，預設 random）
+        sentence_key: 句型 key（Phase 23，可選，預設 random）
+        _metadata: 傳入 dict 會被填入 framework metadata（Phase 24，不傳則無作用）
 
     Returns:
         組裝好的 prompt 字串
@@ -218,6 +424,43 @@ def build_generate_prompt(
     sections.append(
         "4. ⚠️ 重要：上述檢查只供內部參考，絕對不要在輸出內容中加入任何字數統計（如「(字數：XXX)」）"
     )
+
+    # Phase 23: 加入多樣化指導區塊
+    lib = _get_structure_library()
+    if lib:
+        # 如果未指定，就隨機選取
+        if structure_key is None:
+            structure_key = lib["get_random_structure"]()
+        if opening_key is None:
+            opening_key = lib["get_random_opening"]()
+        if sentence_key is None:
+            sentence_key = lib["get_random_sentence_pattern"]()
+
+        diversity_guide = build_diversity_guide(
+            structure_key=structure_key,
+            opening_key=opening_key,
+            sentence_key=sentence_key,
+        )
+        sections.append(diversity_guide)
+        logger.info(
+            f"[Phase23] Prompt 注入多樣化指導: "
+            f"框架={structure_key}, 開頭={opening_key}, 句型={sentence_key}"
+        )
+    else:
+        logger.warning("[Phase23] structure_library 不可用，跳過多樣化指導")
+
+    # Phase 24: 填入 framework metadata（如果 caller 有傳 dict 進來）
+    if _metadata is not None:
+        # 解析有效的模板名稱
+        mode_key = optimization_mode.lower() if optimization_mode else None
+        if mode_key and mode_key in TEMPLATE_DESCRIPTIONS:
+            _metadata["template_name"] = mode_key
+        else:
+            _metadata["template_name"] = "standard"
+        # framework key（隨機或指定）
+        _metadata["structure_key"] = structure_key
+        _metadata["opening_key"] = opening_key
+        _metadata["sentence_key"] = sentence_key
 
     return "\n".join(sections)
 

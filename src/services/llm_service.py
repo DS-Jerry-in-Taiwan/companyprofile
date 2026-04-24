@@ -1,9 +1,15 @@
 import os
 import json
+import uuid
+import time
+import logging
+import threading
+from datetime import datetime, timezone
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 from src.schemas.llm_output import LLMOutput
+from src.storage.factory import StorageFactory
 
 load_dotenv()
 
@@ -23,6 +29,28 @@ class LLMService:
         model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
         self.model_name = model_name
 
+        # 初始化存储层（惰性加载）
+        self._storage = None
+
+    def _get_storage(self):
+        """惰性初始化存储适配器"""
+        if self._storage is None:
+            try:
+                config_path = os.path.join(
+                    os.path.dirname(__file__), "..", "..", "config", "storage_config.json"
+                )
+                with open(config_path) as f:
+                    cfg = json.load(f)
+                env = cfg.get("default", "development")
+                storage_cfg = cfg["storage"][env]
+                self._storage = StorageFactory.create(storage_cfg)
+            except Exception as e:
+                logging.getLogger(__name__).warning(
+                    f"[Storage] 存储初始化失败，存储功能已禁用: {e}"
+                )
+                self._storage = None
+        return self._storage
+
     def _load_template(self, template_path: str) -> str:
         with open(template_path, "r", encoding="utf-8") as f:
             return f.read()
@@ -38,6 +66,7 @@ class LLMService:
         else:
             max_tokens = 4096
 
+        _start = time.time()
         response = self.client.models.generate_content(
             model=self.model_name,
             contents=prompt,
@@ -45,7 +74,38 @@ class LLMService:
                 temperature=0.2, max_output_tokens=max_tokens
             ),
         )
-        return self._parse_response(response.text)
+        _elapsed_ms = int((time.time() - _start) * 1000)
+
+        # 先解析，再存储（这样才能拿到 is_json 和 response_processed）
+        parsed = None
+        parse_error = None
+        try:
+            parsed = self._parse_response(response.text)
+        except Exception as e:
+            parse_error = e
+
+        self._try_save_response({
+            "request_id": str(uuid.uuid4()),
+            "trace_id": str(uuid.uuid4()),
+            "organ_no": company_data.get("organ_no", ""),
+            "mode": "GENERATE",
+            "prompt_raw": prompt,
+            "response_raw": response.text,
+            "response_processed": parsed.model_dump_json() if parsed else None,
+            "is_json": 1 if parsed else 0,
+            "word_count": len(response.text.split()),
+            "model": self.model_name,
+            "tokens_used": (
+                response.usage_metadata.total_token_count
+                if response.usage_metadata else None
+            ),
+            "latency_ms": _elapsed_ms,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+
+        if parsed is not None:
+            return parsed
+        raise parse_error  # type: ignore[misc]
 
     def optimize(
         self, original_brief: str, additional_data: dict, word_limit: int = None
@@ -62,6 +122,7 @@ class LLMService:
         else:
             max_tokens = 4096
 
+        _start = time.time()
         response = self.client.models.generate_content(
             model=self.model_name,
             contents=prompt,
@@ -69,15 +130,66 @@ class LLMService:
                 temperature=0.2, max_output_tokens=max_tokens
             ),
         )
-        return self._parse_response(response.text)
+        _elapsed_ms = int((time.time() - _start) * 1000)
+
+        # 先解析，再存储（这样才能拿到 is_json 和 response_processed）
+        parsed = None
+        parse_error = None
+        try:
+            parsed = self._parse_response(response.text)
+        except Exception as e:
+            parse_error = e
+
+        self._try_save_response({
+            "request_id": str(uuid.uuid4()),
+            "trace_id": str(uuid.uuid4()),
+            "organ_no": additional_data.get("organ_no", ""),
+            "mode": "OPTIMIZE",
+            "prompt_raw": prompt,
+            "response_raw": response.text,
+            "response_processed": parsed.model_dump_json() if parsed else None,
+            "is_json": 1 if parsed else 0,
+            "word_count": len(response.text.split()),
+            "model": self.model_name,
+            "tokens_used": (
+                response.usage_metadata.total_token_count
+                if response.usage_metadata else None
+            ),
+            "latency_ms": _elapsed_ms,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+
+        if parsed is not None:
+            return parsed
+        raise parse_error  # type: ignore[misc]
+
+    def _try_save_response(self, item: dict) -> None:
+        """异步保存 LLM 响应到存储层，不阻塞主流程"""
+        storage = self._get_storage()
+        if storage is None:
+            logger = logging.getLogger(__name__)
+            logger.warning("[Storage] 存储未初始化，跳过保存")
+            return
+        # 丢到后台线程执行，主线程立即返回
+        threading.Thread(
+            target=self._do_save,
+            args=(storage, item),
+            daemon=True,
+        ).start()
+
+    def _do_save(self, storage, item: dict) -> None:
+        """后台线程执行实际的存储写入"""
+        logger = logging.getLogger(__name__)
+        try:
+            storage.save_response(item)
+        except Exception as e:
+            logger.warning(f"[Storage] 保存 LLM 响应失败: {e}")
 
     def _parse_response(self, text: str) -> LLMOutput:
-        import logging
-
         logger = logging.getLogger(__name__)
 
         json_str = text.strip()
-        print(f"[DEBUG] Raw response:\n{json_str[:500]}\n")  # 限制輸出長度
+        logger.debug(f"[DEBUG] Raw response: {json_str[:500]}")
 
         # 檢查是否為空回應
         if not json_str:
@@ -86,7 +198,7 @@ class LLMService:
         # 檢查是否為空或非 JSON 回應
         if not json_str or "{" not in json_str:
             logger.warning(
-                f"[Non-JSON Response] LLM 回應非 JSON 格式，長度: {len(json_str)}, 前200字: {json_str[:200]}"
+                f"[Non-JSON Response] LLM 回應非 JSON 格式，長度: {len(json_str)}, 內容: {json_str[:500]}"
             )
             # 回應非 JSON，可能是 LLM 拒絕回答或其他情況
             raise ValueError(f"LLM did not return valid JSON: {json_str[:100]}")
@@ -103,11 +215,11 @@ class LLMService:
             else:
                 # 如果找不到 JSON，可能是回應被截斷
                 logger.warning(
-                    f"[Non-JSON Response] 無法在回應中找到 JSON 區塊，嘗試提取的內容: {json_str[:200]}"
+                    f"[Non-JSON Response] 無法在回應中找到 JSON 區塊，內容: {json_str[:500]}"
                 )
                 raise ValueError(f"Invalid response format: {json_str[:100]}")
 
-        print(f"[DEBUG] Parsed JSON string:\n{json_str[:200]}...\n")
+        logger.debug(f"[DEBUG] Parsed JSON string: {json_str[:200]}")
 
         # JSON 解析失敗時的 fallback 處理
         try:

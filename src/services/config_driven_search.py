@@ -54,8 +54,11 @@ result = tool.search("澳霸有限公司")
 import os
 import sys
 import json
+import logging
 from typing import Dict, Any, Optional
 from dataclasses import dataclass, field
+
+logger = logging.getLogger(__name__)
 
 # 動態計算專案根目錄
 _CURRENT_FILE = os.path.abspath(__file__)
@@ -158,8 +161,7 @@ class ConfigDrivenSearchTool:
     def _load_config(self, config_path: str) -> SearchConfig:
         """載入配置文件"""
         if not os.path.exists(config_path):
-            print(f"⚠️ 配置文件不存在: {config_path}")
-            print(f"   使用預設配置")
+            logger.warning(f"⚠️ 配置文件不存在: {config_path}, 使用預設配置")
             return SearchConfig()
 
         with open(config_path, "r", encoding="utf-8") as f:
@@ -233,7 +235,7 @@ class ConfigDrivenSearchTool:
                 },
             )
         else:
-            print(f"⚠️ 未知的 provider: {provider}，使用預設 gemini_fewshot")
+            logger.warning(f"⚠️ 未知 provider: {provider}，使用預設 gemini_fewshot")
             return SearchToolFactory.get_tool("gemini_fewshot")
 
     def search(self, query: str, **kwargs) -> "SearchResult":
