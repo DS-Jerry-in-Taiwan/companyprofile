@@ -52,6 +52,9 @@ coverage/
 
 data/review_queue/
 
+# Phase 24 LLM response database
+data/llm_responses.db
+
 # Test results and outputs
 outputs/
 data/test_samples/*.json
