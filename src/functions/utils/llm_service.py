@@ -48,11 +48,19 @@ def _try_save_response(item: dict) -> None:
     """非同步儲存 LLM 回應到資料庫，不阻塞主流程"""
     storage = _get_storage()
     if storage is None:
+        logger.warning("[Storage] 儲存未初始化，跳過寫入")
         return
+
+    logger.info(
+        f"[Storage] 非同步寫入 request_id={item.get('request_id')}, "
+        f"template={item.get('prompt_template_name')}, "
+        f"mode={item.get('mode')}"
+    )
 
     def _do_save():
         try:
             storage.save_response(item)
+            logger.info(f"[Storage] 寫入成功 request_id={item.get('request_id')}")
         except Exception as e:
             logger.warning(f"[Storage] 儲存 LLM 回應失敗: {e}")
 
