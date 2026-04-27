@@ -650,14 +650,27 @@ def error_handler_node(state: CompanyBriefState) -> CompanyBriefState:
     """
     logger.info("執行錯誤處理節點")
 
+    # 安全取值，避免 state 結構異常時崩潰
+    company_name = state.get("organ", "未知公司")
+    errors = state.get("errors", [])
+
+    # 安全提取 error_message，避免 error 物件結構異常
+    error_messages = []
+    for err in errors:
+        if hasattr(err, "error_message"):
+            error_messages.append(err.error_message)
+        elif isinstance(err, str):
+            error_messages.append(err)
+        else:
+            error_messages.append(str(err))
+
     # 建立預設結果
-    company_name = state["organ"]
     default_result = {
         "title": f"{company_name} - 企業簡介",
         "body_html": f"<p>{company_name} 是一家專業的企業，致力於提供優質的產品和服務。由於技術問題，無法取得更詳細的資訊，請聯繫我們獲取最新資料。</p>",
         "summary": f"{company_name} - 專業企業，提供優質產品和服務。",
         "error_handled": True,
-        "errors": [error.error_message for error in state["errors"]],
+        "errors": error_messages,
     }
 
     # 設置最終結果

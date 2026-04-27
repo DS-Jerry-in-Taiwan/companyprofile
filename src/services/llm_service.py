@@ -53,8 +53,15 @@ class LLMService:
         return self._storage
 
     def _load_template(self, template_path: str) -> str:
-        with open(template_path, "r", encoding="utf-8") as f:
-            return f.read()
+        try:
+            with open(template_path, "r", encoding="utf-8") as f:
+                return f.read()
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"Prompt 模板檔案不存在: {template_path} (cwd={os.getcwd()})"
+            )
+        except IOError as e:
+            raise IOError(f"讀取 Prompt 模板失敗 {template_path}: {e}")
 
     def generate(self, company_data: dict, word_limit: int = None) -> LLMOutput:
         template = self._load_template("generate_prompt_template.txt")
