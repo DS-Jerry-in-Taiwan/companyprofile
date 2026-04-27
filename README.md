@@ -1,13 +1,13 @@
 # 公司簡介生成與優化 API
 
-**當前版本**: v0.3.9 (Phase 24) - 2026-04-27
+**當前版本**: v0.4.0 (Phase 25) - 2026-04-27
 
 **最新更新**:
+- ✅ Phase 25: 數字格式清理與簡化 + 錯誤處理補強 + DB schema 優化
 - ✅ Phase 24: optimization_mode 參數傳遞修復 + DB schema 更新
 - ✅ Phase 23: 模板多樣化（Prompt + 三個庫）
-- ✅ Phase 22: Markdown 清理
 
-**版本歷史**: v0.3.9 > v0.3.8 > v0.3.7 > v0.3.6 > v0.3.5 > ... > v0.3.0 > v0.2.0 > v0.1.0
+**版本歷史**: v0.4.0 > v0.3.9 > v0.3.8 > v0.3.7 > v0.3.6 > v0.3.5 > ... > v0.3.0 > v0.2.0 > v0.1.0
 
 ---
 
@@ -525,6 +525,73 @@ TAIWAN_TERMS_ENABLED=true  # 啟用台灣用語轉換
 | DB schema 更新 | ✅ 移除 2 個、新增 3 個欄位 |
 | capital 格式化修復 | ✅ 直接存原始值 |
 | 三模板測試 | ✅ CONCISE/STANDARD/DETAILED 正確觸發 |
+
+---
+
+### v0.4.0 - Phase 25 數字格式清理與簡化 + 錯誤處理補強 + DB schema 優化
+
+**日期**: 2026-04-27
+
+#### Phase 25a: 數字格式清理與簡化 ✅
+
+| 工項 | 說明 |
+|------|------|
+| **問題** | LLM 輸出含有千位逗號的數字（如 `2,582,526,570 元`） |
+| **搜尋前清理** | `prompt_builder.py` 加入「數字格式規範」指示 LLM 不使用千位逗號 |
+| **後處理清理** | `post_processing.py` 新增 `clean_number_format()` 移除全形/半形千位逗號 |
+| **數字簡化** | `post_processing.py` 新增 `simplify_number()` 將大數字轉為億/萬單位（如 `2582526570元` → `25.8億元`） |
+| **安全機制** | 只處理後綴為「元」的數字，不誤轉統一編號、年份、日期 |
+
+#### Phase 25b: 錯誤處理補強 ✅
+
+| 工項 | 說明 |
+|------|------|
+| **catch-all handler** | `generate_brief.py` 新增 `except Exception`，確保所有異常都被包裝為 `LLMServiceError` 不會漏到 `UNEXPECTED_ERROR` |
+| **ErrorCode 統一** | `api_controller.py` generic handler 改用 `ErrorCode.API_009` 而非 hardcode 字串 |
+| **ErrorLogger 模組** | 新增 `error_logger.py` 統一錯誤日誌儲存 |
+
+#### Phase 25c: DB schema 優化 ✅
+
+| 工項 | 說明 |
+|------|------|
+| **id PK** | `llm_responses` 新增 auto-increment `id` 作為 primary key |
+| **移除 request_id** | 改由 `trace_id` 取代（UUID 統一格式 `t-{hex}`） |
+| **補 optimization_mode** | DB 欄位改為儲存 `optimization_mode`（原只有 `prompt_template_name`） |
+| **trace_id 統一** | 三處 `_try_save_response` 全部改為 `t-{uuid}` 前綴格式 |
+
+#### Phase 25d: Response 修正 ✅
+
+| 工項 | 說明 |
+|------|------|
+| **optimization_mode** | `build_success_response()` 補上 `optimization_mode` 欄位（原為 null） |
+| **user_input** | `generate_brief()` 不再將空 dict 轉為 `None`，確保 DB 儲存所有傳入欄位 |
+
+#### 測試結果
+
+| 套件 | 測試數 | 結果 |
+|------|--------|------|
+| 單元 + 整合測試 | 34 | ✅ |
+| 1111 實際案例測試 | 19 | ✅ |
+| API mock 測試 | 34 | ✅ |
+| 真實 API 測試 | 21 | ✅ |
+| **總計** | **108** | **✅** |
+
+#### 修改檔案
+
+| 檔案 | 變更 |
+|------|------|
+| `src/functions/utils/post_processing.py` | 新增 `clean_number_format()` + `simplify_number()` |
+| `src/functions/utils/prompt_builder.py` | 加入數字格式規範提示 |
+| `src/functions/api_controller.py` | ErrorCode 統一、error handler 強化 |
+| `src/functions/utils/generate_brief.py` | 新增 catch-all handler、user_input 不再轉 None |
+| `src/functions/utils/error_logger.py` | 新增 ErrorLogger 模組 |
+| `src/functions/utils/llm_service.py` | trace_id 統一 t- 前綴、移除 request_id、補 optimization_mode |
+| `src/services/llm_service.py` | trace_id 統一 t- 前綴、移除 request_id |
+| `src/functions/utils/response_formatter.py` | 補 optimization_mode 到 response |
+| `src/functions/utils/request_validator.py` | ErrorCode 枚舉統一 |
+| `src/functions/utils/structured_logger.py` | trace- → t- |
+| `src/storage/sqlite_adapter.py` | id PK、移除 request_id、補欄位 |
+| `src/storage/base.py` | 新增 save_error/list_errors 抽象方法 |
 
 ---
 
