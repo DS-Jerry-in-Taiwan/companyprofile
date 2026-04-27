@@ -53,7 +53,7 @@ def _try_save_response(item: dict) -> None:
         return
 
     logger.info(
-        f"[Storage] 非同步寫入 request_id={item.get('request_id')}, "
+        f"[Storage] 非同步寫入 trace_id={item.get('trace_id')}, "
         f"template={item.get('prompt_template_name')}, "
         f"mode={item.get('mode')}"
     )
@@ -61,7 +61,7 @@ def _try_save_response(item: dict) -> None:
     def _do_save():
         try:
             storage.save_response(item)
-            logger.info(f"[Storage] 寫入成功 request_id={item.get('request_id')}")
+            logger.info(f"[Storage] 寫入成功 trace_id={item.get('trace_id')}")
         except Exception as e:
             logger.warning(f"[Storage] 儲存 LLM 回應失敗: {e}")
 
@@ -103,8 +103,9 @@ def _extract_company_name(prompt) -> str:
 
 def call_llm(
     prompt,
-    word_limit=None,
     organ_no=None,
+    organ=None,
+    user_input=None,
     mode="GENERATE",
     structure_key=None,
     opening_key=None,
@@ -116,8 +117,9 @@ def call_llm(
 
     Args:
         prompt: 公司資料 (dict) 或 prompt 字串 (str)
-        word_limit: 字數限制（可選）
         organ_no: 統一編號（可選，用於儲存查詢）
+        organ: 公司名稱（可選，用於儲存）
+        user_input: 使用者輸入資料（可選，用於儲存）
         mode: 模式（預設 GENERATE）
         structure_key: 文章框架 key（Phase 23，可選）
         opening_key: 開頭情境 key（Phase 23，可選）
@@ -129,18 +131,18 @@ def call_llm(
     """
     if LANGCHAIN_AVAILABLE:
         return _call_llm_with_retry(
-            prompt, word_limit, organ_no, mode,
+            prompt, organ_no, organ, user_input, mode,
             structure_key, opening_key, sentence_key, template_name,
         )
     else:
         return _call_llm_original(
-            prompt, word_limit, organ_no, mode,
+            prompt, organ_no, organ, user_input, mode,
             structure_key, opening_key, sentence_key, template_name,
         )
 
 
 def _call_llm_with_retry(
-    prompt, word_limit=None, organ_no=None, mode="GENERATE",
+    prompt, organ_no=None, organ=None, user_input=None, mode="GENERATE",
     structure_key=None, opening_key=None, sentence_key=None, template_name=None,
 ) -> dict:
     """使用重試機制的 LLM 呼叫"""
@@ -153,21 +155,23 @@ def _call_llm_with_retry(
         def llm_call_with_retry(inputs):
             # 解包 inputs 字典以支援裝飾器的單參數設計
             prompt_data = inputs.get("prompt")
-            wl = inputs.get("word_limit")
             organ_no_val = inputs.get("organ_no")
+            organ_val = inputs.get("organ")
+            user_input_val = inputs.get("user_input")
             mode_val = inputs.get("mode", "GENERATE")
             sk = inputs.get("structure_key")
             ok = inputs.get("opening_key")
             sent_k = inputs.get("sentence_key")
             tn = inputs.get("template_name")
-            return _call_llm_core(prompt_data, wl, organ_no_val, mode_val,
+            return _call_llm_core(prompt_data, organ_no_val, organ_val, user_input_val, mode_val,
                                   sk, ok, sent_k, tn)
 
         # 將參數打包為字典傳遞給裝飾後的函數
         return llm_call_with_retry({
             "prompt": prompt,
-            "word_limit": word_limit,
             "organ_no": organ_no,
+            "organ": organ,
+            "user_input": user_input,
             "mode": mode,
             "structure_key": structure_key,
             "opening_key": opening_key,
@@ -192,12 +196,12 @@ def _call_llm_with_retry(
 
 
 def _call_llm_original(
-    prompt, word_limit=None, organ_no=None, mode="GENERATE",
+    prompt, organ_no=None, organ=None, user_input=None, mode="GENERATE",
     structure_key=None, opening_key=None, sentence_key=None, template_name=None,
 ) -> dict:
     """原始 LLM 呼叫邏輯"""
     try:
-        return _call_llm_core(prompt, word_limit, organ_no, mode,
+        return _call_llm_core(prompt, organ_no, organ, user_input, mode,
                               structure_key, opening_key, sentence_key, template_name)
     except Exception as e:
         logger.error(f"LLM API call failed: {str(e)}")
@@ -205,7 +209,7 @@ def _call_llm_original(
 
 
 def _call_llm_core(
-    prompt, word_limit=None, organ_no=None, mode="GENERATE",
+    prompt, organ_no=None, organ=None, user_input=None, mode="GENERATE",
     structure_key=None, opening_key=None, sentence_key=None, template_name=None,
 ) -> dict:
     """核心 LLM 呼叫邏輯 - 直接使用傳入的 Prompt（包含 Few-shot）"""
@@ -214,12 +218,8 @@ def _call_llm_core(
 
         service = get_llm_service()
 
-        # 動態計算 max_output_tokens
-        # 公式：min(word_limit * 2, 4096)
-        if word_limit:
-            max_tokens = min(word_limit * 2, 4096)
-        else:
-            max_tokens = 4096
+        # 使用預設的 max_output_tokens
+        max_tokens = 4096
 
         # 計時開始
         _start = time.time()
@@ -249,32 +249,24 @@ def _call_llm_core(
         # 總處理時間（API call + parsing）
         _duration_ms = int((time.time() - _start) * 1000)
 
-        # ── 建構 response_processed（給 DB 儲存用） ──
-        if parsed:
-            processed_json = parsed.model_dump_json()
-        else:
-            company_name = _extract_company_name(prompt)
-            processed_json = json.dumps({
-                "title": f"{company_name} - 企業簡介",
-                "body_html": f"<p>{response_text}</p>",
-                "summary": response_text[:100] + "..."
-                if len(response_text) > 100
-                else response_text,
-            }, ensure_ascii=False)
-
         # ── 非同步儲存（不阻塞主流程） ────────────────
+        # 序列化 user_input 為 JSON 字串
+        user_input_str = json.dumps(user_input, ensure_ascii=False) if user_input else None
+
         _try_save_response({
-            "request_id": str(uuid.uuid4()),
-            "trace_id": str(uuid.uuid4()),
+            "trace_id": f"t-{uuid.uuid4().hex[:16]}",
             "organ_no": organ_no or "",
+            "organ_name": organ or "",
+            "company_url": "",
             "mode": mode,
+            "user_input": user_input_str,
             "prompt_raw": str(prompt),
             "prompt_structure_key": structure_key,
             "prompt_opening_key": opening_key,
             "prompt_sentence_key": sentence_key,
             "prompt_template_name": template_name,
+            "optimization_mode": template_name,
             "response_raw": response_text,
-            "response_processed": processed_json,
             "is_json": 1 if parsed else 0,
             "word_count": len(re.findall(r'[\u4e00-\u9fff]|[a-zA-Z]+|\d+', response_text)),
             "model": service.model_name,

@@ -86,13 +86,14 @@ class LLMService:
             parse_error = e
 
         self._try_save_response({
-            "request_id": str(uuid.uuid4()),
-            "trace_id": str(uuid.uuid4()),
+            "trace_id": f"t-{uuid.uuid4().hex[:16]}",
             "organ_no": company_data.get("organ_no", ""),
+            "organ_name": company_data.get("organ", ""),
+            "company_url": company_data.get("company_url", ""),
             "mode": "GENERATE",
+            "user_input": json.dumps(company_data.get("user_input"), ensure_ascii=False) if company_data.get("user_input") else None,
             "prompt_raw": prompt,
             "response_raw": response.text,
-            "response_processed": parsed.model_dump_json() if parsed else None,
             "is_json": 1 if parsed else 0,
             "word_count": len(re.findall(r'[\u4e00-\u9fff]|[a-zA-Z]+|\d+', response.text)),
             "model": self.model_name,
@@ -142,13 +143,14 @@ class LLMService:
             parse_error = e
 
         self._try_save_response({
-            "request_id": str(uuid.uuid4()),
-            "trace_id": str(uuid.uuid4()),
+            "trace_id": f"t-{uuid.uuid4().hex[:16]}",
             "organ_no": additional_data.get("organ_no", ""),
+            "organ_name": additional_data.get("organ", ""),
+            "company_url": additional_data.get("company_url", ""),
             "mode": "OPTIMIZE",
+            "user_input": json.dumps(additional_data.get("user_input"), ensure_ascii=False) if additional_data.get("user_input") else None,
             "prompt_raw": prompt,
             "response_raw": response.text,
-            "response_processed": parsed.model_dump_json() if parsed else None,
             "is_json": 1 if parsed else 0,
             "word_count": len(re.findall(r'[\u4e00-\u9fff]|[a-zA-Z]+|\d+', response.text)),
             "model": self.model_name,
