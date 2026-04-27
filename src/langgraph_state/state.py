@@ -148,7 +148,6 @@ class CompanyBriefState(TypedDict):
     organ_no: Optional[str]
     company_url: Optional[str]
     user_input: Optional[Dict[str, Any]] = None  # 規格化輸入 dict（Phase 21 新增）
-    word_limit: Optional[int]  # Phase 11 新增
     # Phase 14: 新增選填欄位
     capital: Optional[int]  # 資本額
     employees: Optional[int]  # 員工人數
@@ -252,7 +251,6 @@ def create_initial_state(
     organ_no: Optional[str] = None,
     company_url: Optional[str] = None,
     user_input: Optional[Dict[str, Any]] = None,
-    word_limit: Optional[int] = None,
     capital: Optional[int] = None,
     employees: Optional[int] = None,
     founded_year: Optional[int] = None,
@@ -267,7 +265,6 @@ def create_initial_state(
         organ_no: 統一編號
         company_url: 公司官網
         user_input: 規格化輸入 dict（Phase 21 新增）
-        word_limit: 字數限制
         capital: 資本額
         employees: 員工人數
         founded_year: 成立年份
@@ -283,7 +280,6 @@ def create_initial_state(
         organ_no=organ_no,
         company_url=company_url,
         user_input=user_input,
-        word_limit=word_limit,
         capital=capital,
         employees=employees,
         founded_year=founded_year,
@@ -427,9 +423,6 @@ def finalize_state(
     Returns:
         CompanyBriefState: 完成的狀態
     """
-    # Phase 11: 應用字數截斷
-    word_limit = state.get("word_limit")
-
     # Phase 14 Stage 2: 應用模板差異化（differentiate_template）
     # 根據 optimization_mode 截斷到對應的模板長度限制
     optimization_mode = state.get("optimization_mode", "standard")
@@ -502,16 +495,6 @@ def finalize_state(
                     processed_html = differentiate_template(body_html, template_type)
                     final_result = dict(final_result)
                     final_result["body_html"] = processed_html
-
-            # Phase 11: 如果有 word_limit，再套用一次字數限制（覆蓋模板限制）
-            # 注意：這是向後相容功能，可能添加截斷
-            if word_limit:
-                try:
-                    from src.functions.utils.text_truncate import truncate_llm_output
-
-                    final_result = truncate_llm_output(final_result, word_limit)
-                except Exception as e:
-                    logger.warning(f"Failed to apply word_limit truncation: {e}")
 
         except Exception as e:
             # 使用模組級別的 logger（避免函數內 local logger 遮蔽問題）

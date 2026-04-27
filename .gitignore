@@ -55,6 +55,9 @@ data/review_queue/
 # Phase 24 LLM response database
 data/llm_responses.db
 
+# SQLite in-memory test artifact (may leak file)
+:memory:
+
 # Test results and outputs
 outputs/
 data/test_samples/*.json

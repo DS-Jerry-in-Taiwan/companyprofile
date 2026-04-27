@@ -243,7 +243,7 @@ def request_context(
     if not request_id:
         request_id = f"req-{uuid.uuid4().hex[:8]}"
     if not trace_id:
-        trace_id = f"trace-{uuid.uuid4().hex[:16]}"
+        trace_id = f"t-{uuid.uuid4().hex[:16]}"
 
     # 儲存原始值
     old_request_id = getattr(_local, "request_id", None)

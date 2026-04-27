@@ -63,6 +63,7 @@ def build_success_response(payload, generated):
         "organNo": payload.get("organNo"),
         "organ": payload.get("organ"),
         "mode": payload.get("mode"),
+        "optimization_mode": payload.get("optimization_mode"),
         "title": generated.get("title", ""),
         "body_html": body_html,
         "summary": generated.get("summary", ""),
