@@ -73,6 +73,65 @@ CORS(app)
 # 計時工具
 timing_logger = logging.getLogger(__name__)
 
+# 新增錯誤記錄功能
+from utils.error_logger import ErrorLogger
+
+# 全域 ErrorLogger 實例
+_error_logger = None
+
+def _get_error_logger():
+    """取得 ErrorLogger 實例"""
+    global _error_logger
+    if _error_logger is None:
+        _error_logger = ErrorLogger()
+    return _error_logger
+
+def _save_error_to_db(trace_id, organ_no, organ_name, error_code, error_message, error_phase,
+                     recoverable, request_payload, mode, optimization_mode):
+    """記錄錯誤到 DB"""
+    try:
+        logger = _get_error_logger()
+        logger.save_error(
+            trace_id=trace_id,
+            organ_no=organ_no,
+            organ_name=organ_name,
+            error_code=error_code,
+            error_message=error_message,
+            error_phase=error_phase,
+            recoverable=recoverable,
+            request_payload=request_payload,
+            mode=mode,
+            optimization_mode=optimization_mode,
+        )
+    except Exception as e:
+        logging.getLogger(__name__).warning(f"Failed to save error to DB: {e}")
+
+def _save_failed_request_to_llm_responses(trace_id, organ_no, organ_name, error_code, request_payload, mode, optimization_mode):
+    """記錄失敗請求到 llm_responses 表"""
+    try:
+        from datetime import datetime
+        from src.storage.factory import StorageFactory
+        import json
+        
+        storage = StorageFactory.create({"type": "sqlite", "connection": "sqlite:///data/llm_responses.db"})
+        
+        item = {
+            "trace_id": trace_id,
+            "status": "error",
+            "error_code": error_code,
+            "organ_no": organ_no,
+            "organ_name": organ_name,
+            "mode": mode,
+            "optimization_mode": optimization_mode,
+            "user_input": json.dumps(request_payload) if request_payload else None,
+            "created_at": datetime.now().isoformat(),
+        }
+        
+        storage.save_response(item)
+        logging.getLogger(__name__).info(f"Saved failed request to llm_responses: trace_id={trace_id}, status=error")
+    except Exception as e:
+        logging.getLogger(__name__).warning(f"Failed to save failed request to llm_responses: {e}")
+
 
 @contextlib.contextmanager
 def measure(operation_name: str):
@@ -141,6 +200,31 @@ def process_company_profile():
                 error_details=ve.details,
             )
 
+            # 記錄錯誤到 DB（如果可用）
+            _save_error_to_db(
+                trace_id=trace_id,
+                organ_no=data.get("organNo"),
+                organ_name=data.get("organ"),
+                error_code=ve.code,
+                error_message=ve.message,
+                error_phase="validation",
+                recoverable=1,  # ValidationError 通常可復原
+                request_payload=data,
+                mode=data.get("mode"),
+                optimization_mode=data.get("optimization_mode"),
+            )
+
+            # 記錄失敗到 llm_responses 表（單表設計）
+            _save_failed_request_to_llm_responses(
+                trace_id=trace_id,
+                organ_no=data.get("organNo"),
+                organ_name=data.get("organ"),
+                error_code=ve.code,
+                request_payload=data,
+                mode=data.get("mode"),
+                optimization_mode=data.get("optimization_mode"),
+            )
+
             anomaly_id = detect_and_report_anomaly(
                 ve.message, "OrganBriefOptimization", trace_id
             )
@@ -175,6 +259,31 @@ def process_company_profile():
             # 記錄錯誤並偵測異常
             log_error(error_msg, exception=se, component="external_service")
 
+            # 記錄錯誤到 DB
+            _save_error_to_db(
+                trace_id=trace_id,
+                organ_no=data.get("organNo"),
+                organ_name=data.get("organ"),
+                error_code=se.code,
+                error_message=se.message,
+                error_phase="external_service",
+                recoverable=getattr(se, 'recoverable', 1),
+                request_payload=data,
+                mode=data.get("mode"),
+                optimization_mode=data.get("optimization_mode"),
+            )
+
+            # 記錄失敗到 llm_responses 表（單表設計）
+            _save_failed_request_to_llm_responses(
+                trace_id=trace_id,
+                organ_no=data.get("organNo"),
+                organ_name=data.get("organ"),
+                error_code=se.code,
+                request_payload=data,
+                mode=data.get("mode"),
+                optimization_mode=data.get("optimization_mode"),
+            )
+
             anomaly_id = detect_and_report_anomaly(
                 error_msg, "OrganBriefOptimization", trace_id
             )
@@ -207,18 +316,45 @@ def process_company_profile():
             response_time_ms = (time.time() - start_time) * 1000
             error_msg = f"未預期的錯誤: {type(e).__name__}: {str(e)}"
 
+            from utils.error_handler import ErrorCode
+
             # 記錄嚴重錯誤並偵測異常
             log_error(error_msg, exception=e, component="api_gateway")
+
+            # 記錄錯誤到 DB
+            _save_error_to_db(
+                trace_id=trace_id,
+                organ_no=data.get("organNo"),
+                organ_name=data.get("organ"),
+                error_code=ErrorCode.API_009.code,
+                error_message=str(e),
+                error_phase="api_gateway",
+                recoverable=0,
+                request_payload=data,
+                mode=data.get("mode"),
+                optimization_mode=data.get("optimization_mode"),
+            )
+
+            # 記錄失敗到 llm_responses 表（單表設計）
+            _save_failed_request_to_llm_responses(
+                trace_id=trace_id,
+                organ_no=data.get("organNo"),
+                organ_name=data.get("organ"),
+                error_code=ErrorCode.API_009.code,
+                request_payload=data,
+                mode=data.get("mode"),
+                optimization_mode=data.get("optimization_mode"),
+            )
 
             anomaly_id = detect_and_report_anomaly(
                 error_msg, "OrganBriefOptimization", trace_id
             )
 
-            # 使用 ErrorResponse schema
+            # 使用 ErrorResponse schema 與標準錯誤代碼
             error_response = ErrorResponse(
                 success=False,
                 error=ErrorDetail(
-                    code="INTERNAL_SERVER_ERROR",
+                    code=ErrorCode.API_009.code,
                     message=str(e),
                     trace_id=trace_id,
                 )

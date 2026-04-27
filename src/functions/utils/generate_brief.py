@@ -46,7 +46,6 @@ def generate_brief(data):
             - organNo (str, optional): 統一編號
             - companyUrl (str, optional): 公司官網
             - inputText (str, optional): 用戶提供的簡介素材
-            - word_limit (int, optional): 字數限制
             - capital (int, optional): 資本額
             - employees (int, optional): 員工人數
             - founded_year (int, optional): 成立年份
@@ -58,27 +57,40 @@ def generate_brief(data):
     organ = data["organ"]
     organ_no = data.get("organNo")
     company_url = data.get("companyUrl")
-    input_text = data.get("inputText")
-    word_limit = data.get("word_limit")
+    input_text = data.get("inputText") or data.get("brief")
     capital = data.get("capital")
     employees = data.get("employees")
     founded_year = data.get("founded_year")
     optimization_mode = data.get("optimization_mode")  # Phase 14 Stage 2: 模板類型
 
-    # 彙整 user_input dict（規格化 input）
+    # 彙整 user_input dict（把所有前端欄位存進 DB）
     user_input = {}
-    if organ_no:
-        user_input["unified_number"] = organ_no
-    if capital:
-        capital_wan = capital / 10000
-        if capital_wan >= 10000:
-            user_input["capital"] = f"{capital_wan / 10000:.2f} 億元"
-        else:
-            user_input["capital"] = f"{capital_wan:.0f} 萬元"
+    
+    # 公司官網
+    if company_url:
+        user_input["company_url"] = company_url
+    
+    # 文字欄位
+    if data.get("brand_names"):
+        user_input["brand_names"] = data["brand_names"]
+    if data.get("tax_id"):
+        user_input["tax_id"] = data["tax_id"]
+    if data.get("address"):
+        user_input["address"] = data["address"]
+    if data.get("industry"):
+        user_input["industry"] = data["industry"]
+    if data.get("industry_desc"):
+        user_input["industry_desc"] = data["industry_desc"]
+    
+    # 數值欄位（格式化）
+    if capital and capital > 0:
+        user_input["capital"] = f"{capital} 萬元"
     if founded_year:
         user_input["founded_year"] = f"{founded_year} 年"
     if employees:
         user_input["employees"] = f"{employees} 人"
+    
+    # 現有簡介
     if input_text:
         user_input["user_brief"] = input_text
 
@@ -93,8 +105,7 @@ def generate_brief(data):
             organ=organ,
             organ_no=organ_no,
             company_url=company_url,
-            user_input=user_input if user_input else None,
-            word_limit=word_limit,
+            user_input=user_input,  # {} 也傳，不要轉 None
             optimization_mode=optimization_mode,
         )
     except ExternalServiceError as e:
@@ -103,6 +114,17 @@ def generate_brief(data):
             code=e.code,
             message=e.message,
             recoverable=e.recoverable
+        )
+    except Exception as e:
+        from src.functions.utils.error_handler import LLMServiceError, ErrorCode
+        # 嘗試取用原始異常的 code/message（如果有定義的話）
+        code = getattr(e, 'code', None) or ErrorCode.SVC_001.code
+        message = getattr(e, 'message', None) or f"{type(e).__name__}: {str(e)}"
+        recoverable = getattr(e, 'recoverable', True)
+        raise LLMServiceError(
+            code=code,
+            message=message,
+            recoverable=recoverable,
         )
 
     # 確保回傳格式與原有 API 一致
