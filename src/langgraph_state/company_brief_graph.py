@@ -1008,7 +1008,7 @@ class CompanyBriefGraph:
         except Exception as e:
             from src.functions.utils.error_handler import ExternalServiceError, ErrorCode
             raise ExternalServiceError(
-                code=ErrorCode.SVC_007.code,
+                code=ErrorCode.SVC_008.code,
                 message=f"後處理失敗：{type(e).__name__}: {str(e)}",
                 recoverable=False,
             )
