@@ -1,15 +1,13 @@
 # 公司簡介生成與優化 API
 
-**當前版本**: v0.3.8 (Phase 23) - 2026-04-23
-
-這是一個採用 Serverless 架構的公司簡介生成與優化服務，部署於 AWS Lambda + API Gateway，提供 RESTful API 介面，支援從無到有生成公司簡介，以及優化現有的公司簡介內容。
+**當前版本**: v0.3.9 (Phase 24) - 2026-04-27
 
 **最新更新**:
+- ✅ Phase 24: optimization_mode 參數傳遞修復 + DB schema 更新
 - ✅ Phase 23: 模板多樣化（Prompt + 三個庫）
 - ✅ Phase 22: Markdown 清理
-- ✅ Phase 21: 錯誤處理標準化
 
-**版本歷史**: v0.3.8 > v0.3.7 > v0.3.6 > v0.3.5 > ... > v0.3.0 > v0.2.0 > v0.1.0
+**版本歷史**: v0.3.9 > v0.3.8 > v0.3.7 > v0.3.6 > v0.3.5 > ... > v0.3.0 > v0.2.0 > v0.1.0
 
 ---
 
@@ -487,6 +485,48 @@ TAIWAN_TERMS_ENABLED=true  # 啟用台灣用語轉換
 ---
 
 ## 版本變動
+
+### v0.3.9 - Phase 24 optimization_mode 參數傳遞修復 + DB schema 更新
+
+**日期**: 2026-04-27
+
+#### Phase 24: optimization_mode 參數傳遞修復 ✅
+
+| 工項 | 說明 |
+|------|------|
+| **問題根因** | `optimization_mode` 參數使用 positional arguments 傳遞時位置錯位，導致 state 中永遠是 None |
+| **修復方式** | company_brief_graph.py 第 937-945 行和 1019-1027 行從 positional arguments 改為 keyword arguments |
+| **三模板測試** | CONCISE: 92 字 / STANDARD: 216 字 / DETAILED: 534 字 |
+
+#### Phase 24b: DB schema 更新 ✅
+
+| 工項 | 說明 |
+|------|------|
+| **移除欄位** | user_organ（改為 organ_name）、response_processed |
+| **新增欄位** | company_url、user_input（JSON）、organ_name |
+| **capital 格式化** | 從 `capital / 10000` 改為直接存原始值，避免顯示 "0 萬元" |
+
+#### 修改檔案
+
+| 檔案 | 變更 |
+|------|------|
+| `src/langgraph_state/company_brief_graph.py` | invoke() 和 generate_company_brief() 使用 keyword arguments |
+| `src/storage/sqlite_adapter.py` | table schema 新增 organ_name、company_url、user_input；移除 user_organ、response_processed |
+| `src/functions/utils/generate_brief.py` | user_input 包含所有前端欄位（brand_names、tax_id、address、industry、industry_desc、capital、founded_year、employees、user_brief、company_url） |
+| `src/functions/utils/llm_service.py` | 三處 storage 呼叫更新 |
+| `src/services/llm_service.py` | 三處 storage 呼叫更新 |
+| `data/llm_responses.db` | 刪除重建 |
+
+#### Phase 24 完成項目
+
+| 項目 | 狀態 |
+|------|------|
+| optimization_mode 參數修復 | ✅ 使用 keyword arguments |
+| DB schema 更新 | ✅ 移除 2 個、新增 3 個欄位 |
+| capital 格式化修復 | ✅ 直接存原始值 |
+| 三模板測試 | ✅ CONCISE/STANDARD/DETAILED 正確觸發 |
+
+---
 
 ### v0.3.8 - Phase 23 模板多樣化
 

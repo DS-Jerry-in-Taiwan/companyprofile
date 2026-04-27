@@ -463,17 +463,17 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
             organ_no=state.get("organ_no"),
             company_url=state.get("company_url"),
             web_content=web_content,
-            word_limit=state.get("word_limit"),
             optimization_mode=state.get("optimization_mode"),
             _metadata=_prompt_meta,
         )
 
-        # 呼叫 LLM（Phase 11: 傳遞 word_limit）
+        # 呼叫 LLM
         with measure("LLM 生成"):
             llm_response = call_llm(
                 prompt,
-                word_limit=state.get("word_limit"),
                 organ_no=state.get("organ_no"),
+                organ=state["organ"],
+                user_input=user_input,
                 structure_key=_prompt_meta.get("structure_key"),
                 opening_key=_prompt_meta.get("opening_key"),
                 sentence_key=_prompt_meta.get("sentence_key"),
@@ -912,7 +912,6 @@ class CompanyBriefGraph:
         organ_no: Optional[str] = None,
         company_url: Optional[str] = None,
         user_input: Optional[Dict[str, Any]] = None,
-        word_limit: Optional[int] = None,
         optimization_mode: Optional[str] = None,
         max_rewrite_attempts: int = 2,
     ) -> Dict[str, Any]:
@@ -924,7 +923,6 @@ class CompanyBriefGraph:
             organ_no: 統一編號
             company_url: 公司官網
             user_input: 規格化輸入 dict（Phase 21 新增）
-            word_limit: 字數限制
             optimization_mode: 模板類型 (concise/standard/detailed)
             max_rewrite_attempts: 最大重寫次數
 
@@ -935,13 +933,12 @@ class CompanyBriefGraph:
 
         # 建立初始狀態
         initial_state = create_initial_state(
-            organ,
-            organ_no,
-            company_url,
-            user_input,
-            word_limit,
-            optimization_mode,
-            max_rewrite_attempts,
+            organ=organ,
+            organ_no=organ_no,
+            company_url=company_url,
+            user_input=user_input,
+            optimization_mode=optimization_mode,
+            max_rewrite_attempts=max_rewrite_attempts,
         )
 
         # 使用 LangGraph 執行
@@ -996,7 +993,6 @@ def generate_company_brief(
     organ_no: Optional[str] = None,
     company_url: Optional[str] = None,
     user_input: Optional[Dict[str, Any]] = None,
-    word_limit: Optional[int] = None,
     optimization_mode: Optional[str] = None,
     max_rewrite_attempts: int = 2,
 ) -> Dict[str, Any]:
@@ -1008,7 +1004,6 @@ def generate_company_brief(
         organ_no: 統一編號
         company_url: 公司官網
         user_input: 規格化輸入 dict（Phase 21 新增）
-        word_limit: 字數限制
         optimization_mode: 模板類型 (concise/standard/detailed)
         max_rewrite_attempts: 最大重寫次數
 
@@ -1017,11 +1012,10 @@ def generate_company_brief(
     """
     graph = create_company_brief_graph()
     return graph.invoke(
-        organ,
-        organ_no,
-        company_url,
-        user_input,
-        word_limit,
-        optimization_mode,
-        max_rewrite_attempts,
+        organ=organ,
+        organ_no=organ_no,
+        company_url=company_url,
+        user_input=user_input,
+        optimization_mode=optimization_mode,
+        max_rewrite_attempts=max_rewrite_attempts,
     )
