@@ -991,20 +991,27 @@ class CompanyBriefGraph:
         # ==================================
 
         # Phase 14 Stage 2: 在回傳前呼叫 finalize_state
-        # 套用 differentiate_template 模板差異化截斷
         # Phase 14 Stage 3: 同時整合字數檢核
-        final_result = final_state.get("final_result", {})
-        if final_result:
-            final_state = finalize_state(final_state, final_result)
-            final_result = final_state.get("final_result", {})
-
         # Phase 14: 台灣用語轉換和後處理
-        if final_result:
-            template_type = final_state.get("optimization_mode", "standard")
-            processed_result = post_process(final_result, template_type=template_type)
-            return processed_result
+        try:
+            final_result = final_state.get("final_result", {})
+            if final_result:
+                final_state = finalize_state(final_state, final_result)
+                final_result = final_state.get("final_result", {})
 
-        return final_result
+            if final_result:
+                template_type = final_state.get("optimization_mode", "standard")
+                processed_result = post_process(final_result, template_type=template_type)
+                return processed_result
+
+            return final_result
+        except Exception as e:
+            from src.functions.utils.error_handler import ExternalServiceError, ErrorCode
+            raise ExternalServiceError(
+                code=ErrorCode.SVC_007.code,
+                message=f"後處理失敗：{type(e).__name__}: {str(e)}",
+                recoverable=False,
+            )
 
 
 # ===== 公用介面 =====
