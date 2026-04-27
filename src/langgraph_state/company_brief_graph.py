@@ -942,7 +942,34 @@ class CompanyBriefGraph:
         )
 
         # 使用 LangGraph 執行
-        final_state = self.compiled_graph.invoke(initial_state)
+        try:
+            final_state = self.compiled_graph.invoke(initial_state)
+        except Exception as e:
+            from src.functions.utils.error_handler import ExternalServiceError, ErrorCode
+
+            # LangGraph 引擎層級的異常（非節點可控錯誤）
+            # 例如：state 格式錯誤、節點未定義、邊條件異常等
+            error_msg = str(e)
+            err_type = type(e).__name__
+
+            # 從原始異常中提取 code（如果有定義的話）
+            code = getattr(e, 'code', None)
+            if code:
+                pass  # 保留原始 code
+            elif "KeyError" in err_type or "key" in error_msg.lower():
+                code = ErrorCode.SVC_007.code  # State update failed
+            elif "timeout" in error_msg.lower():
+                code = ErrorCode.SVC_002.code  # Search timeout
+            elif "RateLimit" in err_type or "quota" in error_msg.lower() or "429" in error_msg:
+                code = ErrorCode.LLM_001.code  # API quota exhausted
+            else:
+                code = ErrorCode.SVC_007.code  # State update failed (generic)
+
+            raise ExternalServiceError(
+                code=code,
+                message=f"生成引擎錯誤：{err_type}: {error_msg}",
+                recoverable=True,
+            )
 
         # ===== Phase 21: 檢查錯誤並拋出 =====
         # 如果錯誤處理節點被執行過（error_handled=True），表示有錯誤但已被處理成罐頭內容
