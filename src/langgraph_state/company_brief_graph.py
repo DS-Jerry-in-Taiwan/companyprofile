@@ -983,8 +983,26 @@ class CompanyBriefGraph:
             error_detail = "; ".join(error_messages) if error_messages else "處理失敗"
 
             from src.functions.utils.error_handler import ExternalServiceError, ErrorCode
+
+            # 根據錯誤類型決定對應的 ErrorCode
+            error_text = error_detail.lower()
+            if not error_messages:
+                code = ErrorCode.SVC_004.code
+            elif any(kw in error_text for kw in ["429", "resource_exhausted", "quota", "rate limit"]):
+                code = ErrorCode.LLM_001.code        # API quota exhausted
+            elif any(kw in error_text for kw in ["timeout", "timed out"]):
+                code = ErrorCode.SVC_002.code        # Search timeout
+            elif any(kw in error_text for kw in ["搜尋失敗", "search failed", "no results"]):
+                code = ErrorCode.SVC_003.code        # Search no results
+            elif any(kw in error_text for kw in ["quality", "品質檢查"]):
+                code = ErrorCode.SVC_005.code        # Quality check failed
+            elif any(kw in error_text for kw in ["keyerror", "缺少必要欄位", "template"]):
+                code = ErrorCode.SVC_006.code        # Config loading failed
+            else:
+                code = ErrorCode.SVC_004.code        # Summary generation failed (default)
+
             raise ExternalServiceError(
-                code=ErrorCode.SVC_004.code,
+                code=code,
                 message=f"無法生成公司簡介：{error_detail}",
                 recoverable=True
             )
