@@ -271,6 +271,93 @@ def _normalize_line_breaks(text):
     return text
 
 
+def clean_number_format(text: str) -> str:
+    """移除數字中的千位逗號
+
+    Args:
+        text: 輸入文本（可包含 HTML）
+
+    Returns:
+        移除了千位逗號（含全形逗號）的文本
+
+    Example:
+        >>> clean_number_format("2,582,526,570")
+        '2582526570'
+        >>> clean_number_format("2，582，526，570")
+        '2582526570'
+        >>> clean_number_format("新台幣 2,582,526,570 元")
+        '新台幣 2582526570 元'
+    """
+    if not text:
+        return text
+    # 移除千位逗號 — 處理半形逗號 (2,582,526,570)
+    # 使用迴圈確保所有匹配都被移除
+    while re.search(r'\d,\d{3}', text):
+        text = re.sub(r'(\d),(\d{3})', r'\1\2', text)
+    # 移除千位逗號 — 處理全形逗號 (2，582，526，570)
+    while re.search(r'\d，\d{3}', text):
+        text = re.sub(r'(\d)，(\d{3})', r'\1\2', text)
+    return text
+
+
+# Phase 25: 數字簡化規則
+# 轉換門檻
+_SIMPLIFY_THRESHOLD_YI = 100_000_000  # 1億
+_SIMPLIFY_THRESHOLD_WAN = 10_000      # 1萬
+
+# 數字簡化 — 只處理後綴為「元」的大數字（避免誤轉統一編號等）
+_SIMPLIFY_PATTERN = re.compile(r'(\d{5,})\s*元')
+
+
+def _simplify_number_match(match: re.Match) -> str:
+    """將 regex match 中的數字轉換為自然單位"""
+    num_str = match.group(1)
+    num = int(num_str)
+
+    if num >= _SIMPLIFY_THRESHOLD_YI:
+        val = num / _SIMPLIFY_THRESHOLD_YI
+        if val == int(val):
+            return f"{int(val)}億元"
+        else:
+            return f"{val:.1f}億元"
+    elif num >= _SIMPLIFY_THRESHOLD_WAN:
+        val = num / _SIMPLIFY_THRESHOLD_WAN
+        if val == int(val):
+            return f"{int(val)}萬元"
+        else:
+            return f"{val:.1f}萬元"
+    return match.group(0)
+
+
+def simplify_number(text: str) -> str:
+    """將大數字簡化為自然單位（億/萬）
+
+    轉換規則:
+        >= 1億 → X億 / X.X億 (如 2582526570元 → 25.8億元)
+        >= 1萬 → X萬 / X.X萬 (如 50000000元 → 5000萬元)
+        <  1萬 → 不變
+
+    安全機制: 只處理後綴為「元」的數字，避免誤轉統一編號、年份等
+
+    Args:
+        text: 輸入文本
+
+    Returns:
+        數字已簡化的文本
+
+    Example:
+        >>> simplify_number("資本額 2582526570 元")
+        '資本額 25.8億元'
+        >>> simplify_number("資本額 50000000 元")
+        '資本額 5000萬元'
+        >>> simplify_number("員工人數 1200 人")
+        '員工人數 1200 人'
+    """
+    if not text:
+        return text
+    return _SIMPLIFY_PATTERN.sub(_simplify_number_match, text)
+
+
 def _filter_sensitive_text(text):
     filtered = text or ""
     for word in SENSITIVE_WORDS:
@@ -462,6 +549,14 @@ def post_process(llm_result, original_brief=None, template_type="standard"):
                 f"template_differentiator 模組未找到，跳過模板差異化處理: {e}"
             )
 
+        # Phase 25: 數字格式清理 — 移除千位逗號
+        safe_html = clean_number_format(safe_html)
+        logger.info("已應用數字格式清理到 body_html")
+
+        # Phase 25: 數字簡化 — 2582526570元 → 25.8億元
+        safe_html = simplify_number(safe_html)
+        logger.info("已應用數字簡化到 body_html")
+
         # 風險檢測（在敏感詞過濾之前）
         summary = llm_result.get("summary", "")
         if summary is None:
@@ -523,6 +618,16 @@ def post_process(llm_result, original_brief=None, template_type="standard"):
                 logger.warning(
                     f"template_differentiator 模組未找到，跳過 summary 模板差異化處理: {e}"
                 )
+
+        # Phase 25: 數字格式清理 — 移除千位逗號 (summary)
+        if summary:
+            summary = clean_number_format(summary)
+            logger.info("已應用數字格式清理到 summary")
+
+        # Phase 25: 數字簡化 — 2582526570元 → 25.8億元 (summary)
+        if summary:
+            summary = simplify_number(summary)
+            logger.info("已應用數字簡化到 summary")
 
     # Phase 14.1: 台灣用語轉換 (tags)
     tags = llm_result.get("tags", [])
