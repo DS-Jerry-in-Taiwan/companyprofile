@@ -37,6 +37,7 @@ class ErrorCode(Enum):
     SVC_005 = ("SVC_005", 500, "Quality check failed", False)
     SVC_006 = ("SVC_006", 500, "Config loading failed", False)
     SVC_007 = ("SVC_007", 500, "State update failed", False)
+    SVC_008 = ("SVC_008", 500, "Post-processing failed", False)
 
     # LLM 錯誤 (LLM_xxx)
     LLM_001 = ("LLM_001", 429, "API quota exhausted", True)

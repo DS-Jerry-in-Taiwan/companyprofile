@@ -53,12 +53,24 @@ class LLMService:
         return self._storage
 
     def _load_template(self, template_path: str) -> str:
-        with open(template_path, "r", encoding="utf-8") as f:
-            return f.read()
+        try:
+            with open(template_path, "r", encoding="utf-8") as f:
+                return f.read()
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"Prompt 模板檔案不存在: {template_path} (cwd={os.getcwd()})"
+            )
+        except IOError as e:
+            raise IOError(f"讀取 Prompt 模板失敗 {template_path}: {e}")
 
     def generate(self, company_data: dict, word_limit: int = None) -> LLMOutput:
         template = self._load_template("generate_prompt_template.txt")
-        prompt = template.format(**company_data)
+        try:
+            prompt = template.format(**company_data)
+        except KeyError as e:
+            raise ValueError(f"Prompt 模板缺少必要欄位: {e}")
+        except Exception as e:
+            raise ValueError(f"Prompt 格式化失敗: {type(e).__name__}: {str(e)}")
 
         # 動態計算 max_output_tokens
         # 公式：min(word_limit * 2, 4096)
@@ -115,7 +127,12 @@ class LLMService:
         template = self._load_template("optimize_prompt_template.txt")
         additional_data["original_brief"] = original_brief
         additional_data["additional_info"] = additional_data.get("description", "")
-        prompt = template.format(**additional_data)
+        try:
+            prompt = template.format(**additional_data)
+        except KeyError as e:
+            raise ValueError(f"Prompt 模板缺少必要欄位: {e}")
+        except Exception as e:
+            raise ValueError(f"Prompt 格式化失敗: {type(e).__name__}: {str(e)}")
 
         # 動態計算 max_output_tokens
         # 公式：min(word_limit * 2, 4096)

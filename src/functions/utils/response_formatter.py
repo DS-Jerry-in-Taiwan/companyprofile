@@ -52,14 +52,19 @@ def extract_content_from_html(html_content):
     }
 
 
-def build_success_response(payload, generated):
+def build_success_response(payload, generated, trace_id=None):
     # 從 body_html 提取內容
     body_html = generated.get("body_html", "")
     extracted = extract_content_from_html(body_html)
 
+    # 判斷是否為 error_handled (graph 層處理了錯誤但回傳 fallback)
+    error_handled = generated.get("error_handled", False)
+    errors = generated.get("errors", [])
+
     return {
-        "success": True,
-        "code": "SUCCESS",  # 統一成功代碼
+        "success": not error_handled,
+        "code": errors[0] if error_handled and errors else "SUCCESS",
+        "trace_id": trace_id,
         "organNo": payload.get("organNo"),
         "organ": payload.get("organ"),
         "mode": payload.get("mode"),
@@ -72,6 +77,8 @@ def build_success_response(payload, generated):
         "content_paragraphs": extracted["paragraphs"],
         "content_links": extracted["links"],
         "content_plain": extracted["plain"],
+        "error_handled": error_handled,
+        "errors": errors,
     }
 
 

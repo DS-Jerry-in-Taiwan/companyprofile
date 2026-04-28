@@ -650,14 +650,27 @@ def error_handler_node(state: CompanyBriefState) -> CompanyBriefState:
     """
     logger.info("執行錯誤處理節點")
 
+    # 安全取值，避免 state 結構異常時崩潰
+    company_name = state.get("organ", "未知公司")
+    errors = state.get("errors", [])
+
+    # 安全提取 error_message，避免 error 物件結構異常
+    error_messages = []
+    for err in errors:
+        if hasattr(err, "error_message"):
+            error_messages.append(err.error_message)
+        elif isinstance(err, str):
+            error_messages.append(err)
+        else:
+            error_messages.append(str(err))
+
     # 建立預設結果
-    company_name = state["organ"]
     default_result = {
         "title": f"{company_name} - 企業簡介",
         "body_html": f"<p>{company_name} 是一家專業的企業，致力於提供優質的產品和服務。由於技術問題，無法取得更詳細的資訊，請聯繫我們獲取最新資料。</p>",
         "summary": f"{company_name} - 專業企業，提供優質產品和服務。",
         "error_handled": True,
-        "errors": [error.error_message for error in state["errors"]],
+        "errors": error_messages,
     }
 
     # 設置最終結果
@@ -942,7 +955,34 @@ class CompanyBriefGraph:
         )
 
         # 使用 LangGraph 執行
-        final_state = self.compiled_graph.invoke(initial_state)
+        try:
+            final_state = self.compiled_graph.invoke(initial_state)
+        except Exception as e:
+            from src.functions.utils.error_handler import ExternalServiceError, ErrorCode
+
+            # LangGraph 引擎層級的異常（非節點可控錯誤）
+            # 例如：state 格式錯誤、節點未定義、邊條件異常等
+            error_msg = str(e)
+            err_type = type(e).__name__
+
+            # 從原始異常中提取 code（如果有定義的話）
+            code = getattr(e, 'code', None)
+            if code:
+                pass  # 保留原始 code
+            elif "KeyError" in err_type or "key" in error_msg.lower():
+                code = ErrorCode.SVC_007.code  # State update failed
+            elif "timeout" in error_msg.lower():
+                code = ErrorCode.SVC_002.code  # Search timeout
+            elif "RateLimit" in err_type or "quota" in error_msg.lower() or "429" in error_msg:
+                code = ErrorCode.LLM_001.code  # API quota exhausted
+            else:
+                code = ErrorCode.SVC_007.code  # State update failed (generic)
+
+            raise ExternalServiceError(
+                code=code,
+                message=f"生成引擎錯誤：{err_type}: {error_msg}",
+                recoverable=True,
+            )
 
         # ===== Phase 21: 檢查錯誤並拋出 =====
         # 如果錯誤處理節點被執行過（error_handled=True），表示有錯誤但已被處理成罐頭內容
@@ -956,28 +996,53 @@ class CompanyBriefGraph:
             error_detail = "; ".join(error_messages) if error_messages else "處理失敗"
 
             from src.functions.utils.error_handler import ExternalServiceError, ErrorCode
+
+            # 根據錯誤類型決定對應的 ErrorCode
+            error_text = error_detail.lower()
+            if not error_messages:
+                code = ErrorCode.SVC_004.code
+            elif any(kw in error_text for kw in ["429", "resource_exhausted", "quota", "rate limit"]):
+                code = ErrorCode.LLM_001.code        # API quota exhausted
+            elif any(kw in error_text for kw in ["timeout", "timed out"]):
+                code = ErrorCode.SVC_002.code        # Search timeout
+            elif any(kw in error_text for kw in ["搜尋失敗", "search failed", "no results"]):
+                code = ErrorCode.SVC_003.code        # Search no results
+            elif any(kw in error_text for kw in ["quality", "品質檢查"]):
+                code = ErrorCode.SVC_005.code        # Quality check failed
+            elif any(kw in error_text for kw in ["keyerror", "缺少必要欄位", "template"]):
+                code = ErrorCode.SVC_006.code        # Config loading failed
+            else:
+                code = ErrorCode.SVC_004.code        # Summary generation failed (default)
+
             raise ExternalServiceError(
-                code=ErrorCode.SVC_004.code,
+                code=code,
                 message=f"無法生成公司簡介：{error_detail}",
                 recoverable=True
             )
         # ==================================
 
         # Phase 14 Stage 2: 在回傳前呼叫 finalize_state
-        # 套用 differentiate_template 模板差異化截斷
         # Phase 14 Stage 3: 同時整合字數檢核
-        final_result = final_state.get("final_result", {})
-        if final_result:
-            final_state = finalize_state(final_state, final_result)
-            final_result = final_state.get("final_result", {})
-
         # Phase 14: 台灣用語轉換和後處理
-        if final_result:
-            template_type = final_state.get("optimization_mode", "standard")
-            processed_result = post_process(final_result, template_type=template_type)
-            return processed_result
+        try:
+            final_result = final_state.get("final_result", {})
+            if final_result:
+                final_state = finalize_state(final_state, final_result)
+                final_result = final_state.get("final_result", {})
 
-        return final_result
+            if final_result:
+                template_type = final_state.get("optimization_mode", "standard")
+                processed_result = post_process(final_result, template_type=template_type)
+                return processed_result
+
+            return final_result
+        except Exception as e:
+            from src.functions.utils.error_handler import ExternalServiceError, ErrorCode
+            raise ExternalServiceError(
+                code=ErrorCode.SVC_008.code,
+                message=f"後處理失敗：{type(e).__name__}: {str(e)}",
+                recoverable=False,
+            )
 
 
 # ===== 公用介面 =====

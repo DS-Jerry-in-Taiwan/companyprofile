@@ -176,7 +176,7 @@ def process_company_profile():
 
             # 記錄成功回應
             response_time_ms = (time.time() - start_time) * 1000
-            response_data = build_success_response(valid_data, result)
+            response_data = build_success_response(valid_data, result, trace_id)
 
             log_api_response(
                 method="POST",
@@ -440,15 +440,22 @@ def get_anomalies():
 @app.route("/health", methods=["GET"])
 def health_check():
     """健康檢查端點"""
-    with request_context() as ctx:
-        log_info("健康檢查", component="health_check")
-        return jsonify(
-            {
-                "status": "healthy",
-                "timestamp": time.time(),
-                "request_id": get_current_request_id(),
-            }
-        )
+    try:
+        with request_context() as ctx:
+            log_info("健康檢查", component="health_check")
+            return jsonify(
+                {
+                    "status": "healthy",
+                    "timestamp": time.time(),
+                    "request_id": get_current_request_id(),
+                }
+            )
+    except Exception as e:
+        return jsonify({
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": time.time(),
+        }), 500
 
 
 @app.route("/config", methods=["GET"])
