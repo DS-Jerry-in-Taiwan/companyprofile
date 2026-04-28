@@ -402,22 +402,15 @@ sync_parameters_from_env() {
 
         local param_path="/organ-brief/${ssm_name}"
 
-        # 檢查是否已存在
-        if eval "$aws_cmd ssm get-parameter --name '$param_path' --region $AWS_REGION > /dev/null 2>&1"; then
-            print_success "✓ $ssm_name (已存在)"
-            skipped=$((skipped + 1))
-            continue
-        fi
-
-        # 建立參數
+        # 總是同步 (overwrite)，確保 .env 變更後 SSM 同步更新
         if [ "$DRY_RUN" = true ]; then
             echo "  [DRY-RUN] aws ssm put-parameter --name '$param_path' --value '***' --type SecureString --region $AWS_REGION"
         else
             if eval "$aws_cmd ssm put-parameter --name '$param_path' --value '$env_value' --type SecureString --region $AWS_REGION --overwrite > /dev/null 2>&1"; then
-                print_success "✓ $ssm_name (已建立)"
+                print_success "✓ $ssm_name (已同步)"
                 synced=$((synced + 1))
             else
-                print_error "✗ $ssm_name (建立失敗)"
+                print_error "✗ $ssm_name (同步失敗)"
             fi
         fi
     done
