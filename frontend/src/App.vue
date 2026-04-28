@@ -15,10 +15,14 @@ async function handleSubmit(formData) {
     // 新增結果到陣列頂部（最新的在上面）
     results.value.unshift({
       id: Date.now(),
-      success: true,
+      success: response.success === true,
+      error_handled: response.error_handled === true,
       data: response,
       timestamp: new Date().toLocaleString('zh-TW')
     })
+    
+    // 限制最多保留 20 筆結果
+    if (results.value.length > 20) results.value.pop()
   } catch (err) {
     // 錯誤也加入結果陣列
     let errorData

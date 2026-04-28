@@ -176,7 +176,7 @@ def process_company_profile():
 
             # 記錄成功回應
             response_time_ms = (time.time() - start_time) * 1000
-            response_data = build_success_response(valid_data, result)
+            response_data = build_success_response(valid_data, result, trace_id)
 
             log_api_response(
                 method="POST",
