@@ -30,7 +30,7 @@
 前端排版問題：結果顯示在下方，而非右側並排。
 
 ### 開發文件
-- `docs/agent_context/phase26-frontend-layout-fix.md`
+- `docs/agent_context/phase26_frontend_layout_fix/phase26-frontend-layout-fix.md`
 
 ### 待辦
 1. 排查根本原因（可能是 CSS build cache、breakpoint 或元件樣式問題）
