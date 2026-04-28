@@ -352,6 +352,75 @@ deploy_serverless() {
     fi
 }
 
+# 從 .env 同步 API Key 到 SSM Parameter Store
+sync_parameters_from_env() {
+    if [ "$SKIP_VALIDATE" = true ]; then
+        return 0
+    fi
+
+    print_section "同步 .env → SSM Parameter Store"
+
+    local aws_cmd="aws"
+    if [ -n "$AWS_PROFILE" ]; then
+        aws_cmd="aws --profile $AWS_PROFILE"
+    fi
+
+    local env_file="${ENV_FILE:-.env}"
+    if [ ! -f "$env_file" ]; then
+        print_warning ".env 檔案不存在 ($env_file)，跳過參數同步"
+        return 0
+    fi
+
+    # 載入 .env
+    set -a
+    source "$env_file"
+    set +a
+
+    # 要同步的參數對應 (SSM 名稱 → 環境變數名稱)
+    local params=(
+        "google-genai-api-key:GOOGLE_GENAI_API_KEY"
+        "gemini-api-key:GEMINI_API_KEY"
+        "tavily-api-key:TAVILY_API_KEY"
+    )
+
+    local synced=0
+    local skipped=0
+    for entry in "${params[@]}"; do
+        local ssm_name="${entry%%:*}"
+        local env_name="${entry##*:}"
+        local env_value="${!env_name}"
+
+        if [ -z "$env_value" ]; then
+            print_warning "環境變數 $env_name 為空，跳過"
+            skipped=$((skipped + 1))
+            continue
+        fi
+
+        local param_path="/organ-brief/${ssm_name}"
+
+        # 檢查是否已存在
+        if eval "$aws_cmd ssm get-parameter --name '$param_path' --region $AWS_REGION > /dev/null 2>&1"; then
+            print_success "✓ $ssm_name (已存在)"
+            skipped=$((skipped + 1))
+            continue
+        fi
+
+        # 建立參數
+        if [ "$DRY_RUN" = true ]; then
+            echo "  [DRY-RUN] aws ssm put-parameter --name '$param_path' --value '***' --type SecureString --region $AWS_REGION"
+        else
+            if eval "$aws_cmd ssm put-parameter --name '$param_path' --value '$env_value' --type SecureString --region $AWS_REGION --overwrite > /dev/null 2>&1"; then
+                print_success "✓ $ssm_name (已建立)"
+                synced=$((synced + 1))
+            else
+                print_error "✗ $ssm_name (建立失敗)"
+            fi
+        fi
+    done
+
+    print_info "完成: $synced 同步, $skipped 跳過"
+}
+
 # 主流程
 main() {
     print_section "後端部署腳本（增強版）"
@@ -380,6 +449,7 @@ main() {
     check_git_status || exit 1
     check_aws_environment || exit 1
     check_parameter_store || true
+    sync_parameters_from_env || true
     login_ecr || exit 1
     deploy_serverless || exit 1
     
