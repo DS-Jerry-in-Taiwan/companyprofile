@@ -97,6 +97,8 @@ resources:
       Properties:
         Name: ${self:custom.albTargetGroupName.${self:provider.stage}}
         TargetType: lambda
+        Targets:
+          - Id: !GetAtt FlaskApiLambdaFunction.Arn
 
     # ALB Listener Rule
     FlaskApiAlbListenerRule:
@@ -119,3 +121,4 @@ resources:
         FunctionName: !GetAtt FlaskApiLambdaFunction.Arn
         Action: lambda:InvokeFunction
         Principal: elasticloadbalancing.amazonaws.com
+        SourceArn: !Ref FlaskApiTargetGroup
