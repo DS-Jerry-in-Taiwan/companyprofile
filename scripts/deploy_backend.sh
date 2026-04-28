@@ -367,7 +367,11 @@ sync_parameters_from_env() {
 
     local env_file="${ENV_FILE:-.env}"
     if [ ! -f "$env_file" ]; then
-        print_warning ".env 檔案不存在 ($env_file)，跳過參數同步"
+        # 若指定檔案不存在，改用專案根目錄的 .env
+        env_file="$(dirname "$(readlink -f "$0")")/../.env"
+    fi
+    if [ ! -f "$env_file" ]; then
+        print_warning ".env 檔案不存在，跳過參數同步"
         return 0
     fi
 
@@ -389,6 +393,11 @@ sync_parameters_from_env() {
         local ssm_name="${entry%%:*}"
         local env_name="${entry##*:}"
         local env_value="${!env_name}"
+
+        # GOOGLE_GENAI_API_KEY 若無值則用 GEMINI_API_KEY 取代
+        if [ -z "$env_value" ] && [ "$ssm_name" = "google-genai-api-key" ]; then
+            env_value="$GEMINI_API_KEY"
+        fi
 
         if [ -z "$env_value" ]; then
             print_warning "環境變數 $env_name 為空，跳過"
