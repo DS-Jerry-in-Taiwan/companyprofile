@@ -52,11 +52,6 @@ provider:
         - elasticloadbalancing:DescribeListenerRules
         - elasticloadbalancing:ModifyListenerRule
       Resource: "*"
-    - Effect: Allow
-      Action:
-        - lambda:AddPermission
-        - lambda:RemovePermission
-      Resource: "*"
 
 custom:
   logLevel:
@@ -77,10 +72,6 @@ custom:
   albPath:
     dev: /organ-brief-dev/api/recurit/optimize/*
     prod: /organ-brief-prd/api/recurit/optimize/*
-  # Target Group 名稱 (依 stage 區分)
-  albTargetGroupName:
-    dev: organ-brief-optimization-dev
-    prod: organ-brief-optimization-prod
 
 functions:
   flaskApi:
@@ -88,35 +79,10 @@ functions:
       name: flaskApiImg
     memorySize: 1024
     timeout: 120
-
-resources:
-  Resources:
-    # Target Group (自訂名稱)
-    FlaskApiTargetGroup:
-      Type: AWS::ElasticLoadBalancingV2::TargetGroup
-      Properties:
-        Name: ${self:custom.albTargetGroupName.${self:provider.stage}}
-        TargetType: lambda
-
-    # ALB Listener Rule
-    FlaskApiAlbListenerRule:
-      Type: AWS::ElasticLoadBalancingV2::ListenerRule
-      Properties:
-        ListenerArn: ${self:custom.albListenerArn.${self:provider.stage}}
-        Priority: ${self:custom.albPriority.${self:provider.stage}}
-        Conditions:
-          - Field: path-pattern
-            Values:
+    events:
+      - alb:
+          listenerArn: ${self:custom.albListenerArn.${self:provider.stage}}
+          priority: ${self:custom.albPriority.${self:provider.stage}}
+          conditions:
+            path:
               - ${self:custom.albPath.${self:provider.stage}}
-        Actions:
-          - Type: forward
-            TargetGroupArn: !Ref FlaskApiTargetGroup
-
-    # Lambda 執行權限 (允許 ALB 調用 Lambda)
-    FlaskApiLambdaPermission:
-      Type: AWS::Lambda::Permission
-      Properties:
-        FunctionName: !GetAtt FlaskApiLambdaFunction.Arn
-        Action: lambda:InvokeFunction
-        Principal: elasticloadbalancing.amazonaws.com
-        SourceArn: !Ref FlaskApiTargetGroup
