@@ -380,11 +380,22 @@ sync_parameters_from_env() {
     source "$env_file"
     set +a
 
-    # 要同步的參數對應 (SSM 名稱 → 環境變數名稱)
-    local params=(
-        "gemini-api-key:GEMINI_API_KEY"
-        "tavily-api-key:TAVILY_API_KEY"
-    )
+    # 要同步的參數對應 (依 stage 選擇對應的 env var)
+    local params=()
+    case $STAGE in
+        dev)
+            params=(
+                "gemini-api-key:DEV_GEMINI_API_KEY"
+                "tavily-api-key:TAVILY_API_KEY"
+            )
+            ;;
+        prod)
+            params=(
+                "gemini-api-key:PRD_GEMINI_API_KEY"
+                "tavily-api-key:TAVILY_API_KEY"
+            )
+            ;;
+    esac
 
     local synced=0
     local skipped=0
