@@ -382,7 +382,6 @@ sync_parameters_from_env() {
 
     # 要同步的參數對應 (SSM 名稱 → 環境變數名稱)
     local params=(
-        "google-genai-api-key:GOOGLE_GENAI_API_KEY"
         "gemini-api-key:GEMINI_API_KEY"
         "tavily-api-key:TAVILY_API_KEY"
     )
@@ -393,11 +392,6 @@ sync_parameters_from_env() {
         local ssm_name="${entry%%:*}"
         local env_name="${entry##*:}"
         local env_value="${!env_name}"
-
-        # GOOGLE_GENAI_API_KEY 若無值則用 GEMINI_API_KEY 取代
-        if [ -z "$env_value" ] && [ "$ssm_name" = "google-genai-api-key" ]; then
-            env_value="$GEMINI_API_KEY"
-        fi
 
         if [ -z "$env_value" ]; then
             print_warning "環境變數 $env_name 為空，跳過"

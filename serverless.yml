@@ -8,7 +8,6 @@ provider:
   environment:
     STAGE: ${self:provider.stage}
     LOG_LEVEL: ${self:custom.logLevel.${self:provider.stage}, 'INFO'}
-    GOOGLE_GENAI_API_KEY: ${ssm:/organ-brief/google-genai-api-key}
     GEMINI_API_KEY: ${ssm:/organ-brief/gemini-api-key}
     TAVILY_API_KEY: ${ssm:/organ-brief/tavily-api-key}
   
