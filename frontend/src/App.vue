@@ -5,35 +5,56 @@ import ResultPanel from './components/ResultPanel.vue'
 import { processProfile } from './api'
 
 const loading = ref(false)
-const result = ref(null)
-const error = ref(null)
+const results = ref([])
 
 async function handleSubmit(formData) {
   loading.value = true
-  error.value = null
-  result.value = null
   
   try {
     const response = await processProfile(formData)
-    result.value = response
+    // 新增結果到陣列頂部（最新的在上面）
+    results.value.unshift({
+      id: Date.now(),
+      success: true,
+      data: response,
+      timestamp: new Date().toLocaleString('zh-TW')
+    })
   } catch (err) {
-    // Handle error response
+    // 錯誤也加入結果陣列
+    let errorData
     if (err.response) {
-      result.value = {
+      const resp = err.response.data
+      // 解析 ErrorResponse 結構 { success: false, error: { code, message, details, trace_id } }
+      const errorObj = resp?.error || {}
+      errorData = {
         success: false,
-        error: err.response.data?.error || err.response.data?.message || `伺服器錯誤 (${err.response.status})`
+        code: errorObj.code || resp?.error_code || 'API_ERROR',
+        message: errorObj.message || resp?.message || `伺服器錯誤 (${err.response.status})`,
+        details: errorObj.details || resp?.details || null,
+        trace_id: errorObj.trace_id || null
       }
     } else if (err.request) {
-      result.value = {
+      errorData = {
         success: false,
-        error: '無法連線到伺服器，請檢查網路連線'
+        code: 'NETWORK_ERROR',
+        message: '無法連線到伺服器，請檢查網路連線',
+        details: null
       }
     } else {
-      result.value = {
+      errorData = {
         success: false,
-        error: err.message || '發生未知錯誤'
+        code: 'UNKNOWN_ERROR',
+        message: err.message || '發生未知錯誤',
+        details: null
       }
     }
+    
+    results.value.unshift({
+      id: Date.now(),
+      success: false,
+      data: errorData,
+      timestamp: new Date().toLocaleString('zh-TW')
+    })
   } finally {
     loading.value = false
   }
@@ -53,16 +74,16 @@ async function handleSubmit(formData) {
     
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col gap-4">
-
-        <!-- Form Panel (上方) -->
-        <div>
+      <div class="flex flex-col lg:flex-row gap-4">
+        
+        <!-- Left Panel: Form -->
+        <div class="w-full lg:w-1/3 flex-shrink-0">
           <BriefForm :loading="loading" @submit="handleSubmit" />
         </div>
 
-        <!-- Result Panel (下方) -->
-        <div>
-          <ResultPanel :result="result" :loading="loading" />
+        <!-- Right Panel: Results History -->
+        <div class="flex-1">
+          <ResultPanel :results="results" :loading="loading" />
         </div>
         
       </div>
