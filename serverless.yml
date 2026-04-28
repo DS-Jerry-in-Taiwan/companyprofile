@@ -44,6 +44,19 @@ provider:
       Action:
         - kms:Decrypt
       Resource: "*"
+    # 添加 ALB 操作權限
+    - Effect: Allow
+      Action:
+        - elasticloadbalancing:RegisterTargets
+        - elasticloadbalancing:DeregisterTargets
+        - elasticloadbalancing:CreateTargetGroup
+        - elasticloadbalancing:DeleteTargetGroup
+        - elasticloadbalancing:DescribeTargetGroups
+        - elasticloadbalancing:CreateListenerRule
+        - elasticloadbalancing:DeleteListenerRule
+        - elasticloadbalancing:DescribeListenerRules
+        - elasticloadbalancing:ModifyListenerRule
+      Resource: "*"
 
 custom:
   logLevel:
@@ -52,17 +65,29 @@ custom:
   deployVersion:
     dev: ${env:DEPLOY_VERSION, 'dev'}
   buildDate: ${env:BUILD_DATE, 'unknown'}
+  # ALB HTTPS Listener ARN (依 stage 區分)
+  albListenerArn:
+    dev: arn:aws:elasticloadbalancing:ap-northeast-1:132815414471:listener/app/1111datasciencedev-aloadbalancer/05c2bed73419cd11/8a1eff3be46df4e4
+    prod: arn:aws:elasticloadbalancing:ap-northeast-1:132815414471:listener/app/1111datascience-aloadbalancer/41580228b8eab2ba/b4273c29616b5962
+  # ALB rule priority (依 stage 區分)
+  albPriority:
+    dev: 77
+    prod: 78
+  # ALB rule path pattern (依 stage 區分)
+  albPath:
+    dev: /organ-brief-dev/api/recurit/optimize/*
+    prod: /organ-brief-prd/api/recurit/optimize/*
 
 functions:
   flaskApi:
     image: 
       name: flaskApiImg
     memorySize: 1024
-    timeout: 30
+    timeout: 120
     events:
-      - httpApi:
-          path: /{proxy+}
-          method: ANY
-      - httpApi:
-          path: /
-          method: ANY
+      - alb:
+          listenerArn: ${self:custom.albListenerArn.${self:provider.stage}}
+          priority: ${self:custom.albPriority.${self:provider.stage}}
+          conditions:
+            path:
+              - ${self:custom.albPath.${self:provider.stage}}
