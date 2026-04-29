@@ -2,6 +2,14 @@
 
 # 前端部署腳本（增強版）
 # 用法: ./deploy_frontend.sh [OPTIONS]
+#
+# 選項:
+#   -s, --stage STAGE           部署階段 (dev/prod) [默認: dev]
+#   -r, --region REGION         AWS 區域 [默認: ap-northeast-1]
+#   -p, --profile PROFILE       AWS Profile 名稱
+#   --skip-build                跳過前端建置
+#   --dry-run                   乾跑模式
+#   -h, --help                  顯示幫助信息
 
 set -e
 
@@ -25,6 +33,20 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# ALB API Path (依 stage 區分)
+case $STAGE in
+    dev)
+        ALB_API_PATH="/organ-brief-dev/api/recurit/optimize/v1"
+        ;;
+    prod)
+        ALB_API_PATH="/organ-brief-prd/api/recurit/optimize/v1"
+        ;;
+    *)
+        echo "未知 stage: $STAGE (請使用 dev 或 prod)"
+        exit 1
+        ;;
+esac
+
 BUCKET_NAME="organ-brief-frontend-${STAGE}"
 
 # AWS CLI 參數
@@ -42,10 +64,19 @@ echo "=========================================="
 echo ""
 echo "Stage: $STAGE"
 echo "Bucket: $BUCKET_NAME"
+echo "API Path: $ALB_API_PATH"
 echo "Profile: ${AWS_PROFILE:-default}"
 echo ""
 
-# 1. 建置前端
+# 1. 寫入 stage 對應的 .env.production
+echo "=========================================="
+echo "  設定 API 路徑"
+echo "=========================================="
+echo "VITE_API_BASE_URL=${ALB_API_PATH}" > frontend/.env.production
+echo "API_BASE_URL → ${ALB_API_PATH}"
+echo ""
+
+# 2. 建置前端
 if [ "$SKIP_BUILD" = true ]; then
     echo "跳過建置"
 else
@@ -69,7 +100,7 @@ else
     fi
 fi
 
-# 2. S3 Bucket
+# 3. S3 Bucket
 echo ""
 echo "=========================================="
 echo "  S3 Bucket"
@@ -85,27 +116,15 @@ else
         $AWS_CMD s3 mb "s3://$BUCKET_NAME" 2>&1
         echo "Bucket 建立成功"
         
-        # 設置公開讀取
-        cat > /tmp/bucket-policy.json << POLICY
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "PublicReadGetObject",
-            "Effect": "Allow",
-            "Principal": "*",
-            "Action": "s3:GetObject",
-            "Resource": "arn:aws:s3:::${BUCKET_NAME}/*"
-        }
-    ]
-}
-POLICY
-        $AWS_CMD s3api put-bucket-policy --bucket "$BUCKET_NAME" --policy file:///tmp/bucket-policy.json 2>&1
-        echo "Bucket 政策設置完成"
+        # 預設區塊公開存取
+        $AWS_CMD s3api put-public-access-block \
+            --bucket "$BUCKET_NAME" \
+            --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true" 2>&1
+        echo "已啟用區塊公開存取 (使用 CloudFront OAI)"
     fi
 fi
 
-# 3. 同步到 S3
+# 4. 同步到 S3
 echo ""
 echo "=========================================="
 echo "  同步到 S3"
@@ -126,22 +145,23 @@ else
     echo "檔案同步完成"
 fi
 
-# 4. 清除 CloudFront 快取（自動檢測）
+# 5. CloudFront Distribution 檢查 / 建立
 echo ""
 echo "=========================================="
-echo "  CloudFront 快取清除"
+echo "  CloudFront"
 echo "=========================================="
 
-# 自動檢測 CloudFront Distribution
 CF_DISTRIBUTION_ID=$($AWS_CMD cloudfront list-distributions \
     --query "DistributionList.Items[?contains(Origins.Items[].DomainName, '$BUCKET_NAME')].Id" \
     --output text 2>/dev/null | tr -d '\n')
 
 if [ -n "$CF_DISTRIBUTION_ID" ] && [ "$CF_DISTRIBUTION_ID" != "None" ]; then
+    echo "CloudFront Distribution 已存在: $CF_DISTRIBUTION_ID"
+    
+    # 清除快取
     if [ "$DRY_RUN" = true ]; then
         echo "[DRY-RUN] aws cloudfront create-invalidation --distribution-id $CF_DISTRIBUTION_ID --paths /*"
     else
-        echo "找到 CloudFront Distribution: $CF_DISTRIBUTION_ID"
         echo "清除快取..."
         INVALIDATION_ID=$($AWS_CMD cloudfront create-invalidation \
             --distribution-id "$CF_DISTRIBUTION_ID" \
@@ -149,14 +169,24 @@ if [ -n "$CF_DISTRIBUTION_ID" ] && [ "$CF_DISTRIBUTION_ID" != "None" ]; then
             --query 'Invalidation.Id' \
             --output text 2>&1)
         echo "Invalidation ID: $INVALIDATION_ID"
-        echo "Status: InProgress"
+        echo "Status: InProgress (生效需幾分鐘)"
     fi
 else
-    echo "未找到關聯的 CloudFront Distribution"
-    echo "跳過快取清除"
+    echo "尚未建立 CloudFront Distribution"
+    echo ""
+    echo "請手動建立 CloudFront Distribution:"
+    echo "  1. AWS Console → CloudFront → Create Distribution"
+    echo "  2. Origin 1: S3 → ${BUCKET_NAME}"
+    echo "     - 勾選 'Restrict Bucket Access' (OAI)"
+    echo "  3. Origin 2: ALB → ${ALB_DNS:-your-alb-dns}"
+    echo "     - Protocol: HTTP only"
+    echo "  4. Behaviors:"
+    echo "     - /organ-brief-${STAGE}/api/recurit/optimize/* → Origin 2 (ALB)"
+    echo "     - Default (*) → Origin 1 (S3)"
+    echo "  5. 完成後重新執行此腳本以清除快取"
 fi
 
-# 5. 完成
+# 6. 完成
 echo ""
 echo "=========================================="
 echo "  部署完成！"
@@ -165,19 +195,12 @@ echo ""
 echo "S3 Bucket: s3://$BUCKET_NAME"
 echo ""
 
-# 獲取 CloudFront 網址
+# 取得 CloudFront 網址
 CF_DOMAIN=$($AWS_CMD cloudfront list-distributions \
     --query "DistributionList.Items[?contains(Origins.Items[].DomainName, '$BUCKET_NAME')].DomainName" \
     --output text 2>/dev/null | tr -d '\n')
 
 if [ -n "$CF_DOMAIN" ] && [ "$CF_DOMAIN" != "None" ]; then
     echo "CloudFront 網址: https://$CF_DOMAIN"
+    echo "API 路徑: https://$CF_DOMAIN${ALB_API_PATH}/company/profile/process"
 fi
-
-# S3 網站端點
-S3_WEBSITE=$($AWS_CMD s3 website "s3://$BUCKET_NAME" --query 'Endpoint' --output text 2>/dev/null)
-if [ -n "$S3_WEBSITE" ]; then
-    echo "S3 靜態網站: http://$S3_WEBSITE"
-fi
-
-echo ""

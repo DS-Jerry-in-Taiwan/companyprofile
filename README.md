@@ -1,13 +1,15 @@
 # 公司簡介生成與優化 API
 
-**當前版本**: v0.4.0 (Phase 25) - 2026-04-27
+**當前版本**: v0.5.0 (Phase 27) - 2026-04-29
 
 **最新更新**:
+- ✅ Phase 27: ALB Migration (API Gateway → ALB + CloudFront)
+- ✅ Phase 26: 前端 Layout 調整（左右分欄 + 結果摺疊 + 錯誤三態顯示）
 - ✅ Phase 25: 數字格式清理與簡化 + 錯誤處理補強 + DB schema 優化
 - ✅ Phase 24: optimization_mode 參數傳遞修復 + DB schema 更新
 - ✅ Phase 23: 模板多樣化（Prompt + 三個庫）
 
-**版本歷史**: v0.4.0 > v0.3.9 > v0.3.8 > v0.3.7 > v0.3.6 > v0.3.5 > ... > v0.3.0 > v0.2.0 > v0.1.0
+**版本歷史**: v0.5.0 > v0.4.1 > v0.4.0 > v0.3.9 > v0.3.8 > v0.3.7 > v0.3.6 > v0.3.5 > ... > v0.3.0 > v0.2.0 > v0.1.0
 
 ---
 
@@ -39,8 +41,9 @@
 
 | 類別 | 技術 |
 |------|------|
-| Web Framework | Flask |
+| Web Framework | Flask + Vite (前端) |
 | LLM | Google Gemini (generativeai) |
+| **前端框架** | **Vue 3 + Vite + Tailwind CSS v4** |
 | **搜尋策略** | **Tavily / Gemini（可配置切換）** |
 | 流程控制 | LangGraph |
 | Data Validation | Pydantic |
@@ -273,6 +276,17 @@ graph TB
 
 ```
 OrganBriefOptimization/
+├── frontend/                   # Vue 3 前端
+│   ├── src/
+│   │   ├── App.vue             # 主頁面 (左右分欄 + 結果歷史)
+│   │   ├── components/
+│   │   │   ├── BriefForm.vue   # 表單元件
+│   │   │   └── ResultPanel.vue # 結果面板 (Accordion 摺疊)
+│   │   ├── api.js              # API 呼叫
+│   │   ├── main.js             # 前端入口
+│   │   └── style.css           # Tailwind CSS 入口
+│   ├── package.json
+│   └── vite.config.js
 ├── config/
 │   └── search_config.json       # 搜尋策略配置（可切換 provider）
 ├── run_api.py                  # 本地開發入口腳本
@@ -488,8 +502,10 @@ TAIWAN_TERMS_ENABLED=true  # 啟用台灣用語轉換
 
 | 版本 | 日期 | 摘要 | 詳細 |
 |------|------|------|------|
-| **v0.4.0** | 2026-04-27 | Phase 25: 數字格式清理 + 錯誤處理補強 + DB schema 優化 | [📄](docs/changelog/v0.4.0.md) |
-| v0.3.9 | 2026-04-27 | Phase 24: optimization_mode 修復 + DB schema 更新 | [📄](docs/changelog/v0.3.9.md) |
+| **v0.5.0** | **2026-04-29** | **Phase 27: ALB Migration（API Gateway → ALB + CloudFront + Domain）** | - |
+| **v0.4.1** | **2026-04-28** | **Phase 26: 前端 Layout 調整（左右分欄 + 結果摺疊 + 錯誤三態 + trace_id）** | - |
+| v0.4.0 | 2026-04-27 | Phase 25: 數字格式清理 + 錯誤處理補強 + DB schema 優化 | - |
+| v0.3.9 | 2026-04-27 | Phase 24: optimization_mode 修復 + DB schema 更新 | - |
 | v0.3.8 | 2026-04-23 | Phase 23: 模板多樣化 | - |
 | v0.3.7 | 2026-04-18 | Phase 22: Markdown 清理 | - |
 | v0.3.6 | 2026-04-16 | Phase 21: 錯誤處理標準化 | - |

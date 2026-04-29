@@ -1,24 +1,14 @@
 import axios from 'axios'
 
-let API_BASE_URL = '/api/v1'
+// 開發環境使用 Vite proxy (/api → Flask 5000)
+// 正式環境透過 .env.production 設定 VITE_API_BASE_URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
 
 /**
  * Process company profile (GENERATE or OPTIMIZE)
  * @param {Object} data - Company profile data
  * @returns {Promise<Object>} - API response
  */
-
-async function initializeApiUrl() {
-  try {
-    const response = await fetch('/api/config')
-    const data = await response.json()
-    API_BASE_URL = data.apiBaseUrl
-  } catch (e) {
-    console.warn('使用預設 API URL')
-  }
-}
-initializeApiUrl()  // 頁面載入時自動執行
-
 export async function processProfile(data) {
   const response = await axios.post(`${API_BASE_URL}/company/profile/process`, data, {
     headers: {
@@ -48,10 +38,6 @@ export function validateFormData(data) {
   }
 
   // Mode-specific validation
-  if (data.mode === 'GENERATE') {
-    // companyUrl is now optional - system will search using organ name
-  }
-
   if (data.mode === 'OPTIMIZE') {
     if (!data.brief?.trim()) {
       errors.push('OPTIMIZE 模式下現有簡介為必填')
