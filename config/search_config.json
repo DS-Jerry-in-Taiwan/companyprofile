@@ -40,20 +40,20 @@
   "default_strategy": "complete",
   "models": {
     "gemini_fewshot": {
-            "model": "gemini-3-flash-preview",
+            "model": "gemini-2.5-flash",
             "temperature": 0.2
         },
-    "gemini_planner_tavily": {
-      "model": "gemini-2.0-flash",
-      "temperature": 0.1
-    },
-    "parallel_aspect_search": {
-      "model": "gemini-2.0-flash",
-      "temperature": 0.2
-    },
-    "parallel_field_search": {
-      "model": "gemini-2.0-flash",
-      "temperature": 0.2
-    }
+"gemini_planner_tavily": {
+            "model": "gemini-2.5-flash",
+            "temperature": 0.1
+        },
+        "parallel_aspect_search": {
+            "model": "gemini-2.5-flash",
+            "temperature": 0.2
+        },
+        "parallel_field_search": {
+            "model": "gemini-2.5-flash",
+            "temperature": 0.2
+        }
   }
 }
