@@ -9,6 +9,7 @@ provider:
     STAGE: ${self:provider.stage}
     LOG_LEVEL: ${self:custom.logLevel.${self:provider.stage}, 'INFO'}
     GEMINI_API_KEY: ${ssm:/organ-brief/gemini-api-key}
+    GEMINI_MODEL: ${ssm:/organ-brief/gemini-model}
     TAVILY_API_KEY: ${ssm:/organ-brief/tavily-api-key}
   
   ecr:

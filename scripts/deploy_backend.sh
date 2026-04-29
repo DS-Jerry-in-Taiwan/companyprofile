@@ -386,12 +386,14 @@ sync_parameters_from_env() {
         dev)
             params=(
                 "gemini-api-key:DEV_GEMINI_API_KEY"
+                "gemini-model:GEMINI_MODEL"
                 "tavily-api-key:TAVILY_API_KEY"
             )
             ;;
         prod)
             params=(
                 "gemini-api-key:PRD_GEMINI_API_KEY"
+                "gemini-model:GEMINI_MODEL"
                 "tavily-api-key:TAVILY_API_KEY"
             )
             ;;
