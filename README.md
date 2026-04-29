@@ -1,14 +1,15 @@
 # 公司簡介生成與優化 API
 
-**當前版本**: v0.4.1 (Phase 26) - 2026-04-28
+**當前版本**: v0.5.0 (Phase 27) - 2026-04-29
 
 **最新更新**:
+- ✅ Phase 27: ALB Migration (API Gateway → ALB + CloudFront)
 - ✅ Phase 26: 前端 Layout 調整（左右分欄 + 結果摺疊 + 錯誤三態顯示）
 - ✅ Phase 25: 數字格式清理與簡化 + 錯誤處理補強 + DB schema 優化
 - ✅ Phase 24: optimization_mode 參數傳遞修復 + DB schema 更新
 - ✅ Phase 23: 模板多樣化（Prompt + 三個庫）
 
-**版本歷史**: v0.4.1 > v0.4.0 > v0.3.9 > v0.3.8 > v0.3.7 > v0.3.6 > v0.3.5 > ... > v0.3.0 > v0.2.0 > v0.1.0
+**版本歷史**: v0.5.0 > v0.4.1 > v0.4.0 > v0.3.9 > v0.3.8 > v0.3.7 > v0.3.6 > v0.3.5 > ... > v0.3.0 > v0.2.0 > v0.1.0
 
 ---
 
@@ -501,6 +502,7 @@ TAIWAN_TERMS_ENABLED=true  # 啟用台灣用語轉換
 
 | 版本 | 日期 | 摘要 | 詳細 |
 |------|------|------|------|
+| **v0.5.0** | **2026-04-29** | **Phase 27: ALB Migration（API Gateway → ALB + CloudFront + Domain）** | - |
 | **v0.4.1** | **2026-04-28** | **Phase 26: 前端 Layout 調整（左右分欄 + 結果摺疊 + 錯誤三態 + trace_id）** | - |
 | v0.4.0 | 2026-04-27 | Phase 25: 數字格式清理 + 錯誤處理補強 + DB schema 優化 | - |
 | v0.3.9 | 2026-04-27 | Phase 24: optimization_mode 修復 + DB schema 更新 | - |
