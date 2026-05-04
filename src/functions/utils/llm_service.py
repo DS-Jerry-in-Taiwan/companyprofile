@@ -20,29 +20,17 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-# ── 儲存層（惰性初始化，模組層級快取） ─────────────────
-_storage_instance = None
+# ── 儲存層：從全域入口取得 ──────────────────────────
 
 
 def _get_storage():
-    """惰性初始化儲存配接器（模組層級快取）"""
-    global _storage_instance
-    if _storage_instance is None:
-        try:
-            from src.storage.factory import StorageFactory
-
-            config_path = os.path.join(
-                PROJECT_ROOT, "config", "storage_config.json"
-            )
-            with open(config_path) as f:
-                cfg = json.load(f)
-            env = cfg.get("default", "development")
-            storage_cfg = cfg["storage"][env]
-            _storage_instance = StorageFactory.create(storage_cfg)
-        except Exception as e:
-            logger.warning(f"[Storage] 儲存初始化失敗，儲存功能已禁用: {e}")
-            _storage_instance = None
-    return _storage_instance
+    """從全域入口取得 storage instance（不再自己初始化）"""
+    try:
+        from src.storage import get_storage
+        return get_storage()
+    except Exception as e:
+        logger.warning(f"[Storage] 取得 storage 失敗: {e}")
+        return None
 
 
 def _try_save_response(item: dict) -> None:

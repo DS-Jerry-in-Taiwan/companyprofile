@@ -12,5 +12,13 @@ class StorageFactory:
             from .sqlite_adapter import SQLiteStorage
             return SQLiteStorage(config.get("connection"))
 
+        elif storage_type == "dynamodb":
+            from .dynamodb_adapter import DynamoDBStorage
+            return DynamoDBStorage(
+                llm_responses_table=config.get("llm_responses_table"),
+                error_logs_table=config.get("error_logs_table"),
+                region=config.get("region", "ap-northeast-1"),
+            )
+
         else:
             raise ValueError(f"Unknown storage type: {storage_type}")

@@ -2,7 +2,22 @@
   "storage": {
     "development": {
       "type": "sqlite",
-      "connection": "sqlite:///data/llm_responses.db"
+      "connection": "sqlite:///data/llm_responses.db",
+      "description": "本地開發用 SQLite"
+    },
+    "lambda-dev": {
+      "type": "dynamodb",
+      "region": "ap-northeast-1",
+      "llm_responses_table": "dev-llm-responses",
+      "error_logs_table": "dev-error-logs",
+      "description": "Lambda dev 環境用 DynamoDB"
+    },
+    "lambda-prod": {
+      "type": "dynamodb",
+      "region": "ap-northeast-1",
+      "llm_responses_table": "prod-llm-responses",
+      "error_logs_table": "prod-error-logs",
+      "description": "Lambda prod 環境用 DynamoDB"
     }
   },
   "default": "development"

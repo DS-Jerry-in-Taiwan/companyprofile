@@ -37,17 +37,17 @@ done
 case $STAGE in
     dev)
         ALB_API_PATH="/organ-brief-dev/api/recurit/optimize/v1"
+        BUCKET_NAME="organ-brief-frontend-office-dev"
         ;;
     prod)
         ALB_API_PATH="/organ-brief-prd/api/recurit/optimize/v1"
+        BUCKET_NAME="organ-brief-frontend-${STAGE}"
         ;;
     *)
         echo "未知 stage: $STAGE (請使用 dev 或 prod)"
         exit 1
         ;;
 esac
-
-BUCKET_NAME="organ-brief-frontend-${STAGE}"
 
 # AWS CLI 參數
 AWS_CMD="aws --region $AWS_REGION"

@@ -22,27 +22,12 @@ class ErrorLogger:
         self._init_storage()
 
     def _init_storage(self):
-        """初始化 storage"""
+        """初始化 storage — 從全域入口取得 instance"""
         if self._storage is None:
             try:
-                import os
-                import json as json_lib
-                
-                # 正確的路徑計算：src/functions/utils → 專案根目錄/config
-                self_dir = os.path.dirname(os.path.abspath(__file__))  # src/functions/utils
-                src_dir = os.path.dirname(self_dir)  # src/functions
-                src_parent = os.path.dirname(src_dir)  # src
-                project_root = os.path.dirname(src_parent)  # 專案根目錄
-                config_path = os.path.join(project_root, "config", "storage_config.json")
-                
-                with open(config_path) as f:
-                    cfg = json_lib.load(f)
-                env = cfg.get("default", "development")
-                storage_cfg = cfg["storage"][env]
-                
-                from src.storage.factory import StorageFactory
-                self._storage = StorageFactory.create(storage_cfg)
-                logger.info(f"ErrorLogger storage initialized from {config_path}")
+                from src.storage import get_storage
+                self._storage = get_storage()
+                logger.info("ErrorLogger storage initialized from global get_storage()")
             except Exception as e:
                 logger.warning(f"ErrorLogger storage init failed, error logging disabled: {e}")
                 self._storage = None
