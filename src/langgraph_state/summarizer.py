@@ -70,7 +70,10 @@ class FourAspectSummarizer:
 
             for q in queries:
                 if q.get("success") and q.get("answer"):
-                    answer = q["answer"].strip()
+                    answer = q["answer"]
+                    if isinstance(answer, list):
+                        answer = " ".join([str(a) for a in answer])
+                    answer = answer.strip()
                     if answer:
                         combined_parts.append(answer)
                         total_chars += len(answer)
