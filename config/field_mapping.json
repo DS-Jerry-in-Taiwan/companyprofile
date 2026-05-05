@@ -2,8 +2,6 @@
   "comment": "字段 ↔ 面向映射配置（Phase20 配置驅動架構）",
   "version": "1.0.0",
   "fields": [
-    "unified_number",
-    "capital",
     "founded_date",
     "address",
     "officer",
@@ -11,8 +9,6 @@
     "business_items"
   ],
   "mapping": {
-    "unified_number": "foundation",
-    "capital": "foundation",
     "founded_date": "foundation",
     "address": "foundation",
     "officer": "foundation",
