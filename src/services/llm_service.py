@@ -81,7 +81,11 @@ class LLMService:
         parsed = None
         parse_error = None
         try:
-            parsed = self._parse_response(response.text)
+            # 相容 list 和 str 兩種回傳格式
+            raw_text = response.text
+            if isinstance(raw_text, list):
+                raw_text = " ".join([str(p) for p in raw_text])
+            parsed = self._parse_response(raw_text)
         except Exception as e:
             parse_error = e
 
@@ -93,12 +97,16 @@ class LLMService:
             "mode": "GENERATE",
             "user_input": json.dumps(company_data.get("user_input"), ensure_ascii=False) if company_data.get("user_input") else None,
             "prompt_raw": prompt,
-            "response_raw": response.text,
+            "response_raw": raw_text if isinstance(raw_text, str) else " ".join([str(p) for p in raw_text]),
             "is_json": 1 if parsed else 0,
-            "word_count": len(re.findall(r'[\u4e00-\u9fff]|[a-zA-Z]+|\d+', response.text)),
+            "word_count": len(re.findall(r'[\u4e00-\u9fff]|[a-zA-Z]+|\d+', raw_text if isinstance(raw_text, str) else " ".join([str(p) for p in raw_text]))),
             "model": self.model_name,
-            "tokens_used": (
-                response.usage_metadata.total_token_count
+            "prompt_tokens": (
+                response.usage_metadata.prompt_token_count
+                if response.usage_metadata else None
+            ),
+            "completion_tokens": (
+                response.usage_metadata.candidates_token_count
                 if response.usage_metadata else None
             ),
             "latency_ms": _elapsed_ms,
@@ -143,7 +151,11 @@ class LLMService:
         parsed = None
         parse_error = None
         try:
-            parsed = self._parse_response(response.text)
+            # 相容 list 和 str 兩種回傳格式
+            raw_text = response.text
+            if isinstance(raw_text, list):
+                raw_text = " ".join([str(p) for p in raw_text])
+            parsed = self._parse_response(raw_text)
         except Exception as e:
             parse_error = e
 
@@ -159,8 +171,12 @@ class LLMService:
             "is_json": 1 if parsed else 0,
             "word_count": len(re.findall(r'[\u4e00-\u9fff]|[a-zA-Z]+|\d+', response.text)),
             "model": self.model_name,
-            "tokens_used": (
-                response.usage_metadata.total_token_count
+            "prompt_tokens": (
+                response.usage_metadata.prompt_token_count
+                if response.usage_metadata else None
+            ),
+            "completion_tokens": (
+                response.usage_metadata.candidates_token_count
                 if response.usage_metadata else None
             ),
             "latency_ms": _elapsed_ms,

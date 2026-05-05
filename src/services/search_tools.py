@@ -69,8 +69,6 @@ except ImportError:
     CONFIG_DRIVEN_ENABLED = False
     # Fallback 預設字段
     DEFAULT_FIELDS = [
-        "unified_number",
-        "capital",
         "founded_date",
         "address",
         "officer",
@@ -95,8 +93,6 @@ class SearchToolType(Enum):
 
 # ===== 結構化欄位定義 =====
 STRUCTURED_FIELDS = {
-    "unified_number": "統一編號（8位數字）",
-    "capital": "資本額（新台幣）",
     "founded_date": "成立時間/日期",
     "address": "公司地址",
     "officer": "負責人/代表人",
@@ -117,6 +113,10 @@ class SearchResult:
     data: Dict[str, Any]  # 結構化資料
     raw_answer: str  # 原始回答
     answer_length: int  # 回答長度
+    model_name: str = ""       # 實際使用的模型名稱（Phase 33）
+    prompt_tokens: int = 0     # Phase 33: 搜尋階段 input token 數
+    completion_tokens: int = 0 # Phase 33: 搜尋階段 output token 數
+    total_tokens: int = 0      # Phase 33: 搜尋階段 total token 數
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -127,6 +127,10 @@ class SearchResult:
             "data": self.data,
             "raw_answer": self.raw_answer,
             "answer_length": self.answer_length,
+            "model_name": self.model_name,
+            "prompt_tokens": self.prompt_tokens,
+            "completion_tokens": self.completion_tokens,
+            "total_tokens": self.total_tokens,
         }
 
 
@@ -228,6 +232,7 @@ class TavilyBatchSearchTool(BaseSearchTool):
             data=data,
             raw_answer=answer,
             answer_length=len(answer),
+            model_name="tavily",
         )
 
     def _parse_fields(self, answer: str) -> Dict[str, str]:
@@ -265,17 +270,15 @@ class GeminiFewShotSearchTool(BaseSearchTool):
 【搜尋任務】
 請使用 Google Search 搜尋並提取以下具體字段資訊：
 
-1. 統一編號：公司的統一編號（8位數字）
-2. 資本額：公司的資本額（新台幣）
-3. 成立時間：公司的成立時間或日期
-4. 公司地址：公司的登記地址
-5. 負責人：公司的負責人或代表人
-6. 主要產品服務：公司的主要產品或服務
-7. 營業項目：公司的營業項目
+1. 成立時間：公司的成立時間或日期
+2. 公司地址：公司的登記地址
+3. 負責人：公司的負責人或代表人
+4. 主要產品服務：公司的主要產品或服務
+5. 營業項目：公司的營業項目
 
 【輸出格式】
 請用 JSON 格式回覆，格式如下：
-{{"unified_number": "值", "capital": "值", "founded_date": "值", "address": "值", "officer": "值", "main_services": "值", "business_items": "值"}}
+{{"founded_date": "值", "address": "值", "officer": "值", "main_services": "值", "business_items": "值"}}
 
 【嚴格要求】
 - 只使用實際搜尋到的資訊，絕對不要編造或推測
@@ -289,14 +292,6 @@ class GeminiFewShotSearchTool(BaseSearchTool):
     RESPONSE_SCHEMA = genai_types.Schema(
         type=genai_types.Type.OBJECT,
         properties={
-            "unified_number": genai_types.Schema(
-                type=genai_types.Type.STRING,
-                description="統一編號：公司的統一編號（8位數字）",
-            ),
-            "capital": genai_types.Schema(
-                type=genai_types.Type.STRING,
-                description="資本額：公司的資本額（新台幣）",
-            ),
             "founded_date": genai_types.Schema(
                 type=genai_types.Type.STRING,
                 description="成立時間：公司的成立時間或日期",
@@ -340,6 +335,8 @@ class GeminiFewShotSearchTool(BaseSearchTool):
         field_list_text = "\n".join([f"{i+1}. {field}" for i, field in enumerate(fields)])
 
         # 組合 prompt
+        # 動態產生輸出格式（根據實際欄位）
+        json_fields = ", ".join([f'"{f}": "值"' for f in fields])
         prompt = f"""你是一個公司資訊搜尋專家。請搜尋「{company_name}」的詳細資訊。
 
 【搜尋任務】
@@ -349,7 +346,7 @@ class GeminiFewShotSearchTool(BaseSearchTool):
 
 【輸出格式】
 請用 JSON 格式回覆，格式如下：
-{{"unified_number": "值", "capital": "值", "founded_date": "值", "address": "值", "officer": "值", "main_services": "值", "business_items": "值"}}
+{{{json_fields}}}
 
 【嚴格要求】
 - 只使用實際搜尋到的資訊，絕對不要編造或推測
@@ -409,10 +406,18 @@ class GeminiFewShotSearchTool(BaseSearchTool):
             data = {"raw": raw_answer}
             data = {"raw": raw_answer[:500]}
 
+        # Phase 33: 記錄 token 用量
+        _prompt_tk = response.usage_metadata.prompt_token_count if response.usage_metadata else 0
+        _completion_tk = response.usage_metadata.candidates_token_count if response.usage_metadata else 0
+        _total_tk = response.usage_metadata.total_token_count if response.usage_metadata else 0
+
         self._last_metadata = {
             "query": query,
             "model": self.model,
             "json_parsed": True,
+            "prompt_tokens": _prompt_tk,
+            "completion_tokens": _completion_tk,
+            "total_tokens": _total_tk,
         }
 
         return SearchResult(
@@ -423,6 +428,10 @@ class GeminiFewShotSearchTool(BaseSearchTool):
             data=data,
             raw_answer=raw_answer,
             answer_length=len(raw_answer),
+            model_name=self.model,
+            prompt_tokens=_prompt_tk,
+            completion_tokens=_completion_tk,
+            total_tokens=_total_tk,
         )
 
 
@@ -513,6 +522,11 @@ class GeminiPlannerTavilyTool(BaseSearchTool):
         )
         planner_time = time.time() - start
 
+        # Phase 33: 記錄 token 用量
+        _prompt_tk = planner_response.usage_metadata.prompt_token_count if planner_response.usage_metadata else 0
+        _completion_tk = planner_response.usage_metadata.candidates_token_count if planner_response.usage_metadata else 0
+        _total_tk = planner_response.usage_metadata.total_token_count if planner_response.usage_metadata else 0
+
         # 解析 JSON
         json_match = re.search(
             r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", planner_response.text, re.DOTALL
@@ -527,6 +541,10 @@ class GeminiPlannerTavilyTool(BaseSearchTool):
                 data={},
                 raw_answer=planner_response.text,
                 answer_length=len(planner_response.text),
+                model_name=self.model,
+                prompt_tokens=_prompt_tk,
+                completion_tokens=_completion_tk,
+                total_tokens=_total_tk,
             )
 
         try:
@@ -540,6 +558,10 @@ class GeminiPlannerTavilyTool(BaseSearchTool):
                 data={},
                 raw_answer=planner_response.text,
                 answer_length=len(planner_response.text),
+                model_name=self.model,
+                prompt_tokens=_prompt_tk,
+                completion_tokens=_completion_tk,
+                total_tokens=_total_tk,
             )
 
         # Step 2: Tavily 批次執行
@@ -569,6 +591,9 @@ class GeminiPlannerTavilyTool(BaseSearchTool):
             "query_framework": query_framework,
             "search_results": search_results,
             "api_calls": 1 + len(queries),
+            "prompt_tokens": _prompt_tk,
+            "completion_tokens": _completion_tk,
+            "total_tokens": _total_tk,
         }
 
         return SearchResult(
@@ -579,6 +604,10 @@ class GeminiPlannerTavilyTool(BaseSearchTool):
             data=merged,
             raw_answer=json.dumps(merged, ensure_ascii=False),
             answer_length=sum(len(str(v)) for v in merged.values()),
+            model_name=self.model,
+            prompt_tokens=_prompt_tk,
+            completion_tokens=_completion_tk,
+            total_tokens=_total_tk,
         )
 
     def _merge_results(
@@ -718,6 +747,7 @@ class ParallelMultiSourceTool(BaseSearchTool):
             data={**merged_data, **metadata},
             raw_answer=str(merged_data),
             answer_length=len(str(merged_data)),
+            model_name=",".join(sorted(set(r.model_name for r in results if r.model_name))),
         )
 
     def _merge_results(self, results: List[SearchResult]) -> Dict[str, Any]:
@@ -873,6 +903,11 @@ class ParallelAspectSearchTool(BaseSearchTool):
             aspect: result.get("content", "") for aspect, result in results.items()
         }
 
+        # Phase 33: 彙總 token 用量（所有面向加總）
+        _sum_prompt = sum(r.get("prompt_tokens", 0) for r in results.values())
+        _sum_completion = sum(r.get("completion_tokens", 0) for r in results.values())
+        _sum_total = sum(r.get("total_tokens", 0) for r in results.values())
+
         # 4. 建立 SearchResult
         return SearchResult(
             success=len(results) > 0,
@@ -882,6 +917,10 @@ class ParallelAspectSearchTool(BaseSearchTool):
             data=merged_data,
             raw_answer=json.dumps(merged_data, ensure_ascii=False),
             answer_length=sum(len(str(v)) for v in merged_data.values()),
+            prompt_tokens=_sum_prompt,
+            completion_tokens=_sum_completion,
+            total_tokens=_sum_total,
+            model_name=self.model,
         )
 
     def _get_structured_config(self) -> "genai_types.GenerateContentConfig":
@@ -900,6 +939,11 @@ class ParallelAspectSearchTool(BaseSearchTool):
                 config=self._get_structured_config(),
             )
 
+            # Phase 33: 記錄 token 用量
+            _prompt_tk = response.usage_metadata.prompt_token_count if response.usage_metadata else 0
+            _completion_tk = response.usage_metadata.candidates_token_count if response.usage_metadata else 0
+            _total_tk = response.usage_metadata.total_token_count if response.usage_metadata else 0
+
             # 直接解析 JSON（因為已經強制 JSON 格式）
             data = json.loads(response.text)
 
@@ -907,6 +951,9 @@ class ParallelAspectSearchTool(BaseSearchTool):
                 "aspect": aspect,
                 "content": data.get(aspect, ""),  # 一定是字串
                 "success": True,
+                "prompt_tokens": _prompt_tk,
+                "completion_tokens": _completion_tk,
+                "total_tokens": _total_tk,
             }
         except Exception as e:
             return {
@@ -914,6 +961,9 @@ class ParallelAspectSearchTool(BaseSearchTool):
                 "content": "",
                 "success": False,
                 "error": str(e),
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
             }
 
 
@@ -935,28 +985,22 @@ class ParallelFieldSearchTool(BaseSearchTool):
     - 防呆機制避免編造
     """
 
-    # 7 個具體字段的獨立 Prompt
+    # 5 個具體字段的獨立 Prompt
     FIELD_PROMPTS = {
-        "unified_number": """請搜尋「{company}」的統一編號（8位數字）。
-        
-重要：只使用實際搜尋到的資訊。如果找不到，回覆：「未找到」。絕對不要編造或推測。""",
-        "capital": """請搜尋「{company}」的資本額（新台幣），例如「500萬元」、「1000萬元」等。
-        
-重要：只使用實際搜尋到的資訊。如果找不到，回覆：「未找到」。絕對不要編造或推測。""",
         "founded_date": """請搜尋「{company}」的成立時間/日期。
-        
+
 重要：只使用實際搜尋到的資訊。如果找不到，回覆：「未找到」。絕對不要編造或推測。""",
         "address": """請搜尋「{company}」的公司地址。
-        
+
 重要：只使用實際搜尋到的資訊。如果找不到，回覆：「未找到」。絕對不要編造或推測。""",
         "officer": """請搜尋「{company}」的負責人/代表人。
-        
+
 重要：只使用實際搜尋到的資訊。如果找不到，回覆：「未找到」。絕對不要編造或推測。""",
         "main_services": """請搜尋「{company}」的主要產品/服務。
-        
+
 重要：只使用實際搜尋到的資訊。如果找不到，回覆：「未找到」。絕對不要編造或推測。""",
         "business_items": """請搜尋「{company}」的營業項目。
-        
+
 重要：只使用實際搜尋到的資訊。如果找不到，回覆：「未找到」。絕對不要編造或推測。""",
     }
 
@@ -1020,7 +1064,12 @@ class ParallelFieldSearchTool(BaseSearchTool):
         # 4. 計算統計資訊
         found_fields = sum(1 for v in merged_data.values() if v != "未找到" and v != "")
         total_fields = len(merged_data)
-        
+
+        # Phase 33: 彙總 token 用量（所有字段加總）
+        _sum_prompt = sum(r.get("prompt_tokens", 0) for r in results.values())
+        _sum_completion = sum(r.get("completion_tokens", 0) for r in results.values())
+        _sum_total = sum(r.get("total_tokens", 0) for r in results.values())
+
         # 添加 metadata
         merged_data["_metadata"] = {
             "missing_fields": [k for k, v in merged_data.items() if v == "未找到" or v == ""],
@@ -1028,6 +1077,9 @@ class ParallelFieldSearchTool(BaseSearchTool):
             "total_fields": total_fields,
             "search_time": elapsed_time,
             "errors": errors if errors else None,
+            "prompt_tokens": _sum_prompt,
+            "completion_tokens": _sum_completion,
+            "total_tokens": _sum_total,
         }
 
         # 5. 建立 SearchResult
@@ -1039,6 +1091,10 @@ class ParallelFieldSearchTool(BaseSearchTool):
             data=merged_data,
             raw_answer=json.dumps(merged_data, ensure_ascii=False),
             answer_length=sum(len(str(v)) for v in merged_data.values() if not isinstance(v, dict)),
+            prompt_tokens=_sum_prompt,
+            completion_tokens=_sum_completion,
+            total_tokens=_sum_total,
+            model_name=self.model,
         )
 
     def _search_single_field(self, field: str, prompt: str) -> Dict:
@@ -1053,16 +1109,33 @@ class ParallelFieldSearchTool(BaseSearchTool):
                 ),
             )
 
-            content = response.text.strip()
-            
-            # 檢查是否為「未找到」
-            if content == "未找到" or "找不到" in content or "無法獲取" in content:
-                return {
-                    "field": field,
-                    "content": "未找到",
-                    "success": False,
-                    "reason": "no_data_found",
-                }
+            # Phase 33: 記錄 token 用量
+            _prompt_tk = response.usage_metadata.prompt_token_count if response.usage_metadata else 0
+            _completion_tk = response.usage_metadata.candidates_token_count if response.usage_metadata else 0
+            _total_tk = response.usage_metadata.total_token_count if response.usage_metadata else 0
+
+            raw_text = response.text.strip()
+            text = raw_text.replace("```json", "").replace("```", "").strip()
+
+            return {
+                "field": field,
+                "content": text,
+                "raw": raw_text,
+                "success": True,
+                "prompt_tokens": _prompt_tk,
+                "completion_tokens": _completion_tk,
+                "total_tokens": _total_tk,
+            }
+        except Exception as e:
+            return {
+                "field": field,
+                "content": "",
+                "success": False,
+                "error": str(e),
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+            }
             
             return {
                 "field": field,

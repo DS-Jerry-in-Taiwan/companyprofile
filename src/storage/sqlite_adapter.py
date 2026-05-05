@@ -35,18 +35,28 @@ class LLMResponse(Base):
     prompt_opening_key   = Column(String)   # "industry" | "market" | ...
     prompt_sentence_key  = Column(String)   # "service" | "feature" | ...
     prompt_template_name = Column(String)   # "concise" | "standard" | "detailed"
+    prompt_fewshot_styles = Column(String)  # Phase 32: "direct,omit,role,..."
 
     # Response
     response_raw = Column(Text)
     is_json = Column(Integer, default=0)
     word_count = Column(Integer)
-    tokens_used = Column(Integer)
+    prompt_tokens = Column(Integer)    # 生成階段 input token 數
+    completion_tokens = Column(Integer)  # 生成階段 output token 數
     model = Column(String)
     latency_ms = Column(Integer)
 
+    # Phase 33: 搜尋階段 token（合併在同一筆）
+    search_prompt_tokens = Column(Integer)     # 搜尋階段 input token 數
+    search_completion_tokens = Column(Integer) # 搜尋階段 output token 數
+    search_model = Column(String)              # 搜尋階段使用的 model
+    search_latency_ms = Column(Integer)        # 搜尋階段耗時
+
+    # Phase 33: 整筆請求總耗時
+    total_latency_ms = Column(Integer)
+
     # Metadata
     created_at = Column(String, index=True)
-    duration_ms = Column(Integer)
 
 
 class ErrorLog(Base):
@@ -97,7 +107,7 @@ class SQLiteStorage(StorageInterface):
             logger.info(
                 f"DB WRITE | id={item.get('id')} trace_id={item.get('trace_id')} "
                 f"organ_no={item.get('organ_no')} mode={item.get('mode')} "
-                f"model={item.get('model')} tokens={item.get('tokens_used')} "
+                f"model={item.get('model')} tokens={item.get('prompt_tokens', 0) + item.get('completion_tokens', 0)} "
                 f"latency={item.get('latency_ms')}ms word_count={item.get('word_count')}"
             )
             return True
