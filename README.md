@@ -1,15 +1,20 @@
 # 公司簡介生成與優化 API
 
-**當前版本**: v0.5.0 (Phase 27) - 2026-04-29
+**當前版本**: v0.7.0 (Phase 33) - 2026-05-05
 
 **最新更新**:
+- ✅ Phase 33: Token 成本追蹤 + DB Schema 優化（input/output 拆分、搜尋 token 補全、latency 定義）
+- ✅ Phase 32: 第一人稱範例庫模組化（6 種風格隨機組合）+ 每次 1~2 種風格
+- ✅ Phase 31: 求職者導向資訊 + 移除統一編號/資本額
+- ✅ Phase 30: 第一人稱視角強制（角色扮演法）+ 混用問題修復
+- ✅ Phase 29: 中國用語過濾（三層防護 + 300+ 詞彙）
+- ✅ Phase 28: 儲存層中央集權 + 雙軌儲存（地端 SQLite、雲端 DynamoDB）
 - ✅ Phase 27: ALB Migration (API Gateway → ALB + CloudFront)
 - ✅ Phase 26: 前端 Layout 調整（左右分欄 + 結果摺疊 + 錯誤三態顯示）
 - ✅ Phase 25: 數字格式清理與簡化 + 錯誤處理補強 + DB schema 優化
 - ✅ Phase 24: optimization_mode 參數傳遞修復 + DB schema 更新
-- ✅ Phase 23: 模板多樣化（Prompt + 三個庫）
 
-**版本歷史**: v0.5.0 > v0.4.1 > v0.4.0 > v0.3.9 > v0.3.8 > v0.3.7 > v0.3.6 > v0.3.5 > ... > v0.3.0 > v0.2.0 > v0.1.0
+**版本歷史**: v0.7.0 > v0.6.0 > v0.5.0 > v0.4.1 > v0.4.0 > v0.3.9 > v0.3.8 > v0.3.7 > v0.3.6 > v0.3.5 > ... > v0.3.0 > v0.2.0 > v0.1.0
 
 ---
 
@@ -30,7 +35,7 @@
 - **LLM 整合**：採用 Google Gemini 生成高品質內容
 - **三模板差異化**：支援 CONCISE / STANDARD / DETAILED 三種輸出模式
 - **風險控制**：內建敏感詞過濾與內容安全檢核
-- **Token 成本管理**：記錄並追蹤 API 呼叫費用
+- **Token 成本管理**：記錄 input/output token，合併搜尋 + 生成階段，支援成本計算
 - **台灣用語轉換**：自動將中國用語轉換為台灣用語（300+ 詞彙）
 
 ---
@@ -502,6 +507,8 @@ TAIWAN_TERMS_ENABLED=true  # 啟用台灣用語轉換
 
 | 版本 | 日期 | 摘要 | 詳細 |
 |------|------|------|------|
+| **v0.7.0** | **2026-05-05** | **Phase 33: Token 成本追蹤 + DB Schema 優化** | [📄](docs/changelog/v0.7.0.md) |
+| **v0.6.0** | **2026-04-30** | **Phase 28: 儲存層中央集權 + 雙軌儲存（地端 SQLite、雲端 DynamoDB）** | [📄](docs/changelog/v0.6.0.md) |
 | **v0.5.0** | **2026-04-29** | **Phase 27: ALB Migration（API Gateway → ALB + CloudFront + Domain）** | - |
 | **v0.4.1** | **2026-04-28** | **Phase 26: 前端 Layout 調整（左右分欄 + 結果摺疊 + 錯誤三態 + trace_id）** | - |
 | v0.4.0 | 2026-04-27 | Phase 25: 數字格式清理 + 錯誤處理補強 + DB schema 優化 | - |

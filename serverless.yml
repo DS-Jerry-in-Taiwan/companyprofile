@@ -57,6 +57,17 @@ provider:
         - lambda:AddPermission
         - lambda:RemovePermission
       Resource: "*"
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:Query
+        - dynamodb:Scan
+      Resource:
+        - !GetAtt LlmResponsesTable.Arn
+        - !GetAtt ErrorLogsTable.Arn
+        - !Sub "${LlmResponsesTable.Arn}/index/*"
+        - !Sub "${ErrorLogsTable.Arn}/index/*"
 
 custom:
   logLevel:
@@ -75,8 +86,8 @@ custom:
     prod: 78
   # ALB rule path pattern (依 stage 區分)
   albPath:
-    dev: /organ-brief-dev/api/recurit/optimize/*
-    prod: /organ-brief-prd/api/recurit/optimize/*
+    dev: /organ-brief-dev/*
+    prod: /organ-brief-prd/*
   # Target Group 名稱 (依 stage 區分)
   albTargetGroupName:
     dev: organ-brief-opt-dev
@@ -122,3 +133,63 @@ resources:
         Action: lambda:InvokeFunction
         Principal: elasticloadbalancing.amazonaws.com
         SourceArn: !Ref FlaskApiTargetGroup
+
+    # ── DynamoDB: LLM 回應記錄 ─────────────────────
+    LlmResponsesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.stage}-llm-responses
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: trace_id
+            AttributeType: S
+          - AttributeName: created_at
+            AttributeType: S
+          - AttributeName: organ_no
+            AttributeType: S
+          - AttributeName: status
+            AttributeType: S
+        KeySchema:
+          - AttributeName: trace_id
+            KeyType: HASH
+          - AttributeName: created_at
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: organ_no-index
+            KeySchema:
+              - AttributeName: organ_no
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: status-index
+            KeySchema:
+              - AttributeName: status
+                KeyType: HASH
+            Projection:
+              ProjectionType: KEYS_ONLY
+
+    # ── DynamoDB: 錯誤日誌記錄 ─────────────────────
+    ErrorLogsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.stage}-error-logs
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: trace_id
+            AttributeType: S
+          - AttributeName: created_at
+            AttributeType: S
+          - AttributeName: error_code
+            AttributeType: S
+        KeySchema:
+          - AttributeName: trace_id
+            KeyType: HASH
+          - AttributeName: created_at
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: error_code-index
+            KeySchema:
+              - AttributeName: error_code
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL

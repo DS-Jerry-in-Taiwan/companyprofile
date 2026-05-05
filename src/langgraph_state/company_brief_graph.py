@@ -10,6 +10,7 @@
 
 import logging
 import time
+import uuid
 import contextlib
 from typing import Dict, Any, Optional, List, Callable
 from datetime import datetime
@@ -83,6 +84,9 @@ logger = logging.getLogger(__name__)
 # ===== 節點執行函式 =====
 
 
+
+
+
 def search_node(state: CompanyBriefState) -> CompanyBriefState:
     """
     搜尋節點 - 使用配置驅動搜尋工具
@@ -140,6 +144,14 @@ def search_node(state: CompanyBriefState) -> CompanyBriefState:
 
         execution_time = time.time() - start_time
         logger.info(f"[TIMING] 搜尋階段完成，耗時 {execution_time * 1000:.2f}ms")
+
+        # Phase 33: 將搜尋 token 用量暫存到 state，供 generate_node 合併
+        state["_search_tokens"] = {
+            "prompt": getattr(search_result, 'prompt_tokens', 0) or 0,
+            "completion": getattr(search_result, 'completion_tokens', 0) or 0,
+            "model": getattr(search_result, 'model_name', None) or getattr(search_result, 'tool_type', 'gemini_fewshot'),
+            "latency_ms": int(execution_time * 1000),
+        }
 
         # 建立搜尋結果（轉換為結構化格式）
         # Phase19: 支援具體字段格式 (unified_number, capital 等)
@@ -257,6 +269,8 @@ def merge_structured_results(search_result):
             combined_parts = []
             for r in aspect_results:
                 content = r.get("content") or r.get("answer", "")
+                if isinstance(content, list):
+                    content = " ".join([str(c) for c in content])
                 if content and content.strip():
                     combined_parts.append(content.strip())
 
@@ -288,6 +302,8 @@ def merge_structured_results(search_result):
                     )
 
                 # 添加內容
+                if isinstance(content, list):
+                    content = " ".join([str(c) for c in content])
                 if content and content.strip():
                     existing = aspect_summaries[aspect].content
                     new_content = existing + "\n\n" + content.strip() if existing else content.strip()
@@ -469,6 +485,15 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
 
         # 呼叫 LLM
         with measure("LLM 生成"):
+            _search_tokens = state.get("_search_tokens") or {}
+            
+            # Phase 33: 在 call_llm 之前就算好總耗時
+            _st = state.get("start_time")
+            if _st:
+                if isinstance(_st, str):
+                    _st = datetime.fromisoformat(_st)
+                _search_tokens["total_latency_ms"] = int((datetime.now() - _st).total_seconds() * 1000)
+
             llm_response = call_llm(
                 prompt,
                 organ_no=state.get("organ_no"),
@@ -478,6 +503,8 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
                 opening_key=_prompt_meta.get("opening_key"),
                 sentence_key=_prompt_meta.get("sentence_key"),
                 template_name=_prompt_meta.get("template_name"),
+                fewshot_styles=_prompt_meta.get("fewshot_styles"),
+                search_tokens=_search_tokens,
             )
 
         execution_time = time.time() - start_time

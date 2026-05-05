@@ -10,9 +10,15 @@ import traceback
 import logging
 import contextlib
 import os
+import sys
 from datetime import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+
+# 確保專案根目錄在 Python 路徑中（for from src.storage import ...）
+_project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
 
 # 統一設定 root logger（只設一次，避免重複）
 _root_logger = logging.getLogger()
@@ -42,6 +48,37 @@ CORS(app)
 # 計時工具
 timing_logger = logging.getLogger(__name__)
 
+# ── 依執行環境初始化儲存層 ───────────────────────────
+# Lambda (STAGE=dev/prod) → DynamoDB
+# 本地開發 (無 STAGE)     → SQLite
+_stage = os.environ.get("STAGE", "")
+try:
+    from src.storage import init_storage
+
+    if _stage in ("dev", "prod"):
+        # Lambda 環境：DynamoDB
+        init_storage({
+            "type": "dynamodb",
+            "region": os.environ.get("AWS_REGION", "ap-northeast-1"),
+            "llm_responses_table": f"{_stage}-llm-responses",
+            "error_logs_table": f"{_stage}-error-logs",
+        })
+        timing_logger.info(f"Storage initialized: DynamoDB ({_stage}-llm-responses)")
+    else:
+        # 本地開發：SQLite（從 config 檔讀取）
+        _self_dir = os.path.dirname(os.path.abspath(__file__))
+        _project_root = os.path.dirname(os.path.dirname(_self_dir))
+        _config_path = os.path.join(_project_root, "config", "storage_config.json")
+        with open(_config_path) as _f:
+            import json as _json
+            _cfg = _json.load(_f)
+        _env = _cfg.get("default", "development")
+        init_storage(_cfg["storage"][_env])
+        timing_logger.info(f"Storage initialized: SQLite ({_env})")
+except Exception as _e:
+    timing_logger.warning(f"Storage init failed, app will run without persistence: {_e}")
+
+# ── Route 與工具 import ──────────────────────────────
 from utils.request_validator import validate_request, ValidationError
 from utils.core_dispatcher import dispatch_core_logic
 from utils.error_handler import (
@@ -105,32 +142,6 @@ def _save_error_to_db(trace_id, organ_no, organ_name, error_code, error_message,
         )
     except Exception as e:
         logging.getLogger(__name__).warning(f"Failed to save error to DB: {e}")
-
-def _save_failed_request_to_llm_responses(trace_id, organ_no, organ_name, error_code, request_payload, mode, optimization_mode):
-    """記錄失敗請求到 llm_responses 表"""
-    try:
-        from datetime import datetime
-        from src.storage.factory import StorageFactory
-        import json
-        
-        storage = StorageFactory.create({"type": "sqlite", "connection": "sqlite:///data/llm_responses.db"})
-        
-        item = {
-            "trace_id": trace_id,
-            "status": "error",
-            "error_code": error_code,
-            "organ_no": organ_no,
-            "organ_name": organ_name,
-            "mode": mode,
-            "optimization_mode": optimization_mode,
-            "user_input": json.dumps(request_payload) if request_payload else None,
-            "created_at": datetime.now().isoformat(),
-        }
-        
-        storage.save_response(item)
-        logging.getLogger(__name__).info(f"Saved failed request to llm_responses: trace_id={trace_id}, status=error")
-    except Exception as e:
-        logging.getLogger(__name__).warning(f"Failed to save failed request to llm_responses: {e}")
 
 
 @contextlib.contextmanager
@@ -214,17 +225,6 @@ def process_company_profile():
                 optimization_mode=data.get("optimization_mode"),
             )
 
-            # 記錄失敗到 llm_responses 表（單表設計）
-            _save_failed_request_to_llm_responses(
-                trace_id=trace_id,
-                organ_no=data.get("organNo"),
-                organ_name=data.get("organ"),
-                error_code=ve.code,
-                request_payload=data,
-                mode=data.get("mode"),
-                optimization_mode=data.get("optimization_mode"),
-            )
-
             anomaly_id = detect_and_report_anomaly(
                 ve.message, "OrganBriefOptimization", trace_id
             )
@@ -268,17 +268,6 @@ def process_company_profile():
                 error_message=se.message,
                 error_phase="external_service",
                 recoverable=getattr(se, 'recoverable', 1),
-                request_payload=data,
-                mode=data.get("mode"),
-                optimization_mode=data.get("optimization_mode"),
-            )
-
-            # 記錄失敗到 llm_responses 表（單表設計）
-            _save_failed_request_to_llm_responses(
-                trace_id=trace_id,
-                organ_no=data.get("organNo"),
-                organ_name=data.get("organ"),
-                error_code=se.code,
                 request_payload=data,
                 mode=data.get("mode"),
                 optimization_mode=data.get("optimization_mode"),
@@ -330,17 +319,6 @@ def process_company_profile():
                 error_message=str(e),
                 error_phase="api_gateway",
                 recoverable=0,
-                request_payload=data,
-                mode=data.get("mode"),
-                optimization_mode=data.get("optimization_mode"),
-            )
-
-            # 記錄失敗到 llm_responses 表（單表設計）
-            _save_failed_request_to_llm_responses(
-                trace_id=trace_id,
-                organ_no=data.get("organNo"),
-                organ_name=data.get("organ"),
-                error_code=ErrorCode.API_009.code,
                 request_payload=data,
                 mode=data.get("mode"),
                 optimization_mode=data.get("optimization_mode"),
@@ -439,13 +417,14 @@ def get_anomalies():
 
 @app.route("/health", methods=["GET"])
 def health_check():
-    """健康檢查端點"""
+    """健康檢查端點（含版號資訊）"""
     try:
         with request_context() as ctx:
             log_info("健康檢查", component="health_check")
             return jsonify(
                 {
                     "status": "healthy",
+                    "version": os.environ.get("VERSION", "unknown"),
                     "timestamp": time.time(),
                     "request_id": get_current_request_id(),
                 }

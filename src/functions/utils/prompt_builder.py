@@ -91,142 +91,107 @@ SENTENCE_DESCRIPTIONS = {
     "commitment": "承諾導向：以「[公司]致力於[服務]...」展現公司使命與價值主張",
 }
 
-# Phase 14 Stage 3: 三組 Few-shot 範例，依模板類型選用
-# 每個模板對應不同長度與詳細程度，確保範例長度與模板範圍一致
+# ============================================================
+# Phase 32: 第一人稱範例庫（模組化，隨機組合）
+# ============================================================
 
-FEW_SHOT_CONCISE = """
-## 範例參考（精簡模式 - 請學習以下範例的精簡寫法）
-
-### 範例一：包含資本額與員工人數
-【輸入資訊】
-- 公司名稱：ABC科技有限公司
-- 資本額：5000萬元
-- 員工人數：200人
-
-【正確輸出】
-ABC科技有限公司資本額5000萬元，員工人數約200人，專注於創新技術研發。
-
-【錯誤輸出】❌
-ABC科技有限公司是一家專注於創新技術研發的企業。
-（錯誤原因：未使用資本額和員工人數）
-
----
-
-### 範例二：包含成立年份
-【輸入資訊】
-- 公司名稱：綠能環保股份有限公司
-- 成立年份：2015年
-- 資本額：2億元
-
-【正確輸出】
-綠能環保股份有限公司成立於2015年，資本額2億元，致力於綠色能源開發。
-
-【錯誤輸出】❌
-綠能環保股份有限公司是一家環保技術企業。
-（錯誤原因：未使用成立年份和資本額）
-
----
-
-### 範例三：完整資訊
-【輸入資訊】
-- 公司名稱：數位創意工作室
-- 成立年份：2018年
-- 資本額：800萬元
-- 員工人數：25人
-
-【正確輸出】
-數位創意工作室成立於2018年，資本額800萬元，擁有約25名團隊成員，提供數位設計服務。
-"""
+# 1. 直接開頭型 — 以「我們」開頭，最基礎的寫法
+WE_DIRECT_EXAMPLES = {
+    "concise": [
+        """【正確輸出】
+我們自成立以來，專注於資訊安全領域，客戶涵蓋金融與醫療產業。""",
+        """【正確輸出】
+我們致力於環保技術開發，以廢棄物資源化為核心業務。""",
+    ],
+    "standard": [
+        """【正確輸出】
+我們自2010年成立以來，專注於資訊安全與雲端運算領域，客戶涵蓋金融、醫療與製造等產業，以自主研發的AI偵測系統獲得業界肯定。""",
+    ],
+    "detailed": [
+        """【正確輸出】
+我們自2010年成立以來，總部位於台北市內湖科技園區，專注於資訊安全與雲端運算領域。我們自主研發的AI威脅偵測系統可即時攔截網路攻擊，準確率高達99.5%，服務客戶涵蓋金融、醫療、製造與政府機關等四大產業，以「安全即服務」為核心理念持續投入研發。""",
+    ],
+}
 
 
-FEW_SHOT_STANDARD = """
-## 範例參考（標準模式 - 請學習以下範例的平衡寫法）
-
-### 範例一：包含資本額與員工人數
-【輸入資訊】
-- 公司名稱：ABC科技有限公司
-- 資本額：5000萬元
-- 員工人數：200人
-
-【正確輸出】
-ABC科技有限公司成立於2010年，資本額達5000萬元，擁有約200名專業團隊，專注於資訊安全與雲端運算服務。客戶涵蓋金融、醫療與製造等產業，以自主研發的AI偵測系統獲得業界肯定。
-
-【錯誤輸出】❌
-ABC科技有限公司是一家專注於創新技術研發的企業，致力於為客戶提供優質服務。
-（錯誤原因：未使用資本額和員工人數）
-
----
-
-### 範例二：包含成立年份
-【輸入資訊】
-- 公司名稱：綠能環保股份有限公司
-- 成立年份：2015年
-- 資本額：2億元
-
-【正確輸出】
-綠能環保股份有限公司成立於2015年，資本額達2億元，致力於環保技術與綠色能源開發。公司以廢棄物資源化為核心業務，服務涵蓋工業廢水處理與再生能源設備，累積超過百件成功案例。
-
-【錯誤輸出】❌
-綠能環保股份有限公司是一家專注於環保技術的企業。
-（錯誤原因：未使用成立年份和資本額）
-
----
-
-### 範例三：完整資訊
-【輸入資訊】
-- 公司名稱：數位創意工作室
-- 成立年份：2018年
-- 資本額：800萬元
-- 員工人數：25人
-
-【正確輸出】
-數位創意工作室成立於2018年，資本額800萬元，擁有約25名專業團隊。公司專注於品牌設計與數位行銷，服務橫跨科技、餐飲與零售產業，以數據驅動的創意策略協助客戶打造差異化品牌體驗。
-"""
+# 2. 主詞省略型 — 開頭不帶主詞（解決「我們」過多的核心方案）
+WE_OMIT_EXAMPLES = {
+    "concise": [
+        """【正確輸出】
+自成立以來，專注於資訊安全領域，客戶涵蓋金融與醫療產業。""",
+        """【正確輸出】
+致力於環保技術開發，以廢棄物資源化為核心業務。""",
+    ],
+    "standard": [
+        """【正確輸出】
+自2010年成立以來，專注於資訊安全與雲端運算領域，客戶涵蓋金融、醫療與製造等產業。自主研發的AI偵測系統獲得業界肯定。""",
+        """【正確輸出】
+於2015年創立，深耕環保技術領域，以廢棄物資源化為核心業務，累積超過百件成功案例。""",
+    ],
+    "detailed": [
+        """【正確輸出】
+自2010年成立以來，深耕資訊安全與雲端運算領域。自主研發的AI威脅偵測系統可即時攔截網路攻擊，準確率高達99.5%，服務客戶涵蓋金融、醫療、製造與政府機關等四大產業。""",
+    ],
+}
 
 
-FEW_SHOT_DETAILED = """
-## 範例參考（詳細模式 - 請學習以下範例的完整寫法）
+# 3. 角色融入型 — 以「身為...」「作為...」開頭
+WE_ROLE_EXAMPLES = {
+    "standard": [
+        """【正確輸出】
+身為綠色能源領域的專業廠商，我們致力於環保技術開發，以廢棄物資源化為核心業務，服務涵蓋工業廢水處理與再生能源設備。""",
+    ],
+    "detailed": [
+        """【正確輸出】
+身為台灣綠色能源領域的專業廠商，我們以廢棄物資源化為核心業務，服務涵蓋工業廢水處理、再生能源設備與環境影響評估。團隊擁有超過50位專業人才，累積完成超過300件專案。""",
+    ],
+}
 
-### 範例一：包含資本額與員工人數
-【輸入資訊】
-- 公司名稱：ABC科技有限公司
-- 資本額：5000萬元
-- 員工人數：200人
 
-【正確輸出】
-ABC科技有限公司成立於2010年，總部位於台北市內湖科技園區，資本額達5000萬元，擁有約200名專業團隊。公司專注於資訊安全與雲端運算領域，自主研發的AI威脅偵測系統可即時攔截網路攻擊，準確率高達99.5%，服務客戶涵蓋金融、醫療、製造與政府機關等四大產業。近年更拓展至東南亞市場，在新加坡設立營運據點，累積超過200家企業級客戶，以「安全即服務」為核心理念持續投入研發。
+# 4. 使命願景型 — 以「我們的使命/願景」開頭
+WE_MISSION_EXAMPLES = {
+    "concise": [
+        """【正確輸出】
+我們的使命是透過創意設計幫助品牌發光。團隊約25人，專注於品牌設計與數位行銷。""",
+    ],
+    "standard": [
+        """【正確輸出】
+我們的願景是成為台灣最具影響力的品牌設計團隊。自2018年成立以來，專注於品牌設計與數位行銷，以數據驅動的創意策略協助客戶打造差異化品牌體驗。""",
+    ],
+    "detailed": [
+        """【正確輸出】
+我們的使命是透過創意設計與數據驅動的策略，協助品牌在數位時代脫穎而出。自2018年成立以來，團隊約25人，營運據點位於台北市大安區，專注於品牌設計與數位行銷整合服務。""",
+    ],
+}
 
-【錯誤輸出】❌
-ABC科技有限公司是一家專注於創新技術研發的企業，致力於為客戶提供優質服務。
-（錯誤原因：未使用資本額和員工人數）
 
----
+# 5. 提問開頭型 — 以「您是否...？」提問開頭
+WE_QUESTION_EXAMPLES = {
+    "standard": [
+        """【正確輸出】
+您是否正在尋找可靠的技術夥伴？我們自2010年成立以來，專注於資訊安全領域，以自主研發的AI系統獲得業界肯定。""",
+    ],
+    "detailed": [
+        """【正確輸出】
+您是否正在尋找值得信賴的綠色能源合作夥伴？我們自2015年成立以來，深耕環保技術領域，累積超過300件成功案例，客戶遍及半導體與電子製造業。""",
+    ],
+}
 
-### 範例二：包含成立年份
-【輸入資訊】
-- 公司名稱：綠能環保股份有限公司
-- 成立年份：2015年
-- 資本額：2億元
 
-【正確輸出】
-綠能環保股份有限公司成立於2015年，資本額達2億元，總公司設於台中，為台灣綠色能源領域的專業廠商。公司以廢棄物資源化為核心業務，服務涵蓋工業廢水處理、再生能源設備與環境影響評估。團隊拥有超過50位環工與能源專業人才，累積完成超過300件專案，客戶遍及半導體、電子與傳產製造業。展望未來，公司將持續投入循環經濟技術研發，朝向淨零排放目標邁進。
+# 6. 情境鋪陳型 — 先鋪陳產業背景，再帶入公司
+WE_SCENE_EXAMPLES = {
+    "standard": [
+        """【正確輸出】
+在資訊安全威脅日益嚴峻的時代，我們致力於提供全方位的資安解決方案，協助企業抵禦網路攻擊，守護數據安全。""",
+    ],
+    "detailed": [
+        """【正確輸出】
+在全球環保意識抬頭與淨零排放趨勢下，我們致力於綠色能源技術的研發與應用。自2015年成立以來，以廢棄物資源化為核心業務，累積完成超過300件專案，為台灣循環經濟發展貢獻心力。""",
+    ],
+}
 
-【錯誤輸出】❌
-綠能環保股份有限公司是一家專注於環保技術的企業。
-（錯誤原因：未使用成立年份和資本額）
 
----
-
-### 範例三：完整資訊
-【輸入資訊】
-- 公司名稱：數位創意工作室
-- 成立年份：2018年
-- 資本額：800萬元
-- 員工人數：25人
-
-【正確輸出】
-數位創意工作室成立於2018年，資本額800萬元，擁有約25名專業團隊成員，營運據點位於台北市大安區。公司專注於品牌設計與數位行銷整合服務，業務涵蓋品牌識別系統、網站設計、社群行銷與數據分析四大領域，服務客戶橫跨科技、餐飲、零售與文創產業。團隊以數據驅動的創意策略為核心競爭力，每年執行超過百件專案，協助客戶打造差異化的品牌體驗。公司持續引進最新設計工具與行銷科技，致力於成為台灣最具影響力的數位品牌顧問團隊。
-"""
+# 7. 混用錯誤型（固定保留）
 
 # Phase 14 Stage 3: 字數限制優化 - 模板類型描述
 # 新架構：Prompt 層控制 + 字數檢核 + 必要時 LLM 重寫
@@ -420,15 +385,15 @@ def build_generate_prompt(
     # 1. 基礎資訊
     sections.append(f"## 公司基本資訊")
     sections.append(f"公司名稱：{organ}")
-    if organ_no:
-        sections.append(f"統一編號：{organ_no}")
     if company_url:
         sections.append(f"官網：{company_url}")
 
     # Phase 21: user_input 是 dict，直接格式化輸出
-    if user_input:
+    # Phase 31: 過濾不該顯示給 LLM 的欄位（資本額、員工人數）
+    display_input = {k: v for k, v in user_input.items() if k not in ('capital', 'employees')} if user_input else None
+    if display_input:
         sections.append(f"\n## 用戶提供的素材")
-        sections.append(format_content(user_input))
+        sections.append(format_content(display_input))
 
     # 2. 網路搜尋取得的內容
     if web_content:
@@ -436,29 +401,85 @@ def build_generate_prompt(
         sections.append(f"{web_content}")
 
     # 3. 必須使用的關鍵資訊清單（使用數字標記法）
-    # Phase 21: 從 user_input 取出數值欄位用於驗證
+    # Phase 31: 改為對求職者有用的資訊，不再強制要求資本額
     required_info = []
     required_numbers = []
+    jobseeker_info = []
     if user_input:
         if user_input.get("capital"):
-            required_info.append(f"[資本額]: {user_input['capital']}")
             required_numbers.append(user_input["capital"])
         if user_input.get("employees"):
-            required_info.append(f"[員工人數]: {user_input['employees']}")
             required_numbers.append(user_input["employees"])
         if user_input.get("founded_year"):
-            required_info.append(f"[成立年份]: {user_input['founded_year']}")
             required_numbers.append(user_input["founded_year"])
+            jobseeker_info.append(f"[成立年份]: {user_input['founded_year']}")
+        if user_input.get("industry") or user_input.get("industry_desc"):
+            jobseeker_info.append("[產業領域]: 核心業務與市場定位")
+        if user_input.get("brand_names"):
+            jobseeker_info.append(f"[品牌名稱]: {user_input['brand_names']}")
 
-    # 5. 加入 Few-shot 範例（當有選填資訊時，依模板類型選用對應長度的範例）
-    if required_info:
-        _few_mode = optimization_mode.lower() if optimization_mode else None
-        if _few_mode == "concise":
-            sections.append(f"\n{FEW_SHOT_CONCISE}")
-        elif _few_mode == "detailed":
-            sections.append(f"\n{FEW_SHOT_DETAILED}")
-        else:
-            sections.append(f"\n{FEW_SHOT_STANDARD}")
+    # Phase 32: 模組化範例選取（隨機組合不同風格）
+    import random
+    
+    # ═══ 範例區塊（永遠執行，不依賴 user_input） ═══
+    _few_mode = optimization_mode.lower() if optimization_mode else "standard"
+    if _few_mode not in ("concise", "standard", "detailed"):
+        _few_mode = "standard"
+    
+    style_name_map = {
+        "WE_DIRECT": "direct",
+        "WE_OMIT": "omit",
+        "WE_ROLE": "role",
+        "WE_MISSION": "mission",
+        "WE_QUESTION": "question",
+        "WE_SCENE": "scene",
+    }
+    pools = {
+        "concise": [
+            (WE_DIRECT_EXAMPLES["concise"], 1, "direct"),
+            (WE_OMIT_EXAMPLES["concise"], 1, "omit"),
+            (WE_MISSION_EXAMPLES["concise"], 1, "mission"),
+        ],
+        "standard": [
+            (WE_DIRECT_EXAMPLES["standard"], 1, "direct"),
+            (WE_OMIT_EXAMPLES["standard"], 1, "omit"),
+            (WE_ROLE_EXAMPLES["standard"], 1, "role"),
+            (WE_QUESTION_EXAMPLES["standard"], 1, "question"),
+            (WE_SCENE_EXAMPLES["standard"], 1, "scene"),
+        ],
+        "detailed": [
+            (WE_DIRECT_EXAMPLES["detailed"], 1, "direct"),
+            (WE_OMIT_EXAMPLES["detailed"], 1, "omit"),
+            (WE_ROLE_EXAMPLES["detailed"], 1, "role"),
+            (WE_MISSION_EXAMPLES["detailed"], 1, "mission"),
+            (WE_SCENE_EXAMPLES["detailed"], 1, "scene"),
+        ],
+    }
+    
+    selected_examples = []
+    selected_styles = []
+    
+    # 隨機選取 1~2 種風格（取代之前全選）
+    pool_list = pools[_few_mode]
+    num_to_select = random.randint(1, min(2, len(pool_list)))
+    selected_pools = random.sample(pool_list, num_to_select)
+    
+    for pool, count, style_name in selected_pools:
+        selected = random.sample(pool, min(count, len(pool)))
+        selected_examples.extend(selected)
+        selected_styles.append(style_name)
+    
+    # 記錄選取的風格到 metadata
+    if _metadata is not None:
+        _metadata["fewshot_styles"] = ",".join(selected_styles)
+    
+    # 組裝成 sections
+    sections.append(f"\n## 範例參考（{_few_mode} 模式 — 隨機組合）")
+    for i, example in enumerate(selected_examples, 1):
+        sections.append(f"\n### 範例 {i}")
+        sections.append(example)
+    
+    # ═══ 範例區塊結束 ═══
 
     # 6. 輸出要求
     sections.append(f"\n## 輸出要求")
@@ -478,29 +499,50 @@ def build_generate_prompt(
         sections.append(f"長度要求：{template_info['length_guide']}")
         sections.append(f"內容要求：{template_info['content_guide']}")
 
-    # 強制要求使用所有資訊
-    if required_info:
+    # 硬性要求（含對求職者有用的資訊 + 應避免的資訊）
+    if jobseeker_info or required_numbers:
         sections.append(f"\n### ⚠️ 硬性要求（必須遵守）")
-        sections.append("1. 生成的簡介必須包含以下所有關鍵資訊：")
-        for info in required_info:
-            sections.append(f"   - {info}")
-        sections.append("2. 不得遺漏任何上述數值資訊")
-        sections.append("3. 請用自然的方式將這些資訊融入內容中")
+        
+        # 對求職者有用的資訊
+        if jobseeker_info:
+            sections.append("1. 優先呈現對求職者有用的資訊：")
+            for info in jobseeker_info:
+                sections.append(f"   - {info}")
+        
+        # 應避免的資訊
+        sections.append("")
+        sections.append("2. 應避免的資訊（對求職者無意義）：")
+        sections.append("   - 統一編號（廠商編號）")
+        sections.append("   - 實收資本額、登記資本額")
+        sections.append("   - 經濟部商業司核准設立等行政登記資訊")
+        sections.append("   - 負責人姓名、公司登記地址（若與上班地點無關）")
+        
+        sections.append("")
+        sections.append("3. 請以自然的方式將上述有用資訊融入內容中")
         sections.append("4. ⚠️ 重要：必須優先使用上方『公司基本資訊』中提供的數據")
         sections.append("5. 如果搜尋結果與上方提供的基本資訊有衝突，請以基本資訊為準")
         sections.append("6. 搜尋結果僅供參考，核心數據必須使用上方提供的資訊")
         sections.append(
-            "7. ✅ 檢查點：生成後請自我檢查，確保所有標記的數字都已出現在輸出中"
+            "7. ✅ 檢查點：生成後請自行確認內容完整、資訊正確"
         )
 
-        # 提供檢查清單
-        sections.append(f"\n### ✅ 生成後檢查清單")
-        sections.append(f"請確認輸出包含以下數字：{', '.join(required_numbers)}")
+    # Phase 30: 寫作視角要求 — 角色扮演：公司人資/公關
+    sections.append("\n### 寫作視角")
+    sections.append("- 請以該公司人資或公關的角色，用第一人稱向求職者介紹公司")
+    sections.append("- 用「我們」來描述公司，但不要生硬地重複「我們公司名稱」")
+    sections.append("- 可以靈活切換多種第一人稱表達，例如：")
+    sections.append("  • 直接以「我們」開頭：「我們自成立以來...」")
+    sections.append("  • 以公司角色融入：「身為國內的領導品牌，我們...」")
+    sections.append("  • 以使命願景開頭：「我們的使命是...」")
+    sections.append("  • 以面向求職者的提問開頭：「您是否正在尋找...？我們...」")
+    sections.append("- 請勿使用第三人稱外部介紹語氣，如「該公司成立於...」、「該企業...」、「這家公司...」")
+    sections.append("- ⚠️ 整篇簡介從頭到尾都要維持第一人稱，不可中途切換為第三人稱")
 
     sections.append("\n### 品質要求")
     sections.append("- 如有用戶提供的素材，請優先參考並整合")
     sections.append("- 確保內容準確、專業、易讀")
-    sections.append("- 使用台灣常用語彙")
+    sections.append("- 使用台灣常用語彙，避免中國大陸常用詞語")
+    sections.append("- 例如：請用「網路」而非「網絡」、用「印表機」而非「打印機」、用「伺服器」而非「服務器」")
 
     # Phase 25: 數字格式規範 - 避免千位逗號
     sections.append("\n### 數字格式規範")

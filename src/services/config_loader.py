@@ -20,8 +20,6 @@ FIELD_MAPPING_SCHEMA_PATH = os.path.join(CONFIG_DIR, "field_mapping_schema.json"
 # 預設映射（fallback 用）
 DEFAULT_FIELD_MAPPING = {
     "fields": [
-        "unified_number",
-        "capital",
         "founded_date",
         "address",
         "officer",
@@ -29,8 +27,6 @@ DEFAULT_FIELD_MAPPING = {
         "business_items"
     ],
     "mapping": {
-        "unified_number": "foundation",
-        "capital": "foundation",
         "founded_date": "foundation",
         "address": "foundation",
         "officer": "foundation",

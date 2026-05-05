@@ -10,7 +10,6 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 from src.schemas.llm_output import LLMOutput
-from src.storage.factory import StorageFactory
 
 load_dotenv()
 
@@ -30,27 +29,16 @@ class LLMService:
         model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
         self.model_name = model_name
 
-        # 初始化存储层（惰性加载）
-        self._storage = None
-
     def _get_storage(self):
-        """惰性初始化存储适配器"""
-        if self._storage is None:
-            try:
-                config_path = os.path.join(
-                    os.path.dirname(__file__), "..", "..", "config", "storage_config.json"
-                )
-                with open(config_path) as f:
-                    cfg = json.load(f)
-                env = cfg.get("default", "development")
-                storage_cfg = cfg["storage"][env]
-                self._storage = StorageFactory.create(storage_cfg)
-            except Exception as e:
-                logging.getLogger(__name__).warning(
-                    f"[Storage] 存储初始化失败，存储功能已禁用: {e}"
-                )
-                self._storage = None
-        return self._storage
+        """從全域入口取得 storage instance（不再自己初始化）"""
+        try:
+            from src.storage import get_storage
+            return get_storage()
+        except Exception as e:
+            logging.getLogger(__name__).warning(
+                f"[Storage] 取得 storage 失敗: {e}"
+            )
+            return None
 
     def _load_template(self, template_path: str) -> str:
         try:
@@ -93,7 +81,11 @@ class LLMService:
         parsed = None
         parse_error = None
         try:
-            parsed = self._parse_response(response.text)
+            # 相容 list 和 str 兩種回傳格式
+            raw_text = response.text
+            if isinstance(raw_text, list):
+                raw_text = " ".join([str(p) for p in raw_text])
+            parsed = self._parse_response(raw_text)
         except Exception as e:
             parse_error = e
 
@@ -105,12 +97,16 @@ class LLMService:
             "mode": "GENERATE",
             "user_input": json.dumps(company_data.get("user_input"), ensure_ascii=False) if company_data.get("user_input") else None,
             "prompt_raw": prompt,
-            "response_raw": response.text,
+            "response_raw": raw_text if isinstance(raw_text, str) else " ".join([str(p) for p in raw_text]),
             "is_json": 1 if parsed else 0,
-            "word_count": len(re.findall(r'[\u4e00-\u9fff]|[a-zA-Z]+|\d+', response.text)),
+            "word_count": len(re.findall(r'[\u4e00-\u9fff]|[a-zA-Z]+|\d+', raw_text if isinstance(raw_text, str) else " ".join([str(p) for p in raw_text]))),
             "model": self.model_name,
-            "tokens_used": (
-                response.usage_metadata.total_token_count
+            "prompt_tokens": (
+                response.usage_metadata.prompt_token_count
+                if response.usage_metadata else None
+            ),
+            "completion_tokens": (
+                response.usage_metadata.candidates_token_count
                 if response.usage_metadata else None
             ),
             "latency_ms": _elapsed_ms,
@@ -155,7 +151,11 @@ class LLMService:
         parsed = None
         parse_error = None
         try:
-            parsed = self._parse_response(response.text)
+            # 相容 list 和 str 兩種回傳格式
+            raw_text = response.text
+            if isinstance(raw_text, list):
+                raw_text = " ".join([str(p) for p in raw_text])
+            parsed = self._parse_response(raw_text)
         except Exception as e:
             parse_error = e
 
@@ -171,8 +171,12 @@ class LLMService:
             "is_json": 1 if parsed else 0,
             "word_count": len(re.findall(r'[\u4e00-\u9fff]|[a-zA-Z]+|\d+', response.text)),
             "model": self.model_name,
-            "tokens_used": (
-                response.usage_metadata.total_token_count
+            "prompt_tokens": (
+                response.usage_metadata.prompt_token_count
+                if response.usage_metadata else None
+            ),
+            "completion_tokens": (
+                response.usage_metadata.candidates_token_count
                 if response.usage_metadata else None
             ),
             "latency_ms": _elapsed_ms,

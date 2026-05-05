@@ -10,6 +10,7 @@ import re
 import logging
 import time
 import contextlib
+import bs4
 
 logger = logging.getLogger(__name__)
 
@@ -445,26 +446,23 @@ def _convert_to_taiwan_terms(text):
 
         soup = BeautifulSoup(text, "html.parser")
 
-        # 遍歷所有標籤
-        for tag in soup.find_all(True):
-            if tag.string:
-                # 轉換文本內容
-                original_text = tag.string.strip()
-                if original_text:
-                    # 使用台灣用語轉換器
-                    converter = get_taiwan_converter()
-                    result = converter.convert(original_text)
-                    if result.success():
-                        chars_converted += (
-                            result.chars_converted
-                            if hasattr(result, "chars_converted")
-                            else 0
-                        )
-                        tag.string = result.text
-                    else:
-                        # 轉換失敗，保留原始文字
-                        logger.warning(f"台灣用語轉換失敗: {result.error}")
-                        tag.string = original_text
+        # 遍歷所有文字節點（不只看 tag.string，避免 <br> 等混合內容被跳過）
+        for text_node in soup.find_all(string=True):
+            original_text = text_node.strip()
+            if original_text:
+                # 使用台灣用語轉換器
+                converter = get_taiwan_converter()
+                result = converter.convert(original_text)
+                if result.success():
+                    text_node.replace_with(bs4.NavigableString(result.text))
+                    chars_converted += (
+                        result.chars_converted
+                        if hasattr(result, "chars_converted")
+                        else 0
+                    )
+                else:
+                    # 轉換失敗，保留原始文字
+                    logger.warning(f"台灣用語轉換失敗: {result.error}")
 
         result_text = str(soup)
     else:
@@ -485,6 +483,30 @@ def _convert_to_taiwan_terms(text):
         f"[Taiwan Terms] 轉換前: {original_len} 字, 轉換後: {len(result_text)} 字, 轉換字元數: {chars_converted}"
     )
     return result_text
+
+
+# Phase 30: 視角一致性修正
+_THIRD_PERSON_PATTERNS = {
+    "該公司": "我們",
+    "該企業": "我們",
+    "這家公司": "我們",
+}
+
+
+def _fix_perspective_consistency(text: str) -> str:
+    """
+    將第三人稱用詞取代為第一人稱，解決語體漂移（混用）問題。
+
+    只有在文本中已存在「我們」時才執行取代，避免誤改。
+    """
+    if not text or "我們" not in text:
+        return text
+
+    for third, first in _THIRD_PERSON_PATTERNS.items():
+        if third in text:
+            text = text.replace(third, first)
+
+    return text
 
 
 def post_process(llm_result, original_brief=None, template_type="standard"):
@@ -643,6 +665,10 @@ def post_process(llm_result, original_brief=None, template_type="standard"):
                 converted_tags.append(tag)
         tags = converted_tags
         logger.info(f"已應用台灣用語轉換到 {len(tags)} 個 tags")
+
+    # Phase 30: 視角一致性修正 — 取代殘留的第三人稱用詞
+    safe_html = _fix_perspective_consistency(safe_html)
+    summary = _fix_perspective_consistency(summary)
 
     # 敏感詞過濾
     llm_result["body_html"] = _filter_sensitive_text(safe_html)

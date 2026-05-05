@@ -177,6 +177,9 @@ class CompanyBriefState(TypedDict):
     errors: List[ErrorInfo]
     current_error: Optional[ErrorInfo]
 
+    # Phase 33: 搜尋階段的 token 用量（跨節點傳遞用）
+    _search_tokens: Optional[Dict[str, Any]] = None
+
     # 元數據
     start_time: datetime
     total_execution_time: float
@@ -300,6 +303,8 @@ def create_initial_state(
         # 錯誤處理
         errors=[],
         current_error=None,
+        # Phase 33: 搜尋 token 暫存
+        _search_tokens=None,
         # 元數據
         start_time=datetime.now(),
         total_execution_time=0.0,
