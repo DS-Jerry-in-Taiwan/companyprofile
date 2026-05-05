@@ -86,8 +86,8 @@ custom:
     prod: 78
   # ALB rule path pattern (依 stage 區分)
   albPath:
-    dev: /organ-brief-dev/api/recurit/optimize/*
-    prod: /organ-brief-prd/api/recurit/optimize/*
+    dev: /organ-brief-dev/*
+    prod: /organ-brief-prd/*
   # Target Group 名稱 (依 stage 區分)
   albTargetGroupName:
     dev: organ-brief-opt-dev

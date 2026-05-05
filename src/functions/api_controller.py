@@ -417,13 +417,14 @@ def get_anomalies():
 
 @app.route("/health", methods=["GET"])
 def health_check():
-    """健康檢查端點"""
+    """健康檢查端點（含版號資訊）"""
     try:
         with request_context() as ctx:
             log_info("健康檢查", component="health_check")
             return jsonify(
                 {
                     "status": "healthy",
+                    "version": os.environ.get("VERSION", "unknown"),
                     "timestamp": time.time(),
                     "request_id": get_current_request_id(),
                 }
