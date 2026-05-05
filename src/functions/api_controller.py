@@ -156,6 +156,17 @@ def measure(operation_name: str):
         timing_logger.info(f"[TIMING] {operation_name} 完成，耗時 {elapsed:.2f}ms")
 
 
+@app.route("/v1/version", methods=["GET"])
+def api_version():
+    """公開版本查詢端點（可透過 ALB 存取）"""
+    import os
+    return jsonify({
+        "version": os.environ.get("VERSION", "unknown"),
+        "build_date": os.environ.get("BUILD_DATE", "unknown"),
+        "stage": os.environ.get("STAGE", "unknown"),
+    })
+
+
 @app.route("/v1/company/profile/process", methods=["POST"])
 def process_company_profile():
     start_time = time.time()
