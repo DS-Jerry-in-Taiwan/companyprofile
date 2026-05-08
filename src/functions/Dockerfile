@@ -27,7 +27,6 @@ COPY config/ ./config/
 
 # 複製模板文件（LLM 服務需要）
 COPY src/functions/generate_prompt_template.txt .
-COPY src/functions/optimize_prompt_template.txt .
 
 # 創建數據目錄並複製詞庫文件
 RUN mkdir -p ./data
