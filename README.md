@@ -221,14 +221,6 @@ graph LR
     style Layer6 fill:#fce4ec
 ```
 
-    style Layer1 fill:#e1f5fe
-    style Layer2 fill:#e1f5fe
-    style Layer3 fill:#fff3e0
-    style Layer4 fill:#e8f5e8
-    style Layer5 fill:#f3e5f5
-    style Layer6 fill:#fce4ec
-```
-
 ### 搜尋工具層模組圖
 
 ```mermaid
