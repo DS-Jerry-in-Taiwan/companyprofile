@@ -63,34 +63,12 @@ def generate_brief(data):
     founded_year = data.get("founded_year")
     optimization_mode = data.get("optimization_mode")  # Phase 14 Stage 2: 模板類型
 
-    # 彙整 user_input dict（把所有前端欄位存進 DB）
-    user_input = {}
+    # 彙整 user_input dict（由 FieldProcessor 處理格式化與過濾）
+    from src.services.field_processor import FieldProcessor
+    processor = FieldProcessor()
+    user_input = processor.process(data)
     
-    # 公司官網
-    if company_url:
-        user_input["company_url"] = company_url
-    
-    # 文字欄位
-    if data.get("brand_names"):
-        user_input["brand_names"] = data["brand_names"]
-    if data.get("tax_id"):
-        user_input["tax_id"] = data["tax_id"]
-    if data.get("address"):
-        user_input["address"] = data["address"]
-    if data.get("industry"):
-        user_input["industry"] = data["industry"]
-    if data.get("industry_desc"):
-        user_input["industry_desc"] = data["industry_desc"]
-    
-    # 數值欄位（格式化）
-    if capital and capital > 0:
-        user_input["capital"] = f"{capital} 萬元"
-    if founded_year:
-        user_input["founded_year"] = f"{founded_year} 年"
-    if employees:
-        user_input["employees"] = f"{employees} 人"
-    
-    # 現有簡介
+    # 現有簡介（特殊欄位，不經由 config）
     if input_text:
         user_input["user_brief"] = input_text
 

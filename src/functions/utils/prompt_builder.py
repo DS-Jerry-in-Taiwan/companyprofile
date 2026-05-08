@@ -418,6 +418,13 @@ def build_generate_prompt(
         if user_input.get("brand_names"):
             jobseeker_info.append(f"[品牌名稱]: {user_input['brand_names']}")
 
+        # Phase 38: config 定義的欄位自動 inject（只進 config 有的，防止 LLM 飄移）
+        from src.services.field_processor import FieldProcessor
+        processor = FieldProcessor()
+        for item in processor.get_prompt_items(user_input):
+            if item not in jobseeker_info:
+                jobseeker_info.append(item)
+
     # Phase 32: 模組化範例選取（隨機組合不同風格）
     import random
     
