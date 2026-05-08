@@ -1,8 +1,12 @@
 # 公司簡介生成與優化 API
 
-**當前版本**: v0.7.0 (Phase 33) - 2026-05-05
+**當前版本**: v0.10.0 (Phase 37) - 2026-05-07
 
 **最新更新**:
+- ✅ Phase 37: LLM Provider 配置統一化（`config/llm_config.json` 統一管理）
+- ✅ Phase 36: 搜尋與生成完全分離（移除 `generate_with_search()`、Bedrock 搜尋品質提升）
+- ✅ Phase 35: 服務層清理（刪除 263 行 dead code、`_parse_response()` 獨立化）
+- ✅ Phase 34: LLM Provider 架構（Gemini / Bedrock 可插拔切換）
 - ✅ Phase 33: Token 成本追蹤 + DB Schema 優化（input/output 拆分、搜尋 token 補全、latency 定義）
 - ✅ Phase 32: 第一人稱範例庫模組化（6 種風格隨機組合）+ 每次 1~2 種風格
 - ✅ Phase 31: 求職者導向資訊 + 移除統一編號/資本額
@@ -14,7 +18,7 @@
 - ✅ Phase 25: 數字格式清理與簡化 + 錯誤處理補強 + DB schema 優化
 - ✅ Phase 24: optimization_mode 參數傳遞修復 + DB schema 更新
 
-**版本歷史**: v0.7.0 > v0.6.0 > v0.5.0 > v0.4.1 > v0.4.0 > v0.3.9 > v0.3.8 > v0.3.7 > v0.3.6 > v0.3.5 > ... > v0.3.0 > v0.2.0 > v0.1.0
+**版本歷史**: v0.10.0 > v0.9.0 > v0.8.0 > v0.7.0 > v0.6.0 > v0.5.0 > v0.4.1 > v0.4.0 > v0.3.9 > v0.3.8 > v0.3.7 > v0.3.6 > v0.3.5 > ... > v0.3.0 > v0.2.0 > v0.1.0
 
 ---
 
@@ -32,7 +36,7 @@
 - **四面向結構化搜尋**：搜尋結果直接以 foundation/core/vibe/future 四面向 JSON 回傳
 - **錯誤處理標準化**：32 個錯誤代碼 + ErrorResponse schema + 統一錯誤回應格式
 - **降級機制**：搜尋失敗時使用 user_input 生成簡介
-- **LLM 整合**：採用 Google Gemini 生成高品質內容
+- **LLM 整合**：支援 Gemini / Bedrock 雙引擎，透過 `config/llm_config.json` 無痛切換
 - **三模板差異化**：支援 CONCISE / STANDARD / DETAILED 三種輸出模式
 - **風險控制**：內建敏感詞過濾與內容安全檢核
 - **Token 成本管理**：記錄 input/output token，合併搜尋 + 生成階段，支援成本計算
@@ -47,7 +51,7 @@
 | 類別 | 技術 |
 |------|------|
 | Web Framework | Flask + Vite (前端) |
-| LLM | Google Gemini (generativeai) |
+| LLM | Gemini API / AWS Bedrock (Amazon Nova)，可配置切換 |
 | **前端框架** | **Vue 3 + Vite + Tailwind CSS v4** |
 | **搜尋策略** | **Tavily / Gemini（可配置切換）** |
 | 流程控制 | LangGraph |
@@ -110,13 +114,15 @@ graph TB
             GP[GeminiPlannerTavilyTool]
         end
         
-        LLM[LLM Service<br/>llm_service.py]
+        LLM[LLM Provider<br/>llm_provider.py<br/>Gemini / Bedrock]
         TAIWAN[TaiwanTermsConverter<br/>taiwan_terms]
         WC[WordCountValidator]
     end
 
     subgraph Config["配置層"]
         CFG[search_config.json]
+        LCM[llm_config.json]
+        STG[storage_config.json]
     end
 
     API --> FLASK
@@ -293,7 +299,9 @@ OrganBriefOptimization/
 │   ├── package.json
 │   └── vite.config.js
 ├── config/
-│   └── search_config.json       # 搜尋策略配置（可切換 provider）
+│   ├── llm_config.json          # LLM Provider 配置（可切換 gemini/bedrock）
+│   ├── search_config.json       # 搜尋策略配置（可切換 provider）
+│   └── storage_config.json      # 儲存層配置（地端 SQLite / 雲端 DynamoDB）
 ├── run_api.py                  # 本地開發入口腳本
 ├── serverless.yml              # Serverless 部署配置
 ├── requirements.txt            # Python 依賴
@@ -306,10 +314,11 @@ OrganBriefOptimization/
 │   │       ├── post_processing.py # 後處理（含台灣用語轉換）
 │   │       └── word_count_validator.py # 字數檢核
 │   ├── services/               # 商業邏輯服務
-│   │   ├── llm_service.py
-│   │   ├── tavily_search.py
+│   │   ├── llm_provider.py      # LLM Provider（Gemini / Bedrock 可插拔）
 │   │   ├── search_tools.py      # 搜尋工具層（工廠 + 工具類）⭐
-│   │   └── config_driven_search.py # 配置驅動搜尋 ⭐
+│   │   ├── config_driven_search.py # 配置驅動搜尋 ⭐
+│   │   ├── tool_factory.py      # 搜尋工具工廠（快取）
+│   │   └── tavily_search.py
 │   ├── langgraph_state/        # LangGraph 流程控制
 │   │   ├── company_brief_graph.py  # 狀態圖定義
 │   │   └── state.py            # 狀態定義
@@ -335,17 +344,28 @@ OrganBriefOptimization/
 | 策略 | 工具類別 | API 呼叫 | 特性 |
 |------|----------|---------|------|
 | `tavily` | TavilyBatchSearchTool | 1次 | 快速、自然語言 |
-| `gemini_fewshot` | GeminiFewShotSearchTool | 1次 | 完整、JSON 格式 |
+| `gemini_fewshot` | GeminiFewShotSearchTool | 1次 | 完整、JSON 格式（預設） |
 | `gemini_planner_tavily` | GeminiPlannerTavilyTool | 8次 | 彈性、<s tructured |
 
 ### 切換方式
 
-修改 `config/search_config.json` 中的 `provider` 欄位：
+**搜尋策略**：修改 `config/search_config.json` 中的 `provider` 欄位：
 
 ```json
 {
     "search": {
         "provider": "tavily"
+    }
+}
+```
+
+**LLM Provider**：修改 `config/llm_config.json` 中的 `provider` 欄位：
+
+```json
+{
+    "provider": "bedrock",
+    "bedrock": {
+        "model": "nova-lite"
     }
 }
 ```
@@ -490,16 +510,33 @@ curl -X POST http://localhost:5000/v1/company/profile/process \
 
 ---
 
-## 環境變數
+## 配置管理
 
-請參考 `.env.example` 檔案建立 `.env`，必要變數如下：
+### 配置檔（優先於環境變數）
+
+系統支援三組配置檔統一管理非敏感參數：
+
+| 配置檔 | 用途 | 範例 |
+|--------|------|------|
+| `config/llm_config.json` | LLM Provider 選擇與模型參數 | `{"provider": "gemini", "gemini": {"model": "gemini-2.5-flash"}}` |
+| `config/search_config.json` | 搜尋策略與工具選擇 | `{"search": {"provider": "gemini_fewshot"}}` |
+| `config/storage_config.json` | 儲存層選擇 | `{"type": "sqlite"}` |
+
+### 環境變數（僅限敏感資料 + 可選覆蓋）
 
 ```
-GEMINI_API_KEY=your_gemini_api_key
-TAVILY_API_KEY=your_tavily_api_key
-SERPER_API_KEY=your_serper_api_key
-TAIWAN_TERMS_ENABLED=true  # 啟用台灣用語轉換
+GEMINI_API_KEY=your_gemini_api_key          # 必要：Gemini API Key
+TAVILY_API_KEY=your_tavily_api_key          # 可選：Tavily 搜尋 Key
+SERPER_API_KEY=your_serper_api_key          # 可選：Serper 搜尋 Key
+TAIWAN_TERMS_ENABLED=true                   # 可選：啟用台灣用語轉換
+
+# 以下環境變數可覆蓋 config/llm_config.json 的對應值（非必要）
+# LLM_PROVIDER=gemini                       # gemini 或 bedrock
+# GEMINI_MODEL=gemini-2.5-flash
+# BEDROCK_MODEL=nova-lite                   # nova-micro / nova-lite / nova-pro
 ```
+
+**優先順序**: 環境變數 > 配置檔 > 程式碼預設值
 
 ---
 
@@ -507,7 +544,10 @@ TAIWAN_TERMS_ENABLED=true  # 啟用台灣用語轉換
 
 | 版本 | 日期 | 摘要 | 詳細 |
 |------|------|------|------|
-| **v0.7.0** | **2026-05-05** | **Phase 33: Token 成本追蹤 + DB Schema 優化** | [📄](docs/changelog/v0.7.0.md) |
+| **v0.10.0** | **2026-05-07** | **Phase 37: LLM Provider 配置統一化（`llm_config.json`）** | [📄](docs/changelog/v0.10.0.md) |
+| **v0.9.0** | **2026-05-07** | **Phase 36: 搜尋與生成完全分離** | - |
+| **v0.8.0** | **2026-05-07** | **Phase 35: 服務層清理** | - |
+| **v0.7.0** | **2026-05-05** | **Phase 34: LLM Provider 架構（Gemini / Bedrock 可插拔）** | [📄](docs/changelog/v0.7.0.md) |
 | **v0.6.0** | **2026-04-30** | **Phase 28: 儲存層中央集權 + 雙軌儲存（地端 SQLite、雲端 DynamoDB）** | [📄](docs/changelog/v0.6.0.md) |
 | **v0.5.0** | **2026-04-29** | **Phase 27: ALB Migration（API Gateway → ALB + CloudFront + Domain）** | - |
 | **v0.4.1** | **2026-04-28** | **Phase 26: 前端 Layout 調整（左右分欄 + 結果摺疊 + 錯誤三態 + trace_id）** | - |

@@ -1,0 +1,55 @@
+{
+  "comment": "欄位處理配置 - 定義 request 欄位如何格式化並注入 prompt",
+  "control_fields": [
+    "organ", "organNo", "mode", "optimization_mode",
+    "search_strategy", "companyUrl", "inputText", "brief"
+  ],
+  "fields": {
+    "capital": {
+      "label": "資本額",
+      "format": "{value} 萬元",
+      "type": "number",
+      "condition": "value > 0"
+    },
+    "employees": {
+      "label": "員工人數",
+      "format": "{value} 人",
+      "type": "number"
+    },
+    "founded_year": {
+      "label": "成立年份",
+      "format": "{value} 年",
+      "type": "number"
+    },
+    "brand_names": {
+      "label": "品牌名稱",
+      "format": "{value}",
+      "type": "array"
+    },
+    "address": {
+      "label": "公司地址",
+      "format": "{value}",
+      "type": "string"
+    },
+    "industry": {
+      "label": "產業類別",
+      "format": "{value}",
+      "type": "string"
+    },
+    "industry_desc": {
+      "label": "產業說明",
+      "format": "{value}",
+      "type": "string"
+    },
+    "company_url": {
+      "label": "公司網址",
+      "format": "{value}",
+      "type": "string"
+    },
+    "tax_id": {
+      "label": "統一編號",
+      "format": "{value}",
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "comment": "LLM Provider 配置 - 修改 provider 欄位即可切換後端引擎",
+  "provider": "gemini",
+  "gemini": {
+    "model": "gemini-2.5-flash",
+    "temperature": 0.2,
+    "max_output_tokens": 4096
+  },
+  "bedrock": {
+    "model": "nova-lite",
+    "region": "ap-northeast-1",
+    "temperature": 0.2,
+    "max_output_tokens": 4096
+  }
+}

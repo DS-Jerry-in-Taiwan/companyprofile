@@ -384,14 +384,35 @@ class GeminiFewShotSearchTool(BaseSearchTool):
         prompt = self._build_dynamic_prompt(query)
 
         start = time.time()
+
+        # 直接使用自己的 client 搜尋（Phase 36: 不經由 get_llm_provider()）
         response = self.client.models.generate_content(
             model=self.model,
             contents=prompt,
-            config=self._get_structured_config(),
+            config=genai_types.GenerateContentConfig(
+                tools=[self.search_tool],
+                temperature=self.temperature,
+            ),
         )
-        elapsed = time.time() - start
-
         raw_answer = response.text
+        # 防禦性處理（response.text 可能是 list）
+        if isinstance(raw_answer, list):
+            raw_answer = " ".join([str(p) for p in raw_answer])
+
+        # Token 計數
+        _prompt_tk = (
+            response.usage_metadata.prompt_token_count
+            if response.usage_metadata
+            else 0
+        )
+        _completion_tk = (
+            response.usage_metadata.candidates_token_count
+            if response.usage_metadata
+            else 0
+        )
+        _total_tk = _prompt_tk + _completion_tk
+
+        elapsed = time.time() - start
 
         # 解析 JSON
         try:
@@ -405,11 +426,6 @@ class GeminiFewShotSearchTool(BaseSearchTool):
         except json.JSONDecodeError:
             data = {"raw": raw_answer}
             data = {"raw": raw_answer[:500]}
-
-        # Phase 33: 記錄 token 用量
-        _prompt_tk = response.usage_metadata.prompt_token_count if response.usage_metadata else 0
-        _completion_tk = response.usage_metadata.candidates_token_count if response.usage_metadata else 0
-        _total_tk = response.usage_metadata.total_token_count if response.usage_metadata else 0
 
         self._last_metadata = {
             "query": query,
