@@ -11,6 +11,8 @@ provider:
     GEMINI_API_KEY: ${ssm:/organ-brief/gemini-api-key}
     GEMINI_MODEL: ${ssm:/organ-brief/gemini-model}
     TAVILY_API_KEY: ${ssm:/organ-brief/tavily-api-key}
+    LLM_PROVIDER: ${env:LLM_PROVIDER, 'gemini'}
+    BEDROCK_MODEL: ${env:BEDROCK_MODEL, 'nova-lite'}
   
   ecr:
     images:
@@ -68,6 +70,13 @@ provider:
         - !GetAtt ErrorLogsTable.Arn
         - !Sub "${LlmResponsesTable.Arn}/index/*"
         - !Sub "${ErrorLogsTable.Arn}/index/*"
+    - Effect: Allow
+      Action:
+        - bedrock:InvokeModel
+      Resource:
+        - arn:aws:bedrock:*:*:model/amazon.nova-lite-v1:0
+        - arn:aws:bedrock:*:*:model/amazon.nova-pro-v1:0
+        - arn:aws:bedrock:*:*:model/amazon.nova-micro-v1:0
 
 custom:
   logLevel:
