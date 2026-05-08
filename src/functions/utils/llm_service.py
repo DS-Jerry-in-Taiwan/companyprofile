@@ -69,11 +69,74 @@ except ImportError as e:
     LANGCHAIN_AVAILABLE = False
 
 
-def get_llm_service():
-    """取得 LLM Service 實例"""
-    from src.services.llm_service import LLMService
+def _parse_response(text: str):
+    """解析 LLM 回傳的文字，提取 JSON 轉為 dict（原 LLMService._parse_response）
+    
+    Args:
+        text: LLM 回傳的原始文字（可能含 ```json 標記）
+    
+    Returns:
+        dict: 解析後的結構化輸出（含 title, body_html, summary 等欄位）
+    
+    Raises:
+        ValueError: 無法解析為有效 JSON
+    """
+    from src.schemas.llm_output import LLMOutput
 
-    return LLMService()
+    json_str = text.strip()
+    if not json_str:
+        raise ValueError("LLM returned empty response")
+
+    if "{" not in json_str:
+        logger.warning(
+            f"[Non-JSON Response] LLM 回應非 JSON 格式，長度: {len(json_str)}"
+        )
+        raise ValueError(f"LLM did not return valid JSON: {json_str[:100]}")
+
+    if "```json" in json_str:
+        json_str = json_str.split("```json")[1].split("```")[0].strip()
+    elif "```" in json_str:
+        json_str = json_str.split("```")[1].split("```")[0].strip()
+    else:
+        start = json_str.find("{")
+        end = json_str.rfind("}") + 1
+        if start != -1 and end > start:
+            json_str = json_str[start:end]
+        else:
+            logger.warning(
+                f"[Non-JSON Response] 無法在回應中找到 JSON 區塊，內容: {json_str[:500]}"
+            )
+            raise ValueError(f"Invalid response format: {json_str[:100]}")
+
+    try:
+        data = json.loads(json_str)
+        return LLMOutput(**data)
+    except json.JSONDecodeError as e:
+        logger.warning(f"[Non-JSON Response] JSON 解析失敗: {e}, 嘗試修復...")
+        fixed_json = _try_fix_json(json_str)
+        if fixed_json:
+            try:
+                data = json.loads(fixed_json)
+                logger.info(f"[Non-JSON Response] JSON 修復成功")
+                return LLMOutput(**data)
+            except json.JSONDecodeError:
+                pass
+        raise ValueError(f"JSON parse failed after repair attempt: {json_str[:100]}")
+
+
+def _try_fix_json(json_str: str) -> str:
+    """嘗試修復常見的 JSON 格式問題（原 LLMService._try_fix_json）"""
+    import re
+
+    if '"' in json_str:
+        patterns = [
+            r'\{[^{}]*"[^{}]*[}]*$',
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, json_str)
+            if match:
+                return match.group(0)
+    return None
 
 
 def _extract_company_name(prompt) -> str:
@@ -216,43 +279,24 @@ def _call_llm_core(
 ) -> dict:
     """核心 LLM 呼叫邏輯 - 直接使用傳入的 Prompt（包含 Few-shot）"""
     try:
-        from google.genai import types
-
-        service = get_llm_service()
+        from src.services.llm_provider import get_llm_provider
 
         # 使用預設的 max_output_tokens
         max_tokens = 4096
 
-        # 計時開始
-        _start = time.time()
+        # 透過 Provider 呼叫 LLM
+        provider = get_llm_provider()
+        result = provider.generate(prompt, temperature=0.2, max_output_tokens=max_tokens)
 
-        # 直接使用 service 的 Gemini API 呼叫，傳入我們的 prompt
-        response = service.client.models.generate_content(
-            model=service.model_name,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.2, max_output_tokens=max_tokens
-            ),
-        )
-
-        _elapsed_ms = int((time.time() - _start) * 1000)
-
-# 獲取回應文字（相容 list 和 str 兩種回傳格式）
-        raw_text = response.text
-        if isinstance(raw_text, list):
-            raw_text = " ".join([str(p) for p in raw_text])
-        response_text = raw_text.strip()
+        response_text = result.text
+        _elapsed_ms = int(result.latency_ms)
 
         # 嘗試解析為 JSON，並記錄解析結果
         parsed = None
         try:
-            result = service._parse_response(response_text)
-            parsed = result
+            parsed = _parse_response(response_text)
         except (ValueError, Exception):
             logger.info(f"LLM 返回純文字回應，直接使用")
-
-        # 總處理時間（API call + parsing）
-        _duration_ms = int((time.time() - _start) * 1000)
 
         # ── 非同步儲存（不阻塞主流程） ────────────────
         # 序列化 user_input 為 JSON 字串
@@ -278,15 +322,9 @@ def _call_llm_core(
             "response_raw": response_text,
             "is_json": 1 if parsed else 0,
             "word_count": len(re.findall(r'[\u4e00-\u9fff]|[a-zA-Z]+|\d+', response_text)),
-            "model": service.model_name,
-            "prompt_tokens": (
-                response.usage_metadata.prompt_token_count
-                if response.usage_metadata else None
-            ),
-            "completion_tokens": (
-                response.usage_metadata.candidates_token_count
-                if response.usage_metadata else None
-            ),
+            "model": result.model_name,
+            "prompt_tokens": result.prompt_tokens,
+            "completion_tokens": result.completion_tokens,
             # 搜尋階段 token（合併在同一筆）
             "search_prompt_tokens": _search_tk.get("prompt"),
             "search_completion_tokens": _search_tk.get("completion"),
