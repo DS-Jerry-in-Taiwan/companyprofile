@@ -12,7 +12,20 @@ import time
 import contextlib
 import bs4
 
+from src.processors import PostProcessPipeline
+
 logger = logging.getLogger(__name__)
+
+# 全域 Pipeline 實例（單例）
+_pipeline = None
+
+
+def _get_pipeline():
+    """取得 Pipeline 單例"""
+    global _pipeline
+    if _pipeline is None:
+        _pipeline = PostProcessPipeline()
+    return _pipeline
 
 
 # 計時上下文管理器
@@ -511,171 +524,57 @@ def _fix_perspective_consistency(text: str) -> str:
 
 def post_process(llm_result, original_brief=None, template_type="standard"):
     with measure("後處理"):
-        # HTML Sanitizer
+        pipeline = _get_pipeline()
+
+        # ---- body_html 走 Pipeline ----
         body_html = llm_result.get("body_html", "")
         if body_html is None:
             body_html = ""
 
-        safe_html = bleach.clean(
-            body_html,
-            tags=["p", "b", "i", "ul", "li", "br"],
-            strip=True,
+        safe_html = pipeline.process_with_config(
+            body_html, {"template_type": template_type}
         )
+        logger.info(f"已應用 Pipeline 處理到 body_html (模板類型: {template_type})")
 
-        # Phase 22: 移除 Markdown 語法
-        try:
-            from src.functions.utils.markdown_cleaner import clean_markdown
-
-            safe_html = clean_markdown(safe_html)
-            logger.info("已應用 Markdown 清理到 body_html")
-        except ImportError as e:
-            logger.warning(f"markdown_cleaner 模組未找到，跳過 Markdown 清理: {e}")
-
-        # Phase 14: 移除冗言
-        safe_html = _remove_verbose_phrases(safe_html)
-
-        # Phase 14.1: 台灣用語轉換
-        if TAIWAN_TERMS_AVAILABLE:
-            safe_html = _convert_to_taiwan_terms(safe_html)
-            logger.info("已應用台灣用語轉換到 body_html")
-        else:
-            logger.warning("台灣用語轉換器不可用，跳過轉換")
-
-        # Phase 14 Agent F/G: 格式統一 (新增)
-        safe_html = _normalize_format(safe_html)
-        logger.info("已應用格式統一到 body_html")
-
-        # Phase 14 Agent F/G: 內容多樣化 (新增)
-        try:
-            from src.functions.utils.content_diversifier import diversify_content
-
-            safe_html = diversify_content(safe_html)
-            logger.info("已應用內容多樣化到 body_html")
-        except ImportError as e:
-            logger.warning(f"content_diversifier 模組未找到，跳過多樣化處理: {e}")
-
-        # Phase 23: 模板多樣化 — 由 prompt_builder.py 在 Prompt 層注入框架/情境/句型指導
-        # v0.3.8: 選擇與應用邏輯已移至 build_generate_prompt()，此處不再重複選取
-        logger.debug("Phase 23 多樣化由 Prompt 層處理（prompt_builder.build_generate_prompt）")
-
-        # Phase 14 Agent F/G: 模板差異化 (新增)
-        try:
-            from src.functions.utils.template_differentiator import (
-                differentiate_template,
-            )
-
-            safe_html = differentiate_template(safe_html, template_type)
-            logger.info(f"已應用模板差異化到 body_html (模板類型: {template_type})")
-        except ImportError as e:
-            logger.warning(
-                f"template_differentiator 模組未找到，跳過模板差異化處理: {e}"
-            )
-
-        # Phase 25: 數字格式清理 — 移除千位逗號
-        safe_html = clean_number_format(safe_html)
-        logger.info("已應用數字格式清理到 body_html")
-
-        # Phase 25: 數字簡化 — 2582526570元 → 25.8億元
-        safe_html = simplify_number(safe_html)
-        logger.info("已應用數字簡化到 body_html")
-
-        # 風險檢測（在敏感詞過濾之前）
+        # ---- summary 走 Pipeline ----
         summary = llm_result.get("summary", "")
         if summary is None:
             summary = ""
+
+        if summary:
+            summary = pipeline.process_with_config(
+                summary, {"template_type": template_type}
+            )
+            logger.info(f"已應用 Pipeline 處理到 summary (模板類型: {template_type})")
+
+        # ---- 風險檢測（在 body_html/summary Pipeline 處理之後） ----
         all_text = safe_html + " " + summary
         if original_brief:
             all_text = original_brief + " " + all_text
         risk_alerts = _detect_risks(all_text)
 
-        # Phase 14: 也移除 summary 中的冗言
-        summary = llm_result.get("summary", "")
-        if summary:
-            summary = _remove_verbose_phrases(summary)
+        # ---- Tags 處理（Pipeline 不處理 list 型別，手動處理） ----
+        tags = llm_result.get("tags", [])
+        if tags is None:
+            tags = []
+        if TAIWAN_TERMS_AVAILABLE and tags:
+            converted_tags = []
+            for tag in tags:
+                if tag and isinstance(tag, str):
+                    converted_tag = _convert_to_taiwan_terms(tag)
+                    converted_tags.append(converted_tag)
+                else:
+                    converted_tags.append(tag)
+            tags = converted_tags
+            logger.info(f"已應用台灣用語轉換到 {len(tags)} 個 tags")
 
-        # Phase 22: 也移除 summary 中的 Markdown
-        if summary:
-            try:
-                from src.functions.utils.markdown_cleaner import clean_markdown
+        # 敏感詞過濾（tags 為 list 需要手動處理）
+        tags = [_filter_sensitive_text(tag) for tag in tags]
 
-                summary = clean_markdown(summary)
-                logger.info("已應用 Markdown 清理到 summary")
-            except ImportError as e:
-                logger.warning(
-                    f"markdown_cleaner 模組未找到，跳過 summary Markdown 清理: {e}"
-                )
-
-        # Phase 14.1: 台灣用語轉換 (summary)
-        if TAIWAN_TERMS_AVAILABLE and summary:
-            summary = _convert_to_taiwan_terms(summary)
-            logger.info("已應用台灣用語轉換到 summary")
-
-        # Phase 14 Agent F/G: 格式統一 (summary)
-        if summary:
-            summary = _normalize_format(summary)
-            logger.info("已應用格式統一到 summary")
-
-        # Phase 14 Agent F/G: 內容多樣化 (summary)
-        if summary:
-            try:
-                from src.functions.utils.content_diversifier import diversify_content
-
-                summary = diversify_content(summary)
-                logger.info("已應用內容多樣化到 summary")
-            except ImportError as e:
-                logger.warning(
-                    f"content_diversifier 模組未找到，跳過 summary 多樣化處理: {e}"
-                )
-
-        # Phase 14 Agent F/G: 模板差異化 (summary)
-        if summary:
-            try:
-                from src.functions.utils.template_differentiator import (
-                    differentiate_template,
-                )
-
-                summary = differentiate_template(summary, template_type)
-                logger.info(f"已應用模板差異化到 summary (模板類型: {template_type})")
-            except ImportError as e:
-                logger.warning(
-                    f"template_differentiator 模組未找到，跳過 summary 模板差異化處理: {e}"
-                )
-
-        # Phase 25: 數字格式清理 — 移除千位逗號 (summary)
-        if summary:
-            summary = clean_number_format(summary)
-            logger.info("已應用數字格式清理到 summary")
-
-        # Phase 25: 數字簡化 — 2582526570元 → 25.8億元 (summary)
-        if summary:
-            summary = simplify_number(summary)
-            logger.info("已應用數字簡化到 summary")
-
-    # Phase 14.1: 台灣用語轉換 (tags)
-    tags = llm_result.get("tags", [])
-    if tags is None:
-        tags = []
-    if TAIWAN_TERMS_AVAILABLE and tags:
-        converted_tags = []
-        for tag in tags:
-            if tag and isinstance(tag, str):
-                converted_tag = _convert_to_taiwan_terms(tag)
-                converted_tags.append(converted_tag)
-            else:
-                converted_tags.append(tag)
-        tags = converted_tags
-        logger.info(f"已應用台灣用語轉換到 {len(tags)} 個 tags")
-
-    # Phase 30: 視角一致性修正 — 取代殘留的第三人稱用詞
-    safe_html = _fix_perspective_consistency(safe_html)
-    summary = _fix_perspective_consistency(summary)
-
-    # 敏感詞過濾
-    llm_result["body_html"] = _filter_sensitive_text(safe_html)
-    llm_result["summary"] = _filter_sensitive_text(summary)
-    llm_result["tags"] = [_filter_sensitive_text(tag) for tag in tags]
-
-    # 設定風險警示
-    llm_result["risk_alerts"] = risk_alerts
+        # ---- 寫回結果 ----
+        llm_result["body_html"] = safe_html
+        llm_result["summary"] = summary
+        llm_result["tags"] = tags
+        llm_result["risk_alerts"] = risk_alerts
 
     return llm_result
