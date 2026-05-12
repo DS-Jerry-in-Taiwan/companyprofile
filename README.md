@@ -1,8 +1,9 @@
 # 公司簡介生成與優化 API
 
-**當前版本**: v0.10.0 (Phase 37) - 2026-05-07
+**當前版本**: v0.11.0 (Phase 39) - 2026-05-12
 
 **最新更新**:
+- ✅ Phase 39: LLM 輸出品質架構 — Prompt 分離 + response_schema + 品質閘門 + Pipeline 化
 - ✅ Phase 37: LLM Provider 配置統一化（`config/llm_config.json` 統一管理）
 - ✅ Phase 36: 搜尋與生成完全分離（移除 `generate_with_search()`、Bedrock 搜尋品質提升）
 - ✅ Phase 35: 服務層清理（刪除 263 行 dead code、`_parse_response()` 獨立化）
@@ -18,7 +19,7 @@
 - ✅ Phase 25: 數字格式清理與簡化 + 錯誤處理補強 + DB schema 優化
 - ✅ Phase 24: optimization_mode 參數傳遞修復 + DB schema 更新
 
-**版本歷史**: v0.10.0 > v0.9.0 > v0.8.0 > v0.7.0 > v0.6.0 > v0.5.0 > v0.4.1 > v0.4.0 > v0.3.9 > v0.3.8 > v0.3.7 > v0.3.6 > v0.3.5 > ... > v0.3.0 > v0.2.0 > v0.1.0
+**版本歷史**: v0.11.0 > v0.10.0 > v0.9.0 > v0.8.0 > v0.7.0 > v0.6.0 > v0.5.0 > v0.4.1 > v0.4.0 > v0.3.9 > v0.3.8 > v0.3.7 > v0.3.6 > v0.3.5 > ... > v0.3.0 > v0.2.0 > v0.1.0
 
 ---
 
@@ -38,6 +39,9 @@
 - **降級機制**：搜尋失敗時使用 user_input 生成簡介
 - **LLM 整合**：支援 Gemini / Bedrock 雙引擎，透過 `config/llm_config.json` 無痛切換
 - **三模板差異化**：支援 CONCISE / STANDARD / DETAILED 三種輸出模式
+- **三層品質防護**：system_instruction 預防誤解 + response_schema 強制 JSON + QualityGate 品質把關
+- **後處理 Pipeline**：11 個可插拔 Processor，配置檔控制啟停順序
+- **重試機制**：品質檢查不合格自動重試（最多 2 次），用盡回傳警語
 - **風險控制**：內建敏感詞過濾與內容安全檢核
 - **Token 成本管理**：記錄 input/output token，合併搜尋 + 生成階段，支援成本計算
 - **台灣用語轉換**：自動將中國用語轉換為台灣用語（300+ 詞彙）
@@ -62,17 +66,25 @@
 
 ### 服務流程
 
-公司簡介生成服務採用 **LangGraph 狀態圖** 控制流程，包含以下節點：
+公司簡介生成服務採用 **LangGraph 狀態圖** 控制流程，搭配三層品質防護機制：
 
 ```
-搜尋 (search_node) → 摘要整理 (summary_node) → 生成 (generate_node) → 後處理 (post_processing)
+搜尋 (search_node) → 摘要整理 (summary_node) → 生成 + 品質閘門 (generate_node) → 後處理 Pipeline (post_processing)
 ```
+
+**三層品質防護**：
+
+| 層級 | 機制 | 說明 |
+|------|------|------|
+| **Prompt 層** | system_instruction + 移除自檢指令 | 從 prompt 層級預防 LLM 產出自檢文字 |
+| **API 層** | response_schema 強制 JSON | Gemini API 層級保證回傳合法 JSON |
+| **應用層** | QualityGate 8 項檢查 + RetryManager | 檢測內容品質，不合格自動重試，用盡回傳警語 |
 
 **流程說明**：
 1. **搜尋節點**：根據公司名稱從網路取得相關資訊，直接返回四面向結構化 JSON（foundation/core/vibe/future）
 2. **摘要整理節點**：將結構化搜尋結果合併為四面向摘要
-3. **生成節點**：結合用戶輸入與四面向摘要生成簡介
-4. **後處理**：台灣用語轉換、風格優化
+3. **生成節點**：結合用戶輸入與四面向摘要生成簡介 → **品質閘門檢查**（8 項檢核，不合格重試最多 2 次）
+4. **後處理 Pipeline**：配置驅動的 11 個 Processor 依序執行（台灣用語轉換、格式統一、數字簡化等）
 
 **四面向結構化格式**：
 | 面向 | 說明 |
@@ -294,6 +306,7 @@ OrganBriefOptimization/
 │   ├── llm_config.json          # LLM Provider 配置（可切換 gemini/bedrock）
 │   ├── search_config.json       # 搜尋策略配置（可切換 provider）
 │   └── storage_config.json      # 儲存層配置（地端 SQLite / 雲端 DynamoDB）
+│   └── post_processing.json     # Pipeline 配置（Processor 啟停與順序）
 ├── run_api.py                  # 本地開發入口腳本
 ├── serverless.yml              # Serverless 部署配置
 ├── requirements.txt            # Python 依賴
@@ -311,6 +324,15 @@ OrganBriefOptimization/
 │   │   ├── config_driven_search.py # 配置驅動搜尋 ⭐
 │   │   ├── tool_factory.py      # 搜尋工具工廠（快取）
 │   │   └── tavily_search.py
+│   ├── processors/             # 後處理 Pipeline（配置驅動，可插拔）
+│   │   ├── base.py             # Processor 抽象類別
+│   │   ├── pipeline.py         # Pipeline 執行器
+│   │   └── *.py               # 11 個 Processor 實作
+│   ├── quality/                # 品質閘門
+│   │   ├── gate.py             # QualityGate
+│   │   └── checks.py           # 8 項品質檢查
+│   ├── retry/                  # 重試管理器
+│   │   └── retry_manager.py    # RetryManager
 │   ├── langgraph_state/        # LangGraph 流程控制
 │   │   ├── company_brief_graph.py  # 狀態圖定義
 │   │   └── state.py            # 狀態定義
@@ -536,6 +558,7 @@ TAIWAN_TERMS_ENABLED=true                   # 可選：啟用台灣用語轉換
 
 | 版本 | 日期 | 摘要 | 詳細 |
 |------|------|------|------|
+| **v0.11.0** | **2026-05-12** | **Phase 39: LLM 輸出品質架構（三層防護）** | [📄](docs/changelog/v0.11.0.md) |
 | **v0.10.0** | **2026-05-07** | **Phase 37: LLM Provider 配置統一化（`llm_config.json`）** | [📄](docs/changelog/v0.10.0.md) |
 | **v0.9.0** | **2026-05-07** | **Phase 36: 搜尋與生成完全分離** | - |
 | **v0.8.0** | **2026-05-07** | **Phase 35: 服務層清理** | - |

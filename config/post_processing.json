@@ -1,0 +1,49 @@
+{
+  "comment": "後處理 Pipeline 配置 - 控制 Processor 啟用與執行順序",
+  "pipeline": [
+    {
+      "processor": "html_sanitizer",
+      "enabled": true
+    },
+    {
+      "processor": "markdown_cleaner",
+      "enabled": true
+    },
+    {
+      "processor": "verbose_remover",
+      "enabled": true
+    },
+    {
+      "processor": "taiwan_converter",
+      "enabled": true
+    },
+    {
+      "processor": "format_normalizer",
+      "enabled": true
+    },
+    {
+      "processor": "content_diversifier",
+      "enabled": false
+    },
+    {
+      "processor": "template_differentiator",
+      "enabled": true
+    },
+    {
+      "processor": "number_cleaner",
+      "enabled": true
+    },
+    {
+      "processor": "number_simplifier",
+      "enabled": true
+    },
+    {
+      "processor": "perspective_fixer",
+      "enabled": true
+    },
+    {
+      "processor": "sensitive_filter",
+      "enabled": true
+    }
+  ]
+}

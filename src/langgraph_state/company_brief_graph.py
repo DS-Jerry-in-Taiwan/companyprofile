@@ -81,6 +81,13 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# === Phase D: 品質閘門 & 重試管理器（模組層級，只初始化一次）===
+from src.quality.gate import QualityGate
+from src.retry.retry_manager import RetryManager
+
+_quality_gate = QualityGate()
+_retry_manager = RetryManager(max_retries=2)
+
 # ===== 節點執行函式 =====
 
 
@@ -510,14 +517,94 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
         execution_time = time.time() - start_time
         logger.info(f"[TIMING] LLM 生成完成，耗時 {execution_time * 1000:.2f}ms")
 
-        # 建立 LLM 結果
-        result = LLMResult(
-            success=True,
-            title=llm_response.get("title"),
-            body_html=llm_response.get("body_html"),
-            summary=llm_response.get("summary"),
-            execution_time=execution_time,
-        )
+        # === Phase D: 品質閘門檢查 + 重試機制 ===
+        global _quality_gate, _retry_manager
+        retry_attempt = 0
+        retry_exhausted = False
+        while True:
+            # 檢查 body_html
+            body_text = llm_response.get("body_html", "") or ""
+            passed, issues = _quality_gate.check(
+                body_text,
+                organ=state["organ"],
+                title=llm_response.get("title", ""),
+                summary=llm_response.get("summary", ""),
+            )
+
+            if passed:
+                break  # 通過，跳出重試迴圈
+
+            if not _retry_manager.should_retry(retry_attempt):
+                logger.error(f"品質檢查失敗且已達最大重試次數: {issues}")
+                _retry_manager.record_attempt(retry_attempt, issues, success=False)
+                retry_exhausted = True
+                break
+
+            logger.warning(f"品質檢查失敗，觸發重試 #{retry_attempt + 1}: {issues}")
+            _retry_manager.record_attempt(retry_attempt, issues, success=False)
+
+            # 取得簡化版 Prompt 參數
+            retry_kwargs = _retry_manager.get_retry_prompt_kwargs(retry_attempt)
+
+            # 重新生成（使用簡化版參數）
+            _retry_prompt_meta = {}
+            retry_prompt = build_generate_prompt(
+                organ=state["organ"],
+                organ_no=state.get("organ_no"),
+                company_url=state.get("company_url"),
+                web_content=web_content,
+                optimization_mode=state.get("optimization_mode", "standard"),
+                _metadata=_retry_prompt_meta,
+                **retry_kwargs,
+            )
+
+            llm_response = call_llm(
+                retry_prompt,
+                organ_no=state.get("organ_no"),
+                organ=state["organ"],
+                user_input=user_input,
+                structure_key=retry_kwargs["structure_key"],
+                opening_key=retry_kwargs["opening_key"],
+                sentence_key=retry_kwargs["sentence_key"],
+                template_name=_retry_prompt_meta.get("template_name"),
+                fewshot_styles=_retry_prompt_meta.get("fewshot_styles"),
+                search_tokens=_search_tokens,
+            )
+            retry_attempt += 1
+
+        # 若經歷過重試且最終通過，記錄成功
+        if retry_attempt > 0 and passed:
+            _retry_manager.record_attempt(retry_attempt, issues, success=True)
+
+        # 重試用盡：不回異常內容，改回傳警語
+        if retry_exhausted:
+            organ_name = state["organ"]
+            logger.warning(f"重試用盡，回傳警語給 {organ_name}")
+            # success=True 因為有內容要回傳（警語），不是節點失敗
+            # body_html 長度需 ≥ 100 字以通過後續 quality_check_node
+            warn_body = (
+                f"<p>目前系統暫時無法為{organ_name}產生簡介，"
+                f"這可能是暫時性的系統異常，請稍後再試。若問題持續發生，請聯繫我們的客服團隊。</p>"
+            )
+            warn_summary = f"{organ_name} - 暫時無法產生簡介，請稍後再試。"
+            result = LLMResult(
+                success=True,
+                title=f"{organ_name} - 暫時無法產生簡介",
+                body_html=warn_body,
+                summary=warn_summary,
+                execution_time=execution_time,
+                retry_info=_retry_manager.get_summary(),
+            )
+        else:
+            # 建立 LLM 結果（附帶重試資訊）
+            result = LLMResult(
+                success=True,
+                title=llm_response.get("title"),
+                body_html=llm_response.get("body_html"),
+                summary=llm_response.get("summary"),
+                execution_time=execution_time,
+                retry_info=_retry_manager.get_summary(),
+            )
 
         # 建立節點結果
         node_result = NodeResult(
