@@ -66,6 +66,7 @@ class LLMProvider(Protocol):
     def generate(
         self,
         prompt: str,
+        system_instruction: Optional[list[str]] = None,
         temperature: float = 0.2,
         max_output_tokens: int = 4096,
     ) -> LLMResponse:
@@ -99,16 +100,32 @@ class GeminiProvider:
         self.model = os.getenv("GEMINI_MODEL") or gemini_cfg.get("model", "gemini-2.5-flash")
 
     def generate(
-        self, prompt: str, temperature: float = 0.2, max_output_tokens: int = 4096
+        self,
+        prompt: str,
+        system_instruction: Optional[list[str]] = None,
+        temperature: float = 0.2,
+        max_output_tokens: int = 4096,
     ) -> LLMResponse:
         _start = time.time()
+
+        # 從現有 Pydantic model 動態產生 response_schema，避免重複定義
+        from src.schemas.llm_output import LLMOutput
+        _llm_schema = LLMOutput.model_json_schema()
+
+        # 建立 config，只有 system_instruction 有值時才加入
+        config_kwargs = {
+            "temperature": temperature,
+            "max_output_tokens": max_output_tokens,
+            "response_mime_type": "application/json",
+            "response_schema": _llm_schema,
+        }
+        if system_instruction:
+            config_kwargs["system_instruction"] = system_instruction
+
         response = self.client.models.generate_content(
             model=self.model,
             contents=prompt,
-            config=self._types.GenerateContentConfig(
-                temperature=temperature,
-                max_output_tokens=max_output_tokens,
-            ),
+            config=self._types.GenerateContentConfig(**config_kwargs),
         )
         _elapsed = time.time() - _start
         raw = response.text
@@ -159,7 +176,11 @@ class BedrockProvider:
         self.client = boto3.client("bedrock-runtime", region_name=region)
 
     def generate(
-        self, prompt: str, temperature: float = 0.2, max_output_tokens: int = 4096
+        self,
+        prompt: str,
+        system_instruction: Optional[list[str]] = None,
+        temperature: float = 0.2,
+        max_output_tokens: int = 4096,
     ) -> LLMResponse:
         _start = time.time()
 

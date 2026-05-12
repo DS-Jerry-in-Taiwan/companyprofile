@@ -201,7 +201,7 @@ def call_llm(
 def _call_llm_with_retry(
     prompt, organ_no=None, organ=None, user_input=None, mode="GENERATE",
     structure_key=None, opening_key=None, sentence_key=None, template_name=None,
-    fewshot_styles=None, search_tokens=None,
+    fewshot_styles=None, search_tokens=None, system_instruction=None,
 ) -> dict:
     """使用重試機制的 LLM 呼叫"""
     from src.langchain.error_handlers import RetryableError, NonRetryableError
@@ -223,8 +223,10 @@ def _call_llm_with_retry(
             tn = inputs.get("template_name")
             fs = inputs.get("fewshot_styles")
             st = inputs.get("search_tokens")
+            si = inputs.get("system_instruction")
             return _call_llm_core(prompt_data, organ_no_val, organ_val, user_input_val, mode_val,
-                                  sk, ok, sent_k, tn, fewshot_styles=fs, search_tokens=st)
+                                  sk, ok, sent_k, tn, fewshot_styles=fs, search_tokens=st,
+                                  system_instruction=si)
 
         # 將參數打包為字典傳遞給裝飾後的函數
         return llm_call_with_retry({
@@ -239,6 +241,7 @@ def _call_llm_with_retry(
             "template_name": template_name,
             "fewshot_styles": fewshot_styles,
             "search_tokens": search_tokens,
+            "system_instruction": system_instruction,
         })
 
     except NonRetryableError as e:
@@ -260,13 +263,14 @@ def _call_llm_with_retry(
 def _call_llm_original(
     prompt, organ_no=None, organ=None, user_input=None, mode="GENERATE",
     structure_key=None, opening_key=None, sentence_key=None, template_name=None,
-    fewshot_styles=None, search_tokens=None,
+    fewshot_styles=None, search_tokens=None, system_instruction=None,
 ) -> dict:
     """原始 LLM 呼叫邏輯"""
     try:
         return _call_llm_core(prompt, organ_no, organ, user_input, mode,
                               structure_key, opening_key, sentence_key, template_name,
-                              fewshot_styles=fewshot_styles, search_tokens=search_tokens)
+                              fewshot_styles=fewshot_styles, search_tokens=search_tokens,
+                              system_instruction=system_instruction)
     except Exception as e:
         logger.error(f"LLM API call failed: {str(e)}")
         return _get_default_response(prompt)
@@ -275,7 +279,7 @@ def _call_llm_original(
 def _call_llm_core(
     prompt, organ_no=None, organ=None, user_input=None, mode="GENERATE",
     structure_key=None, opening_key=None, sentence_key=None, template_name=None,
-    fewshot_styles=None, search_tokens=None,
+    fewshot_styles=None, search_tokens=None, system_instruction=None,
 ) -> dict:
     """核心 LLM 呼叫邏輯 - 直接使用傳入的 Prompt（包含 Few-shot）"""
     try:
@@ -284,19 +288,43 @@ def _call_llm_core(
         # 使用預設的 max_output_tokens
         max_tokens = 4096
 
+        # Phase 39: system_instruction 由 caller (llm_service) 提供，不再寫死在 provider
+        if system_instruction is None:
+            system_instruction = [
+                "你是一個公司簡介作者。",
+                "只輸出最終結果，不要輸出任何推理過程、檢查過程或驗證說明。",
+            ]
+
         # 透過 Provider 呼叫 LLM
         provider = get_llm_provider()
-        result = provider.generate(prompt, temperature=0.2, max_output_tokens=max_tokens)
+        result = provider.generate(
+            prompt,
+            system_instruction=system_instruction,
+            temperature=0.2,
+            max_output_tokens=max_tokens,
+        )
 
         response_text = result.text
         _elapsed_ms = int(result.latency_ms)
 
         # 嘗試解析為 JSON，並記錄解析結果
         parsed = None
-        try:
-            parsed = _parse_response(response_text)
-        except (ValueError, Exception):
-            logger.info(f"LLM 返回純文字回應，直接使用")
+        provider_name = type(provider).__name__
+        if provider_name == "GeminiProvider":
+            # response_schema 確保 JSON，直接解析
+            from src.schemas.llm_output import LLMOutput
+            try:
+                data = json.loads(response_text)
+                parsed = LLMOutput(**data)
+            except (json.JSONDecodeError, Exception) as e:
+                logger.error(f"Gemini structured output 解析失敗（不應發生）: {e}")
+                parsed = None
+        else:
+            # Bedrock: 保留現有 _parse_response 路徑
+            try:
+                parsed = _parse_response(response_text)
+            except (ValueError, Exception):
+                logger.info("LLM 返回非 JSON，使用純文字回退")
 
         # ── 非同步儲存（不阻塞主流程） ────────────────
         # 序列化 user_input 為 JSON 字串
