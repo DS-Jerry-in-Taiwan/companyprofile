@@ -107,6 +107,7 @@ class LLMResult:
     summary: Optional[str] = None
     execution_time: float = 0.0
     error: Optional[str] = None
+    retry_info: Optional[dict] = None  # Phase D: 品質閘門重試資訊
 
 
 @dataclass
