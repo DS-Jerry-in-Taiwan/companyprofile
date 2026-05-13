@@ -86,6 +86,7 @@ custom:
     prod: INFO
   deployVersion:
     dev: ${env:DEPLOY_VERSION, 'dev'}
+    prod: ${env:DEPLOY_VERSION, 'prod'}
   buildDate: ${env:BUILD_DATE, 'unknown'}
   # ALB HTTPS Listener ARN (依 stage 區分)
   albListenerArn:
