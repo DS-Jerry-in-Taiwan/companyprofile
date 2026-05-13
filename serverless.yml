@@ -113,38 +113,6 @@ functions:
 
 resources:
   Resources:
-    # Target Group (自訂名稱)
-    FlaskApiTargetGroup:
-      Type: AWS::ElasticLoadBalancingV2::TargetGroup
-      Properties:
-        Name: ${self:custom.albTargetGroupName.${self:provider.stage}}
-        TargetType: lambda
-        Targets:
-          - Id: !GetAtt FlaskApiLambdaFunction.Arn
-
-    # ALB Listener Rule
-    FlaskApiAlbListenerRule:
-      Type: AWS::ElasticLoadBalancingV2::ListenerRule
-      Properties:
-        ListenerArn: ${self:custom.albListenerArn.${self:provider.stage}}
-        Priority: ${self:custom.albPriority.${self:provider.stage}}
-        Conditions:
-          - Field: path-pattern
-            Values:
-              - ${self:custom.albPath.${self:provider.stage}}
-        Actions:
-          - Type: forward
-            TargetGroupArn: !Ref FlaskApiTargetGroup
-
-    # Lambda 執行權限 (允許 ALB 調用 Lambda)
-    FlaskApiLambdaPermission:
-      Type: AWS::Lambda::Permission
-      Properties:
-        FunctionName: !GetAtt FlaskApiLambdaFunction.Arn
-        Action: lambda:InvokeFunction
-        Principal: elasticloadbalancing.amazonaws.com
-        SourceArn: !Ref FlaskApiTargetGroup
-
     # ── DynamoDB: LLM 回應記錄 ─────────────────────
     LlmResponsesTable:
       Type: AWS::DynamoDB::Table
