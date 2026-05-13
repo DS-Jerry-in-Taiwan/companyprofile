@@ -8,12 +8,14 @@
 - 重試機制
 """
 
+import json
 import logging
+import sys
 import time
 import uuid
 import contextlib
 from typing import Dict, Any, Optional, List, Callable
-from datetime import datetime
+from datetime import datetime, timezone
 
 from langgraph.graph import StateGraph, END, START
 from langgraph.prebuilt import ToolNode
@@ -437,14 +439,27 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
 
     try:
         # 導入生成功能
-        import sys
-        import os
+        import sys as _sys
+        import os as _os
 
-        PROJECT_ROOT = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        # ── Phase 40: 取得 API 層級 trace_id ──────────────────
+        # 重要：run_api.py 以 from utils.structured_logger import ... 的方式載入，
+        # 但 company_brief_graph.py 若是 import src.functions.utils.structured_logger，
+        # Python 會視為不同模組，導致各自的 threading.local() 不同，
+        # 使得 _local.trace_id 無法共用。
+        # 解法：透過 sys.modules 取得已載入的模組實例。
+        _log_mod = _sys.modules.get('utils.structured_logger')
+        if _log_mod is not None:
+            request_trace_id = _log_mod.get_current_trace_id() or f"t-{uuid.uuid4().hex[:16]}"
+        else:
+            request_trace_id = f"t-{uuid.uuid4().hex[:16]}"
+        # ───────────────────────────────────────────────────────
+
+        _project_root = _os.path.dirname(
+            _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
         )
-        if PROJECT_ROOT not in sys.path:
-            sys.path.insert(0, PROJECT_ROOT)
+        if _project_root not in _sys.path:
+            _sys.path.insert(0, _project_root)
 
         from src.functions.utils.prompt_builder import build_generate_prompt
         from src.functions.utils.llm_service import call_llm
@@ -490,7 +505,7 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
             _metadata=_prompt_meta,
         )
 
-        # 呼叫 LLM
+        # 呼叫 LLM（階段 0：第一次生成）
         with measure("LLM 生成"):
             _search_tokens = state.get("_search_tokens") or {}
             
@@ -512,6 +527,8 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
                 template_name=_prompt_meta.get("template_name"),
                 fewshot_styles=_prompt_meta.get("fewshot_styles"),
                 search_tokens=_search_tokens,
+                trace_id=request_trace_id,    # Phase 40: API trace_id
+                attempt_no=0,                 # Phase 40: 第一次 attempt
             )
 
         execution_time = time.time() - start_time
@@ -521,18 +538,17 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
         global _quality_gate, _retry_manager
         retry_attempt = 0
         retry_exhausted = False
+        issues_list = []  # Phase 40: 收集各 attempt 的 issues
         while True:
             # 檢查 body_html
             body_text = llm_response.get("body_html", "") or ""
-            passed, issues = _quality_gate.check(
-                body_text,
-                organ=state["organ"],
-                title=llm_response.get("title", ""),
-                summary=llm_response.get("summary", ""),
-            )
+            passed, issues = _quality_gate.check(body_text)
 
             if passed:
+                issues_list.append({"attempt": retry_attempt, "issues": issues, "passed": True})
                 break  # 通過，跳出重試迴圈
+
+            issues_list.append({"attempt": retry_attempt, "issues": issues, "passed": False})
 
             if not _retry_manager.should_retry(retry_attempt):
                 logger.error(f"品質檢查失敗且已達最大重試次數: {issues}")
@@ -558,6 +574,7 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
                 **retry_kwargs,
             )
 
+            retry_attempt += 1
             llm_response = call_llm(
                 retry_prompt,
                 organ_no=state.get("organ_no"),
@@ -569,12 +586,37 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
                 template_name=_retry_prompt_meta.get("template_name"),
                 fewshot_styles=_retry_prompt_meta.get("fewshot_styles"),
                 search_tokens=_search_tokens,
+                trace_id=request_trace_id,        # Phase 40: 同一個 API trace_id
+                attempt_no=retry_attempt,          # Phase 40: 遞增 attempt_no
             )
-            retry_attempt += 1
 
         # 若經歷過重試且最終通過，記錄成功
         if retry_attempt > 0 and passed:
             _retry_manager.record_attempt(retry_attempt, issues, success=True)
+
+        # ── Phase 40: 儲存品質日誌 ────────────────────────
+        try:
+            from src.storage import get_storage
+            storage = get_storage()
+            if storage is not None:
+                quality_log = {
+                    "trace_id": request_trace_id,
+                    "organ_no": state.get("organ_no", ""),
+                    "organ_name": state["organ"],
+                    "retry_count": retry_attempt,
+                    "max_retries": _retry_manager.max_retries,
+                    "final_result": (
+                        "exhausted" if retry_exhausted
+                        else ("passed" if retry_attempt > 0 else "no_retry_needed")
+                    ),
+                    "issues": json.dumps(issues_list, ensure_ascii=False),
+                    "history": json.dumps(_retry_manager.get_summary(), ensure_ascii=False),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                }
+                storage.save_quality_log(quality_log)
+        except Exception as e:
+            logger.warning(f"儲存品質日誌失敗（不阻塞主流程）: {e}")
+        # ──────────────────────────────────────────────────
 
         # 重試用盡：不回異常內容，改回傳警語
         if retry_exhausted:
