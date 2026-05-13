@@ -29,10 +29,13 @@ tmp_reports/
 docs/
 
 # Local tool outputs
-.opencode/
 opencode_init.log
 node_modules/
 bun.lock
+
+# Sensitive configuration (keep template, ignore actual values)
+.opencode/opencode.json
+.opencode/opencode.json.backup
 
 # Generated reports (keep local, don't commit)
 CHECKPOINT1_*.md

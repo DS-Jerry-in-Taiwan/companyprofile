@@ -1,0 +1,59 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "supermemory": {
+      "type": "remote",
+      "url": "https://mcp.supermemory.ai/mcp",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer {{SUPERMEMORY_API_KEY}}"
+      }
+    },
+    "filesystem": {
+      "type": "local",
+      "command": [
+        "node",
+        "/home/ubuntu/mcp_server/servers/src/filesystem/dist/index.js",
+        "{{PROJECT_PATH}}"
+      ],
+      "enabled": true
+    },
+    "sequentialthinking": {
+      "type": "local",
+      "command": [
+        "node",
+        "/home/ubuntu/mcp_server/servers/src/sequentialthinking/dist/index.js"
+      ],
+      "enabled": true
+    },
+    "git": {
+      "type": "local",
+      "command": [
+        "python3",
+        "-m",
+        "mcp_server_git",
+        "--repository",
+        "{{PROJECT_PATH}}"
+      ],
+      "enabled": true
+    },
+     "tavily": {
+      "type": "remote",
+      "url": "https://mcp.tavily.com/mcp/?tavilyApiKey={{TAVILY_API_KEY}}",
+      "enabled": true
+    },
+    "brave-search": {
+      "type": "local",
+      "command": ["bash", "-c", "docker start brave-search-shared 2>/dev/null || docker run -d --name brave-search-shared -e BRAVE_API_KEY={{BRAVE_API_KEY}} --entrypoint sleep mcp/brave-search infinity; docker exec -i brave-search-shared node dist/index.js"],
+      "enabled": true
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["docker", "exec", "-i", "playwright-mcp-server", "node", "/app/cli.js"],
+      "enabled": true,
+      "timeout": 30000
+    }
+    
+  },
+  "model": "opencode/nemotron-3-super-free"
+}
