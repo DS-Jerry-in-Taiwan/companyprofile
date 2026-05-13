@@ -164,6 +164,8 @@ def call_llm(
     template_name=None,
     fewshot_styles=None,
     search_tokens=None,
+    trace_id=None,        # Phase 40: API 層級 trace_id
+    attempt_no=0,         # Phase 40: 第幾次 attempt (0, 1, 2)
 ) -> dict:
     """
     呼叫 LLM API 生成公司簡介（帶重試機制）
@@ -180,6 +182,8 @@ def call_llm(
         template_name: 模板名稱（可選）
         fewshot_styles: 選取的模組化範例風格（Phase 32，可選）
         search_tokens: 搜尋階段的 token 用量 dict（Phase 33，可選）
+        trace_id: API 層級 trace_id（Phase 40）
+        attempt_no: 第幾次 attempt（Phase 40，預設 0）
 
     Returns:
         dict: 包含 title, body_html, summary 的字典
@@ -189,12 +193,14 @@ def call_llm(
             prompt, organ_no, organ, user_input, mode,
             structure_key, opening_key, sentence_key, template_name,
             fewshot_styles=fewshot_styles, search_tokens=search_tokens,
+            trace_id=trace_id, attempt_no=attempt_no,
         )
     else:
         return _call_llm_original(
             prompt, organ_no, organ, user_input, mode,
             structure_key, opening_key, sentence_key, template_name,
             fewshot_styles=fewshot_styles, search_tokens=search_tokens,
+            trace_id=trace_id, attempt_no=attempt_no,
         )
 
 
@@ -202,6 +208,7 @@ def _call_llm_with_retry(
     prompt, organ_no=None, organ=None, user_input=None, mode="GENERATE",
     structure_key=None, opening_key=None, sentence_key=None, template_name=None,
     fewshot_styles=None, search_tokens=None, system_instruction=None,
+    trace_id=None, attempt_no=0,
 ) -> dict:
     """使用重試機制的 LLM 呼叫"""
     from src.langchain.error_handlers import RetryableError, NonRetryableError
@@ -224,9 +231,11 @@ def _call_llm_with_retry(
             fs = inputs.get("fewshot_styles")
             st = inputs.get("search_tokens")
             si = inputs.get("system_instruction")
+            ti = inputs.get("trace_id")
+            an = inputs.get("attempt_no", 0)
             return _call_llm_core(prompt_data, organ_no_val, organ_val, user_input_val, mode_val,
                                   sk, ok, sent_k, tn, fewshot_styles=fs, search_tokens=st,
-                                  system_instruction=si)
+                                  system_instruction=si, trace_id=ti, attempt_no=an)
 
         # 將參數打包為字典傳遞給裝飾後的函數
         return llm_call_with_retry({
@@ -242,6 +251,8 @@ def _call_llm_with_retry(
             "fewshot_styles": fewshot_styles,
             "search_tokens": search_tokens,
             "system_instruction": system_instruction,
+            "trace_id": trace_id,
+            "attempt_no": attempt_no,
         })
 
     except NonRetryableError as e:
@@ -264,13 +275,15 @@ def _call_llm_original(
     prompt, organ_no=None, organ=None, user_input=None, mode="GENERATE",
     structure_key=None, opening_key=None, sentence_key=None, template_name=None,
     fewshot_styles=None, search_tokens=None, system_instruction=None,
+    trace_id=None, attempt_no=0,
 ) -> dict:
     """原始 LLM 呼叫邏輯"""
     try:
         return _call_llm_core(prompt, organ_no, organ, user_input, mode,
                               structure_key, opening_key, sentence_key, template_name,
                               fewshot_styles=fewshot_styles, search_tokens=search_tokens,
-                              system_instruction=system_instruction)
+                              system_instruction=system_instruction,
+                              trace_id=trace_id, attempt_no=attempt_no)
     except Exception as e:
         logger.error(f"LLM API call failed: {str(e)}")
         return _get_default_response(prompt)
@@ -280,6 +293,7 @@ def _call_llm_core(
     prompt, organ_no=None, organ=None, user_input=None, mode="GENERATE",
     structure_key=None, opening_key=None, sentence_key=None, template_name=None,
     fewshot_styles=None, search_tokens=None, system_instruction=None,
+    trace_id=None, attempt_no=0,
 ) -> dict:
     """核心 LLM 呼叫邏輯 - 直接使用傳入的 Prompt（包含 Few-shot）"""
     try:
@@ -333,8 +347,12 @@ def _call_llm_core(
         # Phase 33: 合併搜尋階段的 token 用量
         _search_tk = search_tokens or {}
 
+        # Phase 40: 使用傳入的 trace_id（不再自行產生），並記錄 attempt_no
+        _trace_id = trace_id or f"t-{uuid.uuid4().hex[:16]}"
+
         _try_save_response({
-            "trace_id": f"t-{uuid.uuid4().hex[:16]}",
+            "trace_id": _trace_id,
+            "attempt_no": attempt_no,
             "organ_no": organ_no or "",
             "organ_name": organ or "",
             "company_url": "",
