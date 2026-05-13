@@ -37,6 +37,9 @@ bun.lock
 .opencode/opencode.json
 .opencode/opencode.json.backup
 
+# Backup files
+.gitignore.backup
+
 # Generated reports (keep local, don't commit)
 CHECKPOINT1_*.md
 STAGE2_*.md
