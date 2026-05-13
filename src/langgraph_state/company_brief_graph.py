@@ -636,6 +636,7 @@ def generate_node(state: CompanyBriefState) -> CompanyBriefState:
                 summary=warn_summary,
                 execution_time=execution_time,
                 retry_info=_retry_manager.get_summary(),
+                retry_exhausted=True,
             )
         else:
             # 建立 LLM 結果（附帶重試資訊）
@@ -758,6 +759,7 @@ def quality_check_node(state: CompanyBriefState) -> CompanyBriefState:
                 "summary": llm_result.summary,
                 "quality_score": score,
                 "search_source": search_result.source if search_result else "unknown",
+                "retry_exhausted": llm_result.retry_exhausted,
             }
             state["final_result"] = final_result
 
