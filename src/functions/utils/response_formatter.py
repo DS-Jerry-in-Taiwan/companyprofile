@@ -61,7 +61,7 @@ def build_success_response(payload, generated, trace_id=None):
     error_handled = generated.get("error_handled", False)
     errors = generated.get("errors", [])
 
-    return {
+    result = {
         "success": not error_handled,
         "code": "QUALITY_EXHAUSTED" if generated.get("retry_exhausted") else (
             errors[0] if error_handled and errors else "SUCCESS"
@@ -79,9 +79,11 @@ def build_success_response(payload, generated, trace_id=None):
         "content_paragraphs": extracted["paragraphs"],
         "content_links": extracted["links"],
         "content_plain": extracted["plain"],
-        "error_handled": error_handled,
-        "errors": errors,
     }
+    if error_handled:
+        result["error_handled"] = True
+        result["errors"] = errors
+    return result
 
 
 def build_error_response(code, message, details=None, request_id=None):
