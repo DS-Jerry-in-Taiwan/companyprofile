@@ -68,8 +68,10 @@ provider:
       Resource:
         - !GetAtt LlmResponsesTable.Arn
         - !GetAtt ErrorLogsTable.Arn
+        - !GetAtt QualityLogsTable.Arn
         - !Sub "${LlmResponsesTable.Arn}/index/*"
         - !Sub "${ErrorLogsTable.Arn}/index/*"
+        - !Sub "${QualityLogsTable.Arn}/index/*"
     - Effect: Allow
       Action:
         - bedrock:InvokeModel
@@ -199,6 +201,40 @@ resources:
           - IndexName: error_code-index
             KeySchema:
               - AttributeName: error_code
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+    # ── DynamoDB: 品質閘門日誌記錄（Phase 40） ─────
+    QualityLogsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.stage}-quality-logs
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: trace_id
+            AttributeType: S
+          - AttributeName: created_at
+            AttributeType: S
+          - AttributeName: retry_count
+            AttributeType: N
+          - AttributeName: organ_no
+            AttributeType: S
+        KeySchema:
+          - AttributeName: trace_id
+            KeyType: HASH
+          - AttributeName: created_at
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: retry_count-index
+            KeySchema:
+              - AttributeName: retry_count
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: organ_no-index
+            KeySchema:
+              - AttributeName: organ_no
                 KeyType: HASH
             Projection:
               ProjectionType: ALL

@@ -10,6 +10,7 @@
       "region": "ap-northeast-1",
       "llm_responses_table": "dev-llm-responses",
       "error_logs_table": "dev-error-logs",
+      "quality_logs_table": "dev-quality-logs",
       "description": "Lambda dev 環境用 DynamoDB"
     },
     "lambda-prod": {
@@ -17,6 +18,7 @@
       "region": "ap-northeast-1",
       "llm_responses_table": "prod-llm-responses",
       "error_logs_table": "prod-error-logs",
+      "quality_logs_table": "prod-quality-logs",
       "description": "Lambda prod 環境用 DynamoDB"
     }
   },
