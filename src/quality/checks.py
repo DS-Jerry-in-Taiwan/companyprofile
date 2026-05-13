@@ -9,6 +9,7 @@ import re
 from typing import Tuple
 
 
+# @deprecated Phase 40: 此檢查屬於品質評估而非異常檢測，已從 DEFAULT_CHECKS 移除。
 def check_company_name(
     text: str, organ: str, title: str = "", summary: str = ""
 ) -> Tuple[bool, str]:
@@ -16,6 +17,9 @@ def check_company_name(
 
     由於寫作風格使用第一人稱（「我們」），body_html 可能不含公司名稱，
     因此放寬為 title 或 summary 有公司名即可。
+
+    注意：此函式已於 Phase 40 從 DEFAULT_CHECKS 移除。
+    原因：屬於品質評估而非異常檢測，容易對第一人稱寫法產生誤擋。
     """
     if not text and not title and not summary:
         return False, "內容為空"

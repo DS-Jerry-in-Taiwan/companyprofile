@@ -8,7 +8,6 @@ import logging
 from typing import Callable, List, Tuple
 
 from src.quality.checks import (
-    check_company_name,
     check_min_length,
     check_no_truncation,
     check_normal_start,
@@ -29,7 +28,6 @@ class QualityGate:
 
     # 預設檢查項目（名稱, 函式, 額外參數名）
     DEFAULT_CHECKS = [
-        ("company_name", check_company_name, ["organ", "title", "summary"]),
         ("min_length", check_min_length, []),
         ("no_truncation", check_no_truncation, []),
         ("normal_start", check_normal_start, []),
