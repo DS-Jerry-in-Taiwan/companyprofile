@@ -1,0 +1,59 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "supermemory": {
+      "type": "remote",
+      "url": "https://mcp.supermemory.ai/mcp",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer sm_v5ZDJ1mQJPBaGiyeAnHJkB_JCmGzmqUZmPgSvqkILrWdwvfqPXKJQSdzrqQXYBMioUQhcQgGlYQdfqTxFMhNYsu"
+      }
+    },
+    "filesystem": {
+      "type": "local",
+      "command": [
+        "node",
+        "/home/ubuntu/mcp_server/servers/src/filesystem/dist/index.js",
+        "/home/ubuntu/projects/OrganBriefOptimization"
+      ],
+      "enabled": true
+    },
+    "sequentialthinking": {
+      "type": "local",
+      "command": [
+        "node",
+        "/home/ubuntu/mcp_server/servers/src/sequentialthinking/dist/index.js"
+      ],
+      "enabled": true
+    },
+    "git": {
+      "type": "local",
+      "command": [
+        "python3",
+        "-m",
+        "mcp_server_git",
+        "--repository",
+        "/home/ubuntu/projects/OrganBriefOptimization"
+      ],
+      "enabled": true
+    },
+     "tavily": {
+      "type": "remote",
+      "url": "https://mcp.tavily.com/mcp/?tavilyApiKey=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",
+      "enabled": true
+    },
+    "brave-search": {
+      "type": "local",
+      "command": ["bash", "-c", "docker start brave-search-shared 2>/dev/null || docker run -d --name brave-search-shared -e BRAVE_API_KEY=BSAe_qc4wTzzeKH0qG0blNwehMk4OS3 --entrypoint sleep mcp/brave-search infinity; docker exec -i brave-search-shared node dist/index.js"],
+      "enabled": true
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["docker", "exec", "-i", "playwright-mcp-server", "node", "/app/cli.js"],
+      "enabled": true,
+      "timeout": 30000
+    }
+    
+  },
+  "model": "opencode/nemotron-3-super-free"
+}
