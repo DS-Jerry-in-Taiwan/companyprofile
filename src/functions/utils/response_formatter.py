@@ -63,7 +63,9 @@ def build_success_response(payload, generated, trace_id=None):
 
     return {
         "success": not error_handled,
-        "code": errors[0] if error_handled and errors else "SUCCESS",
+        "code": "QUALITY_EXHAUSTED" if generated.get("retry_exhausted") else (
+            errors[0] if error_handled and errors else "SUCCESS"
+        ),
         "trace_id": trace_id,
         "organNo": payload.get("organNo"),
         "organ": payload.get("organ"),
