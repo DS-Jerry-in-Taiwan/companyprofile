@@ -17,6 +17,7 @@ class StorageFactory:
             return DynamoDBStorage(
                 llm_responses_table=config.get("llm_responses_table"),
                 error_logs_table=config.get("error_logs_table"),
+                quality_logs_table=config.get("quality_logs_table"),
                 region=config.get("region", "ap-northeast-1"),
             )
 

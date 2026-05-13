@@ -29,3 +29,8 @@ class StorageInterface(ABC):
     def list_errors(self, limit: int = 100, error_code: str = None) -> list[dict]:
         """查詢錯誤日誌"""
         pass
+
+    @abstractmethod
+    def save_quality_log(self, item: dict) -> bool:
+        """保存品質閘門重試日誌 (Phase 40)"""
+        pass

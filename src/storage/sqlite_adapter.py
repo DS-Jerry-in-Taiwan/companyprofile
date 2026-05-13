@@ -16,6 +16,7 @@ class LLMResponse(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
 
     trace_id = Column(String, index=True)
+    attempt_no = Column(Integer, default=0)  # Phase 40: 第幾次 attempt
     status = Column(String, default="success")  # success / error
     error_code = Column(String, nullable=True)   # SVC_001, INVALID_REQUEST, etc.
     organ_no = Column(String, index=True)
@@ -81,6 +82,21 @@ class ErrorLog(Base):
     
     # Timestamp
     created_at = Column(String, index=True)
+
+
+class QualityLog(Base):
+    """品質閘門重試日誌表 - Phase 40 新增"""
+    __tablename__ = "quality_logs"
+
+    trace_id      = Column(String, primary_key=True)   # PK: API trace_id
+    organ_no      = Column(String, index=True)
+    organ_name    = Column(String)
+    final_result  = Column(String, index=True)          # no_retry_needed / passed / exhausted
+    retry_count   = Column(Integer, default=0)
+    max_retries   = Column(Integer, default=2)
+    issues        = Column(Text)                        # JSON array
+    history       = Column(Text)                        # JSON object
+    created_at    = Column(String)
 
 
 class SQLiteStorage(StorageInterface):
@@ -196,6 +212,28 @@ class SQLiteStorage(StorageInterface):
             ]
         except Exception as e:
             logger.warning(f"ERROR LIST FAILED | error={e}")
+            raise e
+        finally:
+            session.close()
+
+    def save_quality_log(self, item: dict) -> bool:
+        """保存品質閘門重試日誌 (Phase 40)"""
+        session = self.Session()
+        try:
+            session.add(QualityLog(**item))
+            session.commit()
+            logger.info(
+                f"QUALITY LOG | trace_id={item.get('trace_id')} "
+                f"organ_no={item.get('organ_no')} "
+                f"retry_count={item.get('retry_count')} "
+                f"final_result={item.get('final_result')}"
+            )
+            return True
+        except Exception as e:
+            session.rollback()
+            logger.warning(
+                f"QUALITY LOG FAILED | trace_id={item.get('trace_id')} error={e}"
+            )
             raise e
         finally:
             session.close()

@@ -34,11 +34,13 @@ class DynamoDBStorage(StorageInterface):
         self,
         llm_responses_table: str,
         error_logs_table: str,
+        quality_logs_table: str = None,
         region: str = "ap-northeast-1",
     ):
         self.region = region
         self.llm_responses_table_name = llm_responses_table
         self.error_logs_table_name = error_logs_table
+        self.quality_logs_table_name = quality_logs_table
         self._client = None  # lazy init
 
     @property
@@ -54,6 +56,10 @@ class DynamoDBStorage(StorageInterface):
     @property
     def errors_table(self):
         return self.client.Table(self.error_logs_table_name)
+
+    @property
+    def quality_logs(self):
+        return self.client.Table(self.quality_logs_table_name)
 
     def save_response(self, item: dict) -> bool:
         """保存 LLM 响应到 DynamoDB"""
@@ -137,3 +143,20 @@ class DynamoDBStorage(StorageInterface):
             response = self.errors_table.scan(Limit=limit)
 
         return response.get("Items", [])
+
+    def save_quality_log(self, item: dict) -> bool:
+        """保存品質閘門重試日誌 (Phase 40)"""
+        if "trace_id" not in item:
+            logger.warning("save_quality_log: missing trace_id, skipping")
+            return False
+        if "created_at" not in item:
+            item["created_at"] = datetime.now(timezone.utc).isoformat()
+
+        self.quality_logs.put_item(Item=item)
+        logger.info(
+            f"DYNAMODB QUALITY LOG | table={self.quality_logs_table_name} "
+            f"trace_id={item.get('trace_id')} "
+            f"retry_count={item.get('retry_count')} "
+            f"final_result={item.get('final_result')}"
+        )
+        return True
